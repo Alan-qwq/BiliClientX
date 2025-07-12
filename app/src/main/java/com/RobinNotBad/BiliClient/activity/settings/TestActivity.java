@@ -13,6 +13,7 @@ import com.RobinNotBad.BiliClient.activity.base.BaseActivity;
 import com.RobinNotBad.BiliClient.activity.settings.login.SpecialLoginActivity;
 import com.RobinNotBad.BiliClient.api.ConfInfoApi;
 import com.RobinNotBad.BiliClient.api.CookiesApi;
+import com.RobinNotBad.BiliClient.api.OpusApi;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.MsgUtil;
 import com.RobinNotBad.BiliClient.util.NetWorkUtil;
@@ -24,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -35,7 +37,7 @@ public class TestActivity extends BaseActivity {
 
     SwitchMaterial sw_wbi, sw_post;
     EditText input_link, input_data, output;
-    MaterialCardView btn_crash,btn_request, btn_cookies, btn_payload;
+    MaterialCardView btn_crash,btn_request, btn_cookies, btn_opus;
 
     JSONArray conversation;
 
@@ -51,7 +53,7 @@ public class TestActivity extends BaseActivity {
         input_data = findViewById(R.id.input_data);
         output = findViewById(R.id.output_json);
         btn_crash = findViewById(R.id.crash);
-        btn_payload = findViewById(R.id.payload);
+        btn_opus = findViewById(R.id.opus);
 
         input_link.setText(SharedPreferencesUtil.getString("dev_test_link", ""));
 
@@ -100,12 +102,12 @@ public class TestActivity extends BaseActivity {
             startActivity(intent);
         });
 
-        btn_payload.setOnClickListener(v -> CenterThreadPool.run(()->{
+        btn_opus.setOnClickListener(v -> CenterThreadPool.run(()->{
             try {
-                String payload = CookiesApi.genCookiePayload();
-                runOnUiThread(()-> input_link.setText("https://api.bilibili.com/x/internal/gaia-gateway/ExClimbWuzhi"));
-                runOnUiThread(()-> input_data.setText(payload));
-            } catch (JSONException e) {
+                OpusApi.getOpusContent(1088392846523760706L);
+                //746992184182439955
+                //1088392846523760706
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }));
@@ -118,7 +120,7 @@ public class TestActivity extends BaseActivity {
             sw_post.setVisibility(View.GONE);
             btn_cookies.setVisibility(View.GONE);
             btn_request.setVisibility(View.GONE);
-            btn_payload.setVisibility(View.GONE);
+            btn_opus.setVisibility(View.GONE);
             TextView desc = findViewById(R.id.desc);
             desc.setText(getString(R.string.dev_catgirl_desc));
 
