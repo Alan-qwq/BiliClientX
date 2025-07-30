@@ -25,14 +25,19 @@ public class CreativeCenterActivity extends BaseActivity {
                     JSONObject stats = CreativeCenterApi.getVideoStat();
                     runOnUiThread(() -> {
                         try {
-                            setStatsText(R.id.totalFans_number, stats, "total_fans", "incr_fans");
-                            setStatsText(R.id.totalClick_number, stats, "total_click", "incr_click");
-                            setStatsText(R.id.totalLike_number, stats, "total_like", "inc_like");
-                            setStatsText(R.id.totalCoin_number, stats, "total_coin", "inc_coin");
-                            setStatsText(R.id.totalFavourite_number, stats, "total_fav", "inc_fav");
-                            setStatsText(R.id.totalShare_number, stats, "total_share", "inc_share");
-                            setStatsText(R.id.totalReply_number, stats, "total_reply", "incr_reply");
-                            setStatsText(R.id.totalDm_number, stats, "total_dm", "incr_dm");
+                            if (stats == null){
+                                MsgUtil.showMsg("先去成为UP主吧~");
+                                finish();
+                            } else {
+                                setStatsText(R.id.totalFans_number, stats, "total_fans", "incr_fans");
+                                setStatsText(R.id.totalClick_number, stats, "total_click", "incr_click");
+                                setStatsText(R.id.totalLike_number, stats, "total_like", "inc_like");
+                                setStatsText(R.id.totalCoin_number, stats, "total_coin", "inc_coin");
+                                setStatsText(R.id.totalFavourite_number, stats, "total_fav", "inc_fav");
+                                setStatsText(R.id.totalShare_number, stats, "total_share", "inc_share");
+                                setStatsText(R.id.totalReply_number, stats, "total_reply", "incr_reply");
+                                setStatsText(R.id.totalDm_number, stats, "total_dm", "incr_dm");
+                            }
                         } catch (Exception e) {
                             runOnUiThread(() -> MsgUtil.err(e));
                         }

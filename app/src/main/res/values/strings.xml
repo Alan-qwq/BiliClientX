@@ -223,6 +223,7 @@
         <item>增加了免责声明的首次突脸</item>
         <item>修复了开屏画面卡死问题（禁用了IPV6）</item>
         <item>修复了首次播放视频为1080P的问题</item>
+        <item>修复了未投稿过视频时创作中心报错的问题</item>
         <item>优化了少量屎山代码</item>
         <item>新增了一些bug和屎山代码</item>
     </string-array>
