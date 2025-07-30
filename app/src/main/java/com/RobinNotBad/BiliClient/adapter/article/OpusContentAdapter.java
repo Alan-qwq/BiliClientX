@@ -130,6 +130,11 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                     intent.putExtra("mid", article.upInfo.mid);
                     context.startActivity(intent);
                 });
+
+                if (article.type == Opus.TYPE_DYNAMIC){
+                    holder.itemView.findViewById(R.id.like_coin_fav).setVisibility(View.GONE);
+                }
+
                 ImageButton like = holder.itemView.findViewById(R.id.btn_like);
                 ImageButton coin = holder.itemView.findViewById(R.id.btn_coin);
                 TextView likeLabel = holder.itemView.findViewById(R.id.like_label);
@@ -231,6 +236,11 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                 StringUtil.setCopy(cvidText, "cv" + article.id);
                 views.setText(StringUtil.toWan(article.stats.view) + "阅读");
                 timeText.setText(article.pubTime);
+
+                if (article.type == Opus.TYPE_DYNAMIC){
+                    holder.itemView.findViewById(R.id.viewsIcon).setVisibility(View.GONE);
+                    holder.itemView.findViewById(R.id.viewsCount).setVisibility(View.GONE);
+                }
                 break;
             case OpusParagraph.TYPE_TEXT:
             case OpusParagraph.TYPE_TEXT_REGULAR:

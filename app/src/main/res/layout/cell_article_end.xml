@@ -54,7 +54,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/timeIcon"
-        app:layout_constraintTop_toBottomOf="@id/viewsCount" />
+        app:layout_constraintTop_toBottomOf="@id/cvidText" />
 
     <ImageView
         android:id="@+id/cvidIcon"
