@@ -18,6 +18,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -41,6 +42,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.RobinNotBad.BiliClient.BiliTerminal;
 import com.RobinNotBad.BiliClient.R;
+import com.RobinNotBad.BiliClient.api.ConfInfoApi;
 import com.RobinNotBad.BiliClient.api.DanmakuApi;
 import com.RobinNotBad.BiliClient.api.PlayerApi;
 import com.RobinNotBad.BiliClient.api.VideoInfoApi;
@@ -620,7 +622,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private void MPPrepare(String nowurl) {
         ijkPlayer.setOnPreparedListener(this);
 
-        if (isLiveMode) runOnUiThread(() -> loading_text0.setText("载入直播中"));
+        if (isLiveMode) {
+            runOnUiThread(() -> loading_text0.setText("载入直播中"));
+            danmuSocketConnect();
+        }
         else runOnUiThread(() -> loading_text0.setText("载入视频中"));
         try {
             if (isOnlineVideo) {
@@ -1343,7 +1348,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     add("User-Agent");
                     add(USER_AGENT_WEB);
                 }};
-                Response response = NetWorkUtil.get(url, mHeaders);
+                Response response = NetWorkUtil.get(ConfInfoApi.signWBI(url), mHeaders);
                 JSONObject data = new JSONObject(Objects.requireNonNull(response.body()).string()).getJSONObject("data");
                 JSONObject host = data.getJSONArray("host_list").getJSONObject(0);
 
