@@ -130,7 +130,7 @@ public class SettingMainActivity extends InstanceActivity {
             //彩蛋
             String[] eggList = getResources().getStringArray(R.array.eggs);
             about.setOnLongClickListener(view -> {
-                MsgUtil.showText("彩蛋", eggList[eggClick]);
+                MsgUtil.showText("回声洞", eggList[eggClick]);
                 if (eggClick < eggList.length - 1) eggClick++;
                 return true;
             });
