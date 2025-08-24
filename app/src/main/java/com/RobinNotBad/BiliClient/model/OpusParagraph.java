@@ -19,12 +19,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpusParagraph {
+    //这几个是b站的
     public static final int TYPE_TEXT = 1;
     public static final int TYPE_PIC = 2;
     public static final int TYPE_DIVIDER = 3;
     public static final int TYPE_TEXT_REGULAR = 4;
     public static final int TYPE_LIST = 5;
-    public static final int TYPE_OPUS = 6;
+
+    //这几个是自定义的
+    public static final int TYPE_TEXT_OPUS = 99;
+    public static final int TYPE_VIDEO = 100;
+    public static final int TYPE_DYNAMIC = 101;
+    public static final int TYPE_ARTICLE = 102;
 
     public static final int LIST_STYLE_NUMBER = 1;
     public static final int LIST_STYLE_DOT = 2;
@@ -54,7 +60,7 @@ public class OpusParagraph {
             case TYPE_LIST:
                 this.content = analyzeList(para.optJSONObject("list"));
                 break;
-            case TYPE_OPUS:
+            case TYPE_TEXT_OPUS:
                 this.content = analyzeOpus(para.optJSONArray("data"));
                 break;
             default:
@@ -175,15 +181,23 @@ public class OpusParagraph {
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
         for (int i = 0;i < rich_list.length();i++){
             JSONObject rich = rich_list.getJSONObject(i);
+            int startLength = stringBuilder.length();
             switch (rich.getString("type")){
                 case "RICH_TEXT_NODE_TYPE_AT":
                     stringBuilder.append(rich.getString("text"));
-                    At at = new At(rich.optLong("rid"), stringBuilder.length() - rich.getString("text").length(), stringBuilder.length());
+                    At at = new At(rich.optLong("rid"), startLength, stringBuilder.length());
                     StringUtil.setSingleAt(stringBuilder, at);
                     break;
                 case "RICH_TEXT_NODE_TYPE_TOPIC":
                     stringBuilder.append(rich.getString("text"));
-                    stringBuilder.setSpan(new StringUtil.LinkClickableSpan(rich.getString("jump_url"), TYPE_WEB_URL, rich.getString("jump_url")), stringBuilder.length() - rich.getString("text").length(), stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    stringBuilder.setSpan(new StringUtil.LinkClickableSpan(rich.getString("jump_url"), TYPE_WEB_URL, rich.getString("jump_url")), startLength, stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    break;
+                case "RICH_TEXT_NODE_TYPE_EMOJI":
+                    stringBuilder.append(rich.optString("text"));
+                    JSONObject emoji = rich.getJSONObject("emoji");
+                    String url = emoji.optString("icon_url");
+                    int size = emoji.optInt("size");
+                    EmoteUtil.replaceSingle(stringBuilder, url, size, startLength, stringBuilder.length(), 1.0f);
                     break;
                 case "RICH_TEXT_NODE_TYPE_TEXT":
                 default:

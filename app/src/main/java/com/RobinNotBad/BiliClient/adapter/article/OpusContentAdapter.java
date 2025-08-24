@@ -60,18 +60,29 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
     public ArticleLineHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
         switch (viewType) {    //-1=头，0=文本，1=图片
-            case OpusParagraph.TYPE_PIC:
-            case OpusParagraph.TYPE_DIVIDER:
-                view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_image, parent, false);
-                break;
             case -1:
                 view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_head, parent, false);
                 break;
             case -2:
                 view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_end, parent, false);
                 break;
+            case OpusParagraph.TYPE_PIC:
+            case OpusParagraph.TYPE_DIVIDER:
+                view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_image, parent, false);
+                break;
+            case OpusParagraph.TYPE_ARTICLE:
+                view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_list, parent, false);
+                break;
+            case OpusParagraph.TYPE_VIDEO:
+                view = LayoutInflater.from(this.context).inflate(R.layout.cell_dynamic_video, parent, false);
+                break;
+            case OpusParagraph.TYPE_DYNAMIC:
+                view = LayoutInflater.from(this.context).inflate(R.layout.cell_dynamic_child, parent, false);
+                break;
             case OpusParagraph.TYPE_TEXT:
             case OpusParagraph.TYPE_TEXT_REGULAR:
+            case OpusParagraph.TYPE_TEXT_OPUS:
+            case OpusParagraph.TYPE_LIST:
             default:
                 view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_textview, parent, false);
                 break;
@@ -255,20 +266,32 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                     cvidText.setVisibility(View.GONE);
                 }
                 break;
+
+
+            case OpusParagraph.TYPE_VIDEO:
+
+                break;
+
+            case OpusParagraph.TYPE_ARTICLE:
+
+                break;
+
             case OpusParagraph.TYPE_TEXT:
             case OpusParagraph.TYPE_TEXT_REGULAR:
+            case OpusParagraph.TYPE_TEXT_OPUS:
+            case OpusParagraph.TYPE_LIST:
             default:
                 TextView textView = holder.itemView.findViewById(R.id.textView);  //文本
                 textView.setText((CharSequence) paragraphs[realPosition].content);
                 StringUtil.setCopy(textView);
                 StringUtil.setLink(textView);
                 break;
-
         }
     }
 
     @Override
     public int getItemCount() {
+        if(paragraphs == null) return 0;
         return paragraphs.length + 2;
     }
 

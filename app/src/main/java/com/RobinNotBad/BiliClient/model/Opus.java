@@ -3,6 +3,7 @@ package com.RobinNotBad.BiliClient.model;
 public class Opus {
     public static final int TYPE_DYNAMIC = 1;
     public static final int TYPE_ARTICLE = 2;
+    public static final int TYPE_DYNAMIC_OLD_STYLE = 3;
 
     public long id;
     public int type;
