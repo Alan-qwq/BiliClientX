@@ -5,6 +5,7 @@ import com.RobinNotBad.BiliClient.model.OpusParagraph;
 import com.RobinNotBad.BiliClient.model.Stats;
 import com.RobinNotBad.BiliClient.model.UserInfo;
 import com.RobinNotBad.BiliClient.util.JsonUtil;
+import com.RobinNotBad.BiliClient.util.Logu;
 import com.RobinNotBad.BiliClient.util.NetWorkUtil;
 
 import org.json.JSONArray;
@@ -49,6 +50,21 @@ public class OpusApi {
                 switch (module.optString("module_type")) {
                     case "MODULE_TYPE_TITLE":
                         opus.title = module.getJSONObject("module_title").getString("text");
+                        break;
+                    case "MODULE_TYPE_TOP":
+                        ArrayList<String> topImages = new ArrayList<>();
+                        JSONObject module_top = module.getJSONObject("module_top");
+                        JSONObject display = module_top.getJSONObject("display");
+                        int displayType = display.optInt("type");
+                        if(displayType == 1){
+                            JSONObject album = display.getJSONObject("album");
+                            JSONArray pics = album.getJSONArray("pics");
+                            for (int j = 0; j < pics.length(); j++) {
+                                topImages.add(pics.getJSONObject(j).getString("url"));
+                            }
+                        }
+                        opus.topImages = topImages;
+                        Logu.d("yes");
                         break;
                     case "MODULE_TYPE_AUTHOR":
                         JSONObject module_author = module.getJSONObject("module_author");    //我感觉b站也是一个巨大的草台班子，用户信息格式都好几种，头像有avatar有face有head的，他们自己的程序员不累吗……

@@ -122,7 +122,8 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
 
             case -1:
                 TextView title = holder.itemView.findViewById(R.id.text_title);
-                ImageView cover = holder.itemView.findViewById(R.id.img_cover);
+                ImageView topImage = holder.itemView.findViewById(R.id.topImage);
+                TextView topCount = holder.itemView.findViewById(R.id.topCount);
                 ImageView upIcon = holder.itemView.findViewById(R.id.upInfo_Icon);  //头
                 TextView upName = holder.itemView.findViewById(R.id.upInfo_Name);
                 MaterialCardView upCard = holder.itemView.findViewById(R.id.upInfo);
@@ -134,16 +135,37 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                 }
                 else title.setVisibility(View.GONE);
 
-                upName.setText(article.upInfo.name);
-                if (article.cover.isEmpty()) cover.setVisibility(View.GONE);
-                else {
+                if (!TextUtils.isEmpty(article.cover)) {
                     Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(article.cover)).placeholder(R.mipmap.placeholder)
                             .transition(GlideUtil.getTransitionOptions())
                             .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(4))))
                             .format(DecodeFormat.PREFER_RGB_565)
                             .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(cover);
+                            .into(topImage);
+                    topCount.setVisibility(View.GONE);
                 }
+                else if(article.topImages != null && article.topImages.size() > 0) {
+                    Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(article.topImages.get(0))).placeholder(R.mipmap.placeholder)
+                            .transition(GlideUtil.getTransitionOptions())
+                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(4))))
+                            .format(DecodeFormat.PREFER_RGB_565)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .into(topImage);
+                    topImage.setOnClickListener(view -> {
+                        Intent intent = new Intent();
+                        intent.setClass(context, ImageViewerActivity.class);
+                        intent.putExtra("imageList", article.topImages);
+                        context.startActivity(intent);
+                    });
+                    if(article.topImages.size() > 1) {
+                        topCount.setText(String.format(Locale.CHINA, "共%d张图片", article.topImages.size()));
+                        topCount.setVisibility(View.VISIBLE);
+                    }
+                    else topCount.setVisibility(View.GONE);
+                }
+                else holder.itemView.findViewById(R.id.topImageLayout).setVisibility(View.GONE);
+
+                upName.setText(article.upInfo.name);
                 Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(article.upInfo.avatar)).placeholder(R.mipmap.akari)
                         .transition(GlideUtil.getTransitionOptions())
                         .apply(RequestOptions.circleCropTransform())
@@ -156,7 +178,16 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                     context.startActivity(intent);
                 });
 
-                holder.itemView.findViewById(R.id.like_coin_fav).setVisibility(View.GONE);
+                break;
+
+            case -2:
+                TextView viewCount = holder.itemView.findViewById(R.id.viewCount);
+                TextView timeText = holder.itemView.findViewById(R.id.timeText);
+                TextView cvidText = holder.itemView.findViewById(R.id.cvidText);
+                cvidText.setText("cv" + article.id/* + " | " + article.wordCount + "字"*/);
+                StringUtil.setCopy(cvidText, "cv" + article.id);
+                viewCount.setText(StringUtil.toWan(article.stats.view) + "阅读");
+                timeText.setText(article.pubTime);
 
                 ImageButton like = holder.itemView.findViewById(R.id.btn_like);
                 ImageButton coin = holder.itemView.findViewById(R.id.btn_coin);
@@ -247,17 +278,6 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                         context.runOnUiThread(() -> MsgUtil.err(e));
                     }
                 }));
-
-                break;
-
-            case -2:
-                TextView viewCount = holder.itemView.findViewById(R.id.viewCount);
-                TextView timeText = holder.itemView.findViewById(R.id.timeText);
-                TextView cvidText = holder.itemView.findViewById(R.id.cvidText);
-                cvidText.setText("cv" + article.id/* + " | " + article.wordCount + "字"*/);
-                StringUtil.setCopy(cvidText, "cv" + article.id);
-                viewCount.setText(StringUtil.toWan(article.stats.view) + "阅读");
-                timeText.setText(article.pubTime);
 
                 if (article.type == Opus.TYPE_DYNAMIC){
                     holder.itemView.findViewById(R.id.viewIcon).setVisibility(View.GONE);
