@@ -6,6 +6,7 @@ import com.RobinNotBad.BiliClient.model.Stats;
 import com.RobinNotBad.BiliClient.model.UserInfo;
 import com.RobinNotBad.BiliClient.util.JsonUtil;
 import com.RobinNotBad.BiliClient.util.Logu;
+import com.RobinNotBad.BiliClient.util.MsgUtil;
 import com.RobinNotBad.BiliClient.util.NetWorkUtil;
 
 import org.json.JSONArray;
@@ -92,9 +93,11 @@ public class OpusApi {
             if(opus.upInfo == null) opus.upInfo = new UserInfo();
             if(opus.stats == null) opus.stats = new Stats();
         } catch (IllegalArgumentException e){ // 取不出来的时候，会重定向，但重定向的域名是//开头的，会报错
-            //这里给opus设置一个参数，让OpusInfoActivity跳转到旧版的DynamicInfoActivity
-            //从而无需重写解析
-            opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
+            //这里给opus设置一个参数，让OpusInfoActivity跳转到旧版的DynamicInfoActivity，从而无需重写解析
+            //判断方式很简单粗暴，看报错信息里有没有URL这个关键字，有就是跳转错误
+            String errMsg = e.getMessage();
+            if(errMsg != null && errMsg.contains("URL")) opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
+            else MsgUtil.err(e);
             return opus;
 
             /*

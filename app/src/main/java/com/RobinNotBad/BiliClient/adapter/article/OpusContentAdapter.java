@@ -80,7 +80,7 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                 view = LayoutInflater.from(this.context).inflate(R.layout.cell_dynamic_child, parent, false);
                 break;
             case OpusParagraph.TYPE_TEXT:
-            case OpusParagraph.TYPE_TEXT_REGULAR:
+            case OpusParagraph.TYPE_TEXT_BLOCKQUOTE:
             case OpusParagraph.TYPE_TEXT_OPUS:
             case OpusParagraph.TYPE_LIST:
             default:
@@ -297,7 +297,7 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                 break;
 
             case OpusParagraph.TYPE_TEXT:
-            case OpusParagraph.TYPE_TEXT_REGULAR:
+            case OpusParagraph.TYPE_TEXT_BLOCKQUOTE:
             case OpusParagraph.TYPE_TEXT_OPUS:
             case OpusParagraph.TYPE_LIST:
             default:
