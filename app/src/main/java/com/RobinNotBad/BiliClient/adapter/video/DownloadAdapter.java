@@ -59,39 +59,42 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
 
     @Override
     public void onBindViewHolder(@NonNull DownloadHolder holder, int position) {
-        if (position == 0) {
-            holder.show(DownloadService.section, context);
+        if (downloadList == null || downloadList.isEmpty()) {
+            holder.show(null, context);
+            holder.showProgress(null, -1);
+            holder.itemView.setOnClickListener(null);
+            holder.itemView.setOnLongClickListener(null);
+            return;
+        }
+
+        DownloadSection section = downloadList.get(position);
+        holder.show(section, context);
+
+        if (section.state.equals("downloading") && DownloadService.section != null
+                && DownloadService.section.id == section.id) {
             holder.showProgress(DownloadService.state, DownloadService.percent);
         } else {
-            int realPosition = position - 1;
-            if (downloadList != null && realPosition >= 0 && realPosition < downloadList.size()) {
-                holder.show(downloadList.get(realPosition), context);
-            }
             holder.showProgress(null, -1);
         }
 
         holder.itemView.setOnClickListener(view -> {
-            int clickPosition = position - 1;
-            if (clickListener != null && downloadList != null && clickPosition >= 0
-                    && clickPosition < downloadList.size()) {
-                clickListener.onItemClick(clickPosition);
+            if (clickListener != null) {
+                clickListener.onItemClick(position);
             }
         });
 
         holder.itemView.setOnLongClickListener(view -> {
-            int longClickPosition = position - 1;
-            if (longClickListener != null && downloadList != null && longClickPosition >= 0
-                    && longClickPosition < downloadList.size()) {
-                longClickListener.onItemLongClick(longClickPosition);
+            if (longClickListener != null) {
+                longClickListener.onItemLongClick(position);
                 return true;
-            } else
-                return false;
+            }
+            return false;
         });
     }
 
     @Override
     public int getItemCount() {
-        return downloadList != null ? downloadList.size() + 1 : 1;
+        return downloadList != null && !downloadList.isEmpty() ? downloadList.size() : 1;
     }
 
     public static class DownloadHolder extends RecyclerView.ViewHolder {
@@ -147,11 +150,25 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
             }
             progress.setVisibility(View.VISIBLE);
             extra.setVisibility(View.VISIBLE);
-            extra.setText(state + "：" + String.format(Locale.CHINA, "%.2f", percent * 100));
-            int width = (int) (itemView.getMeasuredWidth() * percent);
-            ViewGroup.LayoutParams layoutParams = progress.getLayoutParams();
-            layoutParams.width = width;
-            progress.setLayoutParams(layoutParams);
+            extra.setText(state + "：" + String.format(Locale.CHINA, "%.2f", percent * 100) + "%");
+            int width = itemView.getMeasuredWidth();
+            if (width > 0) {
+                ViewGroup.LayoutParams layoutParams = progress.getLayoutParams();
+                layoutParams.width = (int) (width * percent);
+                progress.setLayoutParams(layoutParams);
+            } else {
+                progress.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        int measuredWidth = itemView.getMeasuredWidth();
+                        if (measuredWidth > 0) {
+                            ViewGroup.LayoutParams layoutParams = progress.getLayoutParams();
+                            layoutParams.width = (int) (measuredWidth * percent);
+                            progress.setLayoutParams(layoutParams);
+                        }
+                    }
+                });
+            }
         }
     }
 }
