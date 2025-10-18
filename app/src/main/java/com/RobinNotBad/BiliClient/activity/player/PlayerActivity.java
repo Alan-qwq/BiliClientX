@@ -115,16 +115,17 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private int subtitle_curr_index, subtitle_count;
     private float subtitle_delta;
 
-    private RelativeLayout layout_control, layout_top, layout_video, layout_card_bg;
+    private RelativeLayout layout_control, layout_top, layout_video, layout_card_bg, layout_audio_only;
     private LinearLayout layout_speed, right_control, right_second, loading_info, bottom_buttons;
     private LinearLayout card_subtitle, card_danmaku_send;
 
     private ImageView img_loading;
     private AnimationDrawable anim_loading;
-    private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send;
+    private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send,
+            btn_audio_only;
     private SeekBar seekbar_progress, seekbar_speed;
     private TextView text_progress, text_online, text_volume, loading_text0, loading_text1, text_speed, text_newspeed;
-    public TextView text_title, text_subtitle;
+    public TextView text_title, text_subtitle, text_audio_title, text_audio_subtitle;
 
     private Timer progressTimer, speedTimer, loadingTimer, onlineTimer, surfaceTimer;
     private android.os.Handler mainHandler;
@@ -134,6 +135,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private boolean isPlaying, isPrepared, hasDanmaku,
             isOnlineVideo, isLiveMode, isSeeking, isDanmakuVisible;
     private boolean menu_opened = false;
+    private boolean isAudioOnlyMode = false;
 
     private int video_all, video_now, video_now_last;
     private long progress_history;
@@ -246,6 +248,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             batteryView.setVisibility(View.GONE);
 
         loop_enabled = SharedPreferencesUtil.getBoolean("player_loop", false);
+        // 从设置读取听视频模式的默认值
+        isAudioOnlyMode = SharedPreferencesUtil.getBoolean("player_audio_only", false);
         img_loading.setImageResource(R.drawable.loading_tv_shaking);
         anim_loading = (AnimationDrawable) img_loading.getDrawable();
         anim_loading.start();
@@ -310,6 +314,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         layout_card_bg = findViewById(R.id.card_bg);
         card_subtitle = findViewById(R.id.subtitle_card);
         card_danmaku_send = findViewById(R.id.danmaku_send_card);
+        layout_audio_only = findViewById(R.id.audio_only_layout);
 
         loading_info = findViewById(R.id.loading_info);
 
@@ -322,6 +327,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         btn_menu = findViewById(R.id.menu_btn);
         btn_danmaku_send = findViewById(R.id.danmaku_send_btn);
         btn_subtitle = findViewById(R.id.subtitle_btn);
+        btn_audio_only = findViewById(R.id.audio_only_btn);
         btn_control = findViewById(R.id.button_video);
         seekbar_progress = findViewById(R.id.videoprogress);
         loading_text0 = findViewById(R.id.loading_text0);
@@ -339,6 +345,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         bottom_buttons = findViewById(R.id.bottom_buttons);
 
         text_subtitle = findViewById(R.id.text_subtitle);
+        text_audio_title = findViewById(R.id.audio_title);
+        text_audio_subtitle = findViewById(R.id.audio_subtitle);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -525,7 +533,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         seekbar_progress.setVisibility(View.VISIBLE);
         seekbar_progress.setEnabled(false);
         seekbar_progress.postDelayed(progressbarEnable, 200);
-        if (isPrepared && !isLiveMode)
+        if (isPrepared && (!isLiveMode) && (!isAudioOnlyMode))
             text_speed.setVisibility(View.VISIBLE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             batteryView.setPower(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY));
@@ -547,7 +555,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         layout_top.setVisibility(View.GONE);
         bottom_buttons.setVisibility(View.GONE);
         seekbar_progress.setVisibility(View.GONE);
-        if (isPrepared)
+        if (isPrepared && (!isAudioOnlyMode))
             text_speed.setVisibility(View.GONE);
         if (screen_round) {
             text_progress.setGravity(Gravity.CENTER);
@@ -565,8 +573,16 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
         runOnUiThread(() -> loading_text0.setText("初始化播放"));
 
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec",
-                (SharedPreferencesUtil.getBoolean("player_codec", true) ? 1 : 0));
+        if (isAudioOnlyMode) {
+            ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "vn", 1); // 禁用视频
+            ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_frame", 48); // 跳过所有视频帧
+            ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+        } else {
+            ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec",
+                    (SharedPreferencesUtil.getBoolean("player_codec", true) ? 1 : 0));
+            ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+        }
+
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles",
                 (SharedPreferencesUtil.getBoolean("player_audio", false) ? 1 : 0));
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 1);
@@ -576,7 +592,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzeduration", 1);
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 1);
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "dns_cache_clear", 1);
-        ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
 
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "fastseek");
         ijkPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1);
@@ -784,10 +799,20 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 loop_enabled = !loop_enabled;
             });
             btn_loop.setVisibility(View.VISIBLE);
+
+            // 听视频模式按钮
+            updateAudioOnlyButton();
+            btn_audio_only.setOnClickListener(view -> toggleAudioOnlyMode());
+            btn_audio_only.setVisibility(View.VISIBLE);
         }
 
         seekbar_progress.setMax(video_all);
         progress_str = StringUtil.toTime(video_all / 1000);
+
+        // 初始化时应用听视频模式设置
+        if (isAudioOnlyMode) {
+            updateAudioOnlyUI();
+        }
 
         if (SharedPreferencesUtil.getBoolean("player_from_last", true) && !isLiveMode) {
             if (progress_history > 5) {
@@ -838,6 +863,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         int height = ijkPlayer.getVideoHeight();
         Logu.v("screen", screen_width + "x" + screen_height);
         Logu.v("video", width + "x" + height);
+
+        // 在听视频模式下，视频宽高可能为0，跳过尺寸调整
+        if (width == 0 || height == 0) {
+            Logu.v("视频尺寸", "视频宽高为0，跳过尺寸调整（可能处于听视频模式）");
+            return;
+        }
 
         if (SharedPreferencesUtil.getBoolean("player_ui_round", false)) {
             float video_mul = (float) height / (float) width;
@@ -1728,6 +1759,100 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 mDanmakuView.seekTo(position);
             }
         }
+    }
+
+    private void toggleAudioOnlyMode() {
+        boolean oldMode = isAudioOnlyMode;
+        isAudioOnlyMode = !isAudioOnlyMode;
+        // 不保存状态，仅在当前播放会话中切换
+
+        if (isPrepared && ijkPlayer != null) {
+            final long currentPosition = ijkPlayer.getCurrentPosition();
+            final boolean wasPlaying = isPlaying;
+
+            MsgUtil.showMsg(isAudioOnlyMode ? "正在切换到听视频模式..." : "正在切换到普通模式...");
+
+            CenterThreadPool.run(() -> {
+                try {
+                    runOnUiThread(() -> {
+                        if (hasDanmaku && mDanmakuView != null) {
+                            mDanmakuView.pause();
+                        }
+                        if (ijkPlayer != null) {
+                            ijkPlayer.stop();
+                            ijkPlayer.release();
+                        }
+
+                        loading_info.setVisibility(View.VISIBLE);
+                        anim_loading.start();
+                        loading_text0.setText(isAudioOnlyMode ? "切换到听视频模式" : "切换到普通模式");
+                        isPrepared = false;
+                        isPlaying = false;
+
+                        updateAudioOnlyButton();
+                        updateAudioOnlyUI();
+                    });
+
+                    Thread.sleep(100);
+
+                    runOnUiThread(() -> {
+                        ijkPlayer = new IjkMediaPlayer();
+                        progress_history = currentPosition;
+
+                        setDisplay();
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> {
+                        MsgUtil.showMsg("切换失败，请重试");
+                        isAudioOnlyMode = oldMode;
+                        // 不保存状态
+                        updateAudioOnlyButton();
+                        updateAudioOnlyUI();
+                        loading_info.setVisibility(View.GONE);
+                        anim_loading.stop();
+                    });
+                }
+            });
+        } else {
+            updateAudioOnlyButton();
+            updateAudioOnlyUI();
+            MsgUtil.showMsg(isAudioOnlyMode ? "已切换到听视频模式" : "已切换到普通模式");
+        }
+    }
+
+    private void updateAudioOnlyButton() {
+        if (btn_audio_only != null) {
+            btn_audio_only
+                    .setImageResource(isAudioOnlyMode ? R.drawable.icon_audio_only_on : R.drawable.icon_audio_only_off);
+        }
+    }
+
+    private void updateAudioOnlyUI() {
+        runOnUiThread(() -> {
+            if (isAudioOnlyMode) {
+                // 进入听视频模式
+                text_speed.setVisibility(View.GONE);
+                btn_danmaku.setVisibility(View.GONE);
+                layout_video.setVisibility(View.GONE);
+                layout_audio_only.setVisibility(View.VISIBLE);
+                if (mDanmakuView != null) {
+                    mDanmakuView.setVisibility(View.GONE);
+                }
+                if (text_audio_title != null) {
+                    String title = text_title.getText().toString();
+                    text_audio_title.setText(title.isEmpty() ? "听视频模式" : title);
+                }
+            } else {
+                // 退出听视频模式
+                text_speed.setVisibility(View.VISIBLE);
+                btn_danmaku.setVisibility(View.VISIBLE);
+                layout_video.setVisibility(View.VISIBLE);
+                layout_audio_only.setVisibility(View.GONE);
+                if (mDanmakuView != null && isDanmakuVisible) {
+                    mDanmakuView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
     private boolean eventBusInit = false;
