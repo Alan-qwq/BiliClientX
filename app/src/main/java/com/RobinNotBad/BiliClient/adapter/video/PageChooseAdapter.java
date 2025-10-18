@@ -48,26 +48,28 @@ public class PageChooseAdapter extends RecyclerView.Adapter<PageChooseAdapter.Ho
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
+        if (position < 0 || position >= nameList.size())
+            return;
 
         holder.folder_name.setText(nameList.get(position));
 
-
         holder.itemView.setOnClickListener(view -> {
-            if (onItemClickListener != null) onItemClickListener.onItemClick(position);
+            if (onItemClickListener != null)
+                onItemClickListener.onItemClick(position);
         });
 
         holder.itemView.setOnLongClickListener(view -> {
             if (onItemLongClickListener != null) {
                 onItemLongClickListener.onItemLongClick(position);
                 return true;
-            } else return false;
+            } else
+                return false;
         });
-
     }
 
     @Override
     public int getItemCount() {
-        return nameList.size();
+        return nameList != null ? nameList.size() : 0;
     }
 
     public static class Holder extends RecyclerView.ViewHolder {

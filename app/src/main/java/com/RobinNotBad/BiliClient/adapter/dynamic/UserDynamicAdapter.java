@@ -76,29 +76,37 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof DynamicHolder) {
             int realPosition = position - 1;
+            if (realPosition < 0 || realPosition >= dynamicList.size())
+                return;
+
+            Dynamic dynamic = dynamicList.get(realPosition);
+            if (dynamic == null)
+                return;
+
             DynamicHolder dynamicHolder = (DynamicHolder) holder;
+            dynamicHolder.showDynamic(context, dynamic, true);
 
-            dynamicHolder.showDynamic(context, dynamicList.get(realPosition), true);
-
-            if (dynamicList.get(realPosition).dynamic_forward != null) {
+            if (dynamic.dynamic_forward != null) {
                 View childCard = dynamicHolder.cell_dynamic_child;
-                DynamicHolder childHolder = new DynamicHolder(childCard, (BaseActivity) context, true);
-                childHolder.showDynamic(context, dynamicList.get(realPosition).dynamic_forward, true);
+                if (dynamicHolder.childDynamicHolder == null) {
+                    dynamicHolder.childDynamicHolder = new DynamicHolder(childCard, (BaseActivity) context, true);
+                }
+                dynamicHolder.childDynamicHolder.showDynamic(context, dynamic.dynamic_forward, true);
                 dynamicHolder.cell_dynamic_child.setVisibility(View.VISIBLE);
             } else {
                 dynamicHolder.cell_dynamic_child.setVisibility(View.GONE);
             }
 
-            View.OnLongClickListener onDeleteLongClick = DynamicHolder.getDeleteListener((Activity) context, dynamicList, realPosition, this);
+            View.OnLongClickListener onDeleteLongClick = DynamicHolder.getDeleteListener((Activity) context,
+                    dynamicList, realPosition, this);
             dynamicHolder.item_dynamic_delete.setOnLongClickListener(onDeleteLongClick);
-            if (dynamicList.get(realPosition).canDelete)
+            if (dynamic.canDelete)
                 dynamicHolder.item_dynamic_delete.setVisibility(View.VISIBLE);
         }
         if (holder instanceof UserInfoHolder) {
             ((UserInfoHolder) holder).bind(context, userInfo);
         }
     }
-
 
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
@@ -107,7 +115,7 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public int getItemCount() {
-        return dynamicList.size() + 1;
+        return dynamicList != null ? dynamicList.size() + 1 : 1;
     }
 
     @Override
@@ -116,7 +124,8 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     public static class UserInfoHolder extends RecyclerView.ViewHolder {
-        final TextView userName, userFollowings, userLevel, userFans, userDesc, userNotice, userOfficial, exclusiveTipLabel, liveRoomLabel;
+        final TextView userName, userFollowings, userLevel, userFans, userDesc, userNotice, userOfficial,
+                exclusiveTipLabel, liveRoomLabel;
         final MaterialCardView exclusiveTip, liveRoom;
         final ImageView userAvatar, officialIcon;
         final TextView uidTv;
@@ -147,45 +156,59 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         public void setFollowed(boolean followed) {
             msgBtn.setVisibility((followed ? View.VISIBLE : View.GONE));
-            followBtn.setBackgroundTintList(ColorStateList.valueOf((followed ? Color.argb(0xDD, 0x26, 0x26, 0x26) : Color.argb(0xFE, 0xF0, 0x5D, 0x8E))));
+            followBtn.setBackgroundTintList(ColorStateList
+                    .valueOf((followed ? Color.argb(0xDD, 0x26, 0x26, 0x26) : Color.argb(0xFE, 0xF0, 0x5D, 0x8E))));
             followBtn.setText((followed ? "已关注" : "关注"));
         }
 
         @SuppressLint("SetTextI18n")
-        public void bind(Context context, UserInfo userInfo){
+        public void bind(Context context, UserInfo userInfo) {
             SpannableStringBuilder lvStr = new SpannableStringBuilder("Lv" + userInfo.level);
-            lvStr.setSpan(StringUtil.getLevelBadge(context, userInfo), 0, lvStr.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            lvStr.setSpan(StringUtil.getLevelBadge(context, userInfo), 0, lvStr.length(),
+                    Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             if (userInfo.vip_role > 0) {
-                LinkedHashMap<Integer, String> vipTypeMap = new LinkedHashMap<>() {{
-                    put(1, "月度大会员");
-                    put(3, "年度大会员");
-                    put(7, "十年大会员");
-                    put(15, "百年大会员");
-                }};
+                LinkedHashMap<Integer, String> vipTypeMap = new LinkedHashMap<>() {
+                    {
+                        put(1, "月度大会员");
+                        put(3, "年度大会员");
+                        put(7, "十年大会员");
+                        put(15, "百年大会员");
+                    }
+                };
                 lvStr.append("  ").append(vipTypeMap.get(userInfo.vip_role)).append(" ");
-                lvStr.setSpan(new RadiusBackgroundSpan(1, (int) context.getResources().getDimension(R.dimen.card_round), Color.WHITE, Color.rgb(207, 75, 95)), ("Lv" + userInfo.level).length() + 1, lvStr.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                lvStr.setSpan(
+                        new RadiusBackgroundSpan(1, (int) context.getResources().getDimension(R.dimen.card_round),
+                                Color.WHITE, Color.rgb(207, 75, 95)),
+                        ("Lv" + userInfo.level).length() + 1, lvStr.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }
             this.userLevel.setText(lvStr);
             if (!userInfo.vip_nickname_color.isEmpty())
                 this.userName.setTextColor(Color.parseColor(userInfo.vip_nickname_color));
             this.userName.setText(userInfo.name);
             this.userDesc.setText(userInfo.sign);
-            if (!userInfo.notice.isEmpty()) this.userNotice.setText(userInfo.notice);
-            else this.userNotice.setVisibility(View.GONE);
+            if (!userInfo.notice.isEmpty())
+                this.userNotice.setText(userInfo.notice);
+            else
+                this.userNotice.setVisibility(View.GONE);
             this.uidTv.setText(String.valueOf(userInfo.mid));
             StringUtil.setCopy(this.uidTv);
             StringUtil.setLink(this.userDesc, this.userNotice);
             this.userFans.setText(StringUtil.toWan(userInfo.fans) + "粉丝");
-            this.userFans.setOnClickListener((view) -> view.getContext().startActivity(new Intent(view.getContext(), FollowUsersActivity.class).putExtra("mode", 1).putExtra("mid", userInfo.mid)));
+            this.userFans.setOnClickListener(
+                    (view) -> view.getContext().startActivity(new Intent(view.getContext(), FollowUsersActivity.class)
+                            .putExtra("mode", 1).putExtra("mid", userInfo.mid)));
             this.userFollowings.setText(StringUtil.toWan(userInfo.following) + "关注");
-            this.userFollowings.setOnClickListener((view) -> view.getContext().startActivity(new Intent(view.getContext(), FollowUsersActivity.class).putExtra("mode", 0).putExtra("mid", userInfo.mid)));
+            this.userFollowings.setOnClickListener(
+                    (view) -> view.getContext().startActivity(new Intent(view.getContext(), FollowUsersActivity.class)
+                            .putExtra("mode", 0).putExtra("mid", userInfo.mid)));
 
             if (userInfo.official != 0) {
                 this.officialIcon.setVisibility(View.VISIBLE);
                 this.userOfficial.setVisibility(View.VISIBLE);
-                String[] official_signs = {"哔哩哔哩不知名UP主", "哔哩哔哩知名UP主", "哔哩哔哩大V达人", "哔哩哔哩企业认证",
-                        "哔哩哔哩组织认证", "哔哩哔哩媒体认证", "哔哩哔哩政府认证", "哔哩哔哩高能主播", "社会不知名人士", "社会知名人士"};
-                this.userOfficial.setText(official_signs[userInfo.official] + (userInfo.officialDesc.isEmpty() ? "" : ("\n" + userInfo.officialDesc)));
+                String[] official_signs = { "哔哩哔哩不知名UP主", "哔哩哔哩知名UP主", "哔哩哔哩大V达人", "哔哩哔哩企业认证",
+                        "哔哩哔哩组织认证", "哔哩哔哩媒体认证", "哔哩哔哩政府认证", "哔哩哔哩高能主播", "社会不知名人士", "社会知名人士" };
+                this.userOfficial.setText(official_signs[userInfo.official]
+                        + (userInfo.officialDesc.isEmpty() ? "" : ("\n" + userInfo.officialDesc)));
             } else {
                 this.officialIcon.setVisibility(View.GONE);
                 this.userOfficial.setVisibility(View.GONE);
@@ -214,17 +237,22 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 drawable.setBounds(0, 0, 30, 30);
                 spannableString.setSpan(new ImageSpan(drawable), 0, 2, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                 this.exclusiveTipLabel.setText(spannableString);
-            } else this.exclusiveTip.setVisibility(View.GONE);
+            } else
+                this.exclusiveTip.setVisibility(View.GONE);
 
             if (userInfo.live_room != null) {
                 this.liveRoom.setVisibility(View.VISIBLE);
                 this.liveRoomLabel.setText(userInfo.live_room.title);
-                this.liveRoom.setOnClickListener(view -> TerminalContext.getInstance().enterLiveDetailPage(context, userInfo.live_room.roomid));
-            } else this.liveRoom.setVisibility(View.GONE);
+                this.liveRoom.setOnClickListener(
+                        view -> TerminalContext.getInstance().enterLiveDetailPage(context, userInfo.live_room.roomid));
+            } else
+                this.liveRoom.setVisibility(View.GONE);
 
-            if ((userInfo.mid == SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0)) || (SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) == 0) || (userInfo.mid == 0))
+            if ((userInfo.mid == SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0))
+                    || (SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) == 0) || (userInfo.mid == 0))
                 this.followBtn.setVisibility(View.GONE);
-            else this.followBtn.setChecked(userInfo.followed);
+            else
+                this.followBtn.setChecked(userInfo.followed);
             this.followBtn.setOnClickListener(btn -> {
                 followBtn.setEnabled(false);
                 this.setFollowed(!(userInfo.followed));
@@ -237,8 +265,10 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                             msg = "操作成功喵~";
                         } else {
                             CenterThreadPool.runOnUiThread(() -> this.setFollowed(userInfo.followed));
-                            if (result == 22015) msg = "被B站风控系统拦截了\n（无法解决，详见公告）";
-                            else msg = "操作失败（原因未知）：" + result;
+                            if (result == 22015)
+                                msg = "被B站风控系统拦截了\n（无法解决，详见公告）";
+                            else
+                                msg = "操作失败（原因未知）：" + result;
                         }
                         MsgUtil.showMsg(msg);
                     } catch (Exception e) {
@@ -257,14 +287,18 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             });
 
             this.userDesc.setOnClickListener(view1 -> {
-                if (desc_expand) this.userDesc.setMaxLines(2);
-                else this.userDesc.setMaxLines(32);
+                if (desc_expand)
+                    this.userDesc.setMaxLines(2);
+                else
+                    this.userDesc.setMaxLines(32);
                 desc_expand = !desc_expand;
             });
 
             this.userNotice.setOnClickListener(view1 -> {
-                if (notice_expand) this.userNotice.setMaxLines(2);
-                else this.userNotice.setMaxLines(32);
+                if (notice_expand)
+                    this.userNotice.setMaxLines(2);
+                else
+                    this.userNotice.setMaxLines(32);
                 notice_expand = !notice_expand;
             });
 

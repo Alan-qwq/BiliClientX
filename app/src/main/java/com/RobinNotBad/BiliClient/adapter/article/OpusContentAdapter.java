@@ -59,7 +59,7 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
     @Override
     public ArticleLineHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
-        switch (viewType) {    //-1=头，0=文本，1=图片
+        switch (viewType) { // -1=头，0=文本，1=图片
             case -1:
                 view = LayoutInflater.from(this.context).inflate(R.layout.cell_article_head, parent, false);
                 break;
@@ -93,30 +93,44 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ArticleLineHolder holder, int position) {
+        if (paragraphs == null || position < 0)
+            return;
         int realPosition = position - 1;
+        if (realPosition >= 0 && realPosition >= paragraphs.length)
+            return;
+
         switch (getItemViewType(position)) {
             case OpusParagraph.TYPE_PIC:
             case OpusParagraph.TYPE_DIVIDER:
-                ImageFilterView imageView = holder.itemView.findViewById(R.id.imageView);  //图片
-                TextView imageCount = holder.itemView.findViewById(R.id.imageCount);  //图片
+                if (realPosition < 0 || realPosition >= paragraphs.length)
+                    break;
+                ImageFilterView imageView = holder.itemView.findViewById(R.id.imageView);
+                TextView imageCount = holder.itemView.findViewById(R.id.imageCount);
 
-                String[] urls = (String[]) paragraphs[realPosition].content;
-                // 为什么有时候图片会是空的
-                int length = urls.length;
-                if (length != 0) {
-                    Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(urls[0])).placeholder(R.mipmap.placeholder)
-                            .transition(GlideUtil.getTransitionOptions())
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(imageView);
+                if (paragraphs[realPosition].content instanceof String[]) {
+                    String[] urls = (String[]) paragraphs[realPosition].content;
+                    int length = urls != null ? urls.length : 0;
+                    if (length > 0 && urls[0] != null) {
+                        String imageUrl = GlideUtil.url(urls[0]);
+                        if (!imageUrl.equals(holder.lastImageUrl)) {
+                            holder.lastImageUrl = imageUrl;
+                            Glide.with(BiliTerminal.context).asDrawable().load(imageUrl)
+                                    .placeholder(R.mipmap.placeholder)
+                                    .transition(GlideUtil.getTransitionOptions())
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                    .into(imageView);
+                        }
 
-                    imageView.setOnClickListener(view -> {
-                        Intent intent = new Intent();
-                        intent.setClass(context, ImageViewerActivity.class);
-                        intent.putExtra("imageList", new ArrayList<>(Arrays.asList(urls)));
-                        context.startActivity(intent);
-                    });
+                        imageView.setOnClickListener(view -> {
+                            Intent intent = new Intent();
+                            intent.setClass(context, ImageViewerActivity.class);
+                            intent.putExtra("imageList", new ArrayList<>(Arrays.asList(urls)));
+                            context.startActivity(intent);
+                        });
 
-                    if(length > 1) imageCount.setText(String.format(Locale.CHINA,"共%d张图片", length));
+                        if (length > 1)
+                            imageCount.setText(String.format(Locale.CHINA, "共%d张图片", length));
+                    }
                 }
                 break;
 
@@ -124,53 +138,67 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                 TextView title = holder.itemView.findViewById(R.id.text_title);
                 ImageView topImage = holder.itemView.findViewById(R.id.topImage);
                 TextView topCount = holder.itemView.findViewById(R.id.topCount);
-                ImageView upIcon = holder.itemView.findViewById(R.id.upInfo_Icon);  //头
+                ImageView upIcon = holder.itemView.findViewById(R.id.upInfo_Icon); // 头
                 TextView upName = holder.itemView.findViewById(R.id.upInfo_Name);
                 MaterialCardView upCard = holder.itemView.findViewById(R.id.upInfo);
 
-                if(!TextUtils.isEmpty(article.title)) {
+                if (!TextUtils.isEmpty(article.title)) {
                     title.setVisibility(View.VISIBLE);
                     title.setText(article.title);
                     StringUtil.setCopy(title);
-                }
-                else title.setVisibility(View.GONE);
+                } else
+                    title.setVisibility(View.GONE);
 
                 if (!TextUtils.isEmpty(article.cover)) {
-                    Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(article.cover)).placeholder(R.mipmap.placeholder)
-                            .transition(GlideUtil.getTransitionOptions())
-                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(4))))
-                            .format(DecodeFormat.PREFER_RGB_565)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(topImage);
+                    String coverUrl = GlideUtil.url(article.cover);
+                    if (!coverUrl.equals(holder.lastTopImageUrl)) {
+                        holder.lastTopImageUrl = coverUrl;
+                        Glide.with(BiliTerminal.context).asDrawable().load(coverUrl)
+                                .placeholder(R.mipmap.placeholder)
+                                .transition(GlideUtil.getTransitionOptions())
+                                .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(4))))
+                                .format(DecodeFormat.PREFER_RGB_565)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .into(topImage);
+                    }
                     topCount.setVisibility(View.GONE);
-                }
-                else if(article.topImages != null && article.topImages.size() > 0) {
-                    Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(article.topImages.get(0))).placeholder(R.mipmap.placeholder)
-                            .transition(GlideUtil.getTransitionOptions())
-                            .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(4))))
-                            .format(DecodeFormat.PREFER_RGB_565)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(topImage);
+                } else if (article.topImages != null && article.topImages.size() > 0) {
+                    String firstImageUrl = GlideUtil.url(article.topImages.get(0));
+                    if (!firstImageUrl.equals(holder.lastTopImageUrl)) {
+                        holder.lastTopImageUrl = firstImageUrl;
+                        Glide.with(BiliTerminal.context).asDrawable().load(firstImageUrl)
+                                .placeholder(R.mipmap.placeholder)
+                                .transition(GlideUtil.getTransitionOptions())
+                                .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(4))))
+                                .format(DecodeFormat.PREFER_RGB_565)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .into(topImage);
+                    }
                     topImage.setOnClickListener(view -> {
                         Intent intent = new Intent();
                         intent.setClass(context, ImageViewerActivity.class);
                         intent.putExtra("imageList", article.topImages);
                         context.startActivity(intent);
                     });
-                    if(article.topImages.size() > 1) {
+                    if (article.topImages.size() > 1) {
                         topCount.setText(String.format(Locale.CHINA, "共%d张图片", article.topImages.size()));
                         topCount.setVisibility(View.VISIBLE);
-                    }
-                    else topCount.setVisibility(View.GONE);
-                }
-                else holder.itemView.findViewById(R.id.topImageLayout).setVisibility(View.GONE);
+                    } else
+                        topCount.setVisibility(View.GONE);
+                } else
+                    holder.itemView.findViewById(R.id.topImageLayout).setVisibility(View.GONE);
 
                 upName.setText(article.upInfo.name);
-                Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(article.upInfo.avatar)).placeholder(R.mipmap.akari)
-                        .transition(GlideUtil.getTransitionOptions())
-                        .apply(RequestOptions.circleCropTransform())
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .into(upIcon);
+                String avatarUrl = GlideUtil.url(article.upInfo.avatar);
+                if (!avatarUrl.equals(holder.lastAvatarUrl)) {
+                    holder.lastAvatarUrl = avatarUrl;
+                    Glide.with(BiliTerminal.context).asDrawable().load(avatarUrl)
+                            .placeholder(R.mipmap.akari)
+                            .transition(GlideUtil.getTransitionOptions())
+                            .apply(RequestOptions.circleCropTransform())
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .into(upIcon);
+                }
                 upCard.setOnClickListener(view1 -> {
                     Intent intent = new Intent();
                     intent.setClass(context, UserInfoActivity.class);
@@ -184,7 +212,7 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                 TextView viewCount = holder.itemView.findViewById(R.id.viewCount);
                 TextView timeText = holder.itemView.findViewById(R.id.timeText);
                 TextView cvidText = holder.itemView.findViewById(R.id.cvidText);
-                cvidText.setText("cv" + article.id/* + " | " + article.wordCount + "字"*/);
+                cvidText.setText("cv" + article.id/* + " | " + article.wordCount + "字" */);
                 StringUtil.setCopy(cvidText, "cv" + article.id);
                 viewCount.setText(StringUtil.toWan(article.stats.view) + "阅读");
                 timeText.setText(article.pubTime);
@@ -214,8 +242,10 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
 
                                 if (article.stats.liked)
                                     likeLabel.setText(StringUtil.toWan(++article.stats.like));
-                                else likeLabel.setText(StringUtil.toWan(--article.stats.like));
-                                like.setImageResource(article.stats.liked ? R.drawable.icon_like_1 : R.drawable.icon_like_0);
+                                else
+                                    likeLabel.setText(StringUtil.toWan(--article.stats.like));
+                                like.setImageResource(
+                                        article.stats.liked ? R.drawable.icon_like_1 : R.drawable.icon_like_0);
                             });
                         } else {
                             context.runOnUiThread(() -> MsgUtil.showMsg("操作失败：" + result));
@@ -234,7 +264,8 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                             }
                             int result = ArticleApi.addCoin(article.id, article.upInfo.mid, 1);
                             if (result == 0) {
-                                if(++coinAdd <= 2) article.stats.coined++;
+                                if (++coinAdd <= 2)
+                                    article.stats.coined++;
                                 context.runOnUiThread(() -> {
                                     MsgUtil.showMsg("投币成功！");
                                     coinLabel.setText(StringUtil.toWan(++article.stats.coin));
@@ -279,14 +310,13 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
                     }
                 }));
 
-                if (article.type == Opus.TYPE_DYNAMIC){
+                if (article.type == Opus.TYPE_DYNAMIC) {
                     holder.itemView.findViewById(R.id.viewIcon).setVisibility(View.GONE);
                     viewCount.setVisibility(View.GONE);
                     holder.itemView.findViewById(R.id.cvidIcon).setVisibility(View.GONE);
                     cvidText.setVisibility(View.GONE);
                 }
                 break;
-
 
             case OpusParagraph.TYPE_VIDEO:
 
@@ -301,28 +331,55 @@ public class OpusContentAdapter extends RecyclerView.Adapter<OpusContentAdapter.
             case OpusParagraph.TYPE_TEXT_OPUS:
             case OpusParagraph.TYPE_LIST:
             default:
-                TextView textView = holder.itemView.findViewById(R.id.textView);  //文本
-                textView.setText((CharSequence) paragraphs[realPosition].content);
-                StringUtil.setCopy(textView);
-                StringUtil.setLink(textView);
+                if (realPosition >= 0 && realPosition < paragraphs.length && paragraphs[realPosition].content != null) {
+                    TextView textView = holder.itemView.findViewById(R.id.textView);
+                    if (paragraphs[realPosition].content instanceof CharSequence) {
+                        textView.setText((CharSequence) paragraphs[realPosition].content);
+                        StringUtil.setCopy(textView);
+                        StringUtil.setLink(textView);
+                    }
+                }
                 break;
         }
     }
 
     @Override
     public int getItemCount() {
-        if(paragraphs == null) return 0;
+        if (paragraphs == null)
+            return 2;
         return paragraphs.length + 2;
     }
 
     @Override
+    public void onViewRecycled(@NonNull ArticleLineHolder holder) {
+        holder.lastTopImageUrl = null;
+        holder.lastAvatarUrl = null;
+        holder.lastImageUrl = null;
+        super.onViewRecycled(holder);
+    }
+
+    @Override
     public int getItemViewType(int position) {
-        if (position == 0) return -1;
-        else if (position == paragraphs.length + 1) return -2;
-        else return paragraphs[position - 1].type;
+        if (paragraphs == null)
+            return -1;
+        if (position == 0)
+            return -1;
+        else if (position == paragraphs.length + 1)
+            return -2;
+        else {
+            int realPosition = position - 1;
+            if (realPosition >= 0 && realPosition < paragraphs.length) {
+                return paragraphs[realPosition].type;
+            }
+            return -1;
+        }
     }
 
     public static class ArticleLineHolder extends RecyclerView.ViewHolder {
+        String lastTopImageUrl;
+        String lastAvatarUrl;
+        String lastImageUrl;
+
         public ArticleLineHolder(@NonNull View itemView) {
             super(itemView);
         }

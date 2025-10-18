@@ -33,17 +33,24 @@ public class NoticeAdapter extends RecyclerView.Adapter<NoticeHolder> {
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull NoticeHolder holder, int position) {
-        holder.showMessage(messageList.get(position), context);
+        if (position < 0 || position >= messageList.size())
+            return;
+        MessageCard message = messageList.get(position);
+        if (message == null)
+            return;
+        holder.showMessage(message, context);
     }
 
     @Override
     public void onViewRecycled(@NonNull NoticeHolder holder) {
-        holder.extraCard.removeAllViews();
+        if (holder.extraCard != null) {
+            holder.extraCard.removeAllViews();
+        }
         super.onViewRecycled(holder);
     }
 
     @Override
     public int getItemCount() {
-        return messageList.size();
+        return messageList != null ? messageList.size() : 0;
     }
 }

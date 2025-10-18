@@ -40,20 +40,24 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
+        if (position < 0 || position >= list.size())
+            return;
         Announcement announcement = list.get(position);
+        if (announcement == null)
+            return;
 
         holder.name.setText(announcement.title);
-        int extra_start = announcement.content.indexOf("<extra_insert>");
-        holder.content.setText(extra_start == -1 ? announcement.content : announcement.content.substring(0, extra_start) + "[附加内容]");
+        int extra_start = announcement.content != null ? announcement.content.indexOf("<extra_insert>") : -1;
+        holder.content.setText(
+                extra_start == -1 ? announcement.content : announcement.content.substring(0, extra_start) + "[附加内容]");
         holder.info.setText("ID:" + announcement.id + " | " + announcement.ctime);
 
         holder.cardView.setOnClickListener(view -> MsgUtil.showText(announcement.title, announcement.content));
-
     }
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return list != null ? list.size() : 0;
     }
 
     public static class Holder extends RecyclerView.ViewHolder {

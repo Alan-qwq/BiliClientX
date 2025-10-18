@@ -45,17 +45,27 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.Holder
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
-        holder.name.setText(userList.get(position).name);
-        if (!userList.get(position).vip_nickname_color.isEmpty()) {
-            holder.name.setTextColor(Color.parseColor(userList.get(position).vip_nickname_color));
-        }
-        holder.desc.setText(userList.get(position).sign);
+        if (position < 0 || position >= userList.size())
+            return;
+        UserInfo user = userList.get(position);
+        if (user == null)
+            return;
 
-        if (userList.get(position).avatar.isEmpty()) {
+        holder.name.setText(user.name);
+        if (user.vip_nickname_color != null && !user.vip_nickname_color.isEmpty()) {
+            try {
+                holder.name.setTextColor(Color.parseColor(user.vip_nickname_color));
+            } catch (IllegalArgumentException e) {
+                holder.name.setTextColor(Color.WHITE);
+            }
+        }
+        holder.desc.setText(user.sign);
+
+        if (user.avatar == null || user.avatar.isEmpty()) {
             holder.avatar.setVisibility(View.GONE);
             holder.desc.setSingleLine(false);
         } else {
-            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(userList.get(position).avatar))
+            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(user.avatar))
                     .transition(GlideUtil.getTransitionOptions())
                     .placeholder(R.mipmap.akari)
                     .apply(RequestOptions.circleCropTransform())
@@ -65,11 +75,11 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.Holder
             holder.desc.setSingleLine(true);
         }
 
-        if (userList.get(position).mid != -1) {
+        if (user.mid != -1) {
             holder.itemView.setOnClickListener(view -> {
                 Intent intent = new Intent()
                         .setClass(context, UserInfoActivity.class)
-                        .putExtra("mid", userList.get(position).mid);
+                        .putExtra("mid", user.mid);
                 context.startActivity(intent);
             });
         }
@@ -77,7 +87,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.Holder
 
     @Override
     public int getItemCount() {
-        return userList.size();
+        return userList != null ? userList.size() : 0;
     }
 
     public static class Holder extends RecyclerView.ViewHolder {

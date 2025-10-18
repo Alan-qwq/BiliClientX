@@ -52,6 +52,8 @@ public class FavoriteFolderAdapter extends RecyclerView.Adapter<FavoriteFolderAd
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull FavoriteHolder holder, int position) {
+        if (folderList == null)
+            return;
         if (position == folderList.size()) {
             holder.name.setText("图文收藏夹");
             holder.count.setText("");
@@ -65,10 +67,14 @@ public class FavoriteFolderAdapter extends RecyclerView.Adapter<FavoriteFolderAd
                 Intent intent = new Intent(context, FavouriteOpusListActivity.class);
                 context.startActivity(intent);
             });
-        } else {
-            holder.name.setText(StringUtil.htmlToString(folderList.get(position).name));
-            holder.count.setText(folderList.get(position).videoCount + "/" + folderList.get(position).maxCount);
-            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(folderList.get(position).cover))
+        } else if (position >= 0 && position < folderList.size()) {
+            FavoriteFolder folder = folderList.get(position);
+            if (folder == null)
+                return;
+
+            holder.name.setText(StringUtil.htmlToString(folder.name));
+            holder.count.setText(folder.videoCount + "/" + folder.maxCount);
+            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(folder.cover))
                     .transition(GlideUtil.getTransitionOptions())
                     .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))))
                     .format(DecodeFormat.PREFER_RGB_565)
@@ -77,9 +83,9 @@ public class FavoriteFolderAdapter extends RecyclerView.Adapter<FavoriteFolderAd
             holder.itemView.setOnClickListener(view -> {
                 Intent intent = new Intent();
                 intent.setClass(context, FavoriteVideoListActivity.class);
-                intent.putExtra("fid", folderList.get(position).id);
+                intent.putExtra("fid", folder.id);
                 intent.putExtra("mid", mid);
-                intent.putExtra("name", folderList.get(position).name);
+                intent.putExtra("name", folder.name);
                 context.startActivity(intent);
             });
         }
@@ -87,7 +93,7 @@ public class FavoriteFolderAdapter extends RecyclerView.Adapter<FavoriteFolderAd
 
     @Override
     public int getItemCount() {
-        return folderList.size() + 1;
+        return folderList != null ? folderList.size() + 1 : 1;
     }
 
     public static class FavoriteHolder extends RecyclerView.ViewHolder {

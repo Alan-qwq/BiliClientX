@@ -65,6 +65,11 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
     public final boolean isChild;
     final BaseActivity mActivity;
     public ActivityResultLauncher<Intent> relayDynamicLauncher;
+    public DynamicHolder childDynamicHolder;
+    private VideoCardHolder videoCardHolder;
+    private ArticleCardHolder articleCardHolder;
+    private String lastAvatarUrl;
+    private String lastImageUrl;
 
     public DynamicHolder(@NonNull View itemView, BaseActivity mActivity, boolean isChild) {
         super(itemView);
@@ -98,13 +103,15 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public static void removeDynamicFromList(List<Dynamic> dynamicList, int finalPosition, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
+    public static void removeDynamicFromList(List<Dynamic> dynamicList, int finalPosition,
+            RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
         dynamicList.remove(finalPosition);
         adapter.notifyItemRemoved(finalPosition + 1);
         adapter.notifyItemRangeChanged(finalPosition + 1, dynamicList.size() - finalPosition);
     }
 
-    public static View.OnLongClickListener getDeleteListener(Activity dynamicActivity, List<Dynamic> dynamicList, int finalPosition, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
+    public static View.OnLongClickListener getDeleteListener(Activity dynamicActivity, List<Dynamic> dynamicList,
+            int finalPosition, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
         return new View.OnLongClickListener() {
             private int longClickPosition = -1;
             private long longClickTime = -1;
@@ -121,7 +128,8 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
                                     dynamicList.remove(finalPosition);
                                     dynamicActivity.runOnUiThread(() -> {
                                         adapter.notifyItemRemoved(finalPosition + 1);
-                                        adapter.notifyItemRangeChanged(finalPosition + 1, dynamicList.size() - finalPosition);
+                                        adapter.notifyItemRangeChanged(finalPosition + 1,
+                                                dynamicList.size() - finalPosition);
                                         longClickPosition = -1;
                                         MsgUtil.showMsg("删除成功~");
                                     });
@@ -167,7 +175,11 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
                                 int result = DynamicApi.deleteDynamic(dynamic.dynamicId);
                                 if (result == 0) {
                                     dynamicActivity.runOnUiThread(() -> {
-                                        dynamicActivity.setResult(Activity.RESULT_OK, dynamicActivity.getIntent().getExtras() != null ? new Intent().putExtras(dynamicActivity.getIntent().getExtras()) : new Intent());
+                                        dynamicActivity.setResult(Activity.RESULT_OK,
+                                                dynamicActivity.getIntent().getExtras() != null
+                                                        ? new Intent()
+                                                                .putExtras(dynamicActivity.getIntent().getExtras())
+                                                        : new Intent());
                                         dynamicActivity.finish();
                                         MsgUtil.showMsg("删除成功~");
                                     });
@@ -198,31 +210,39 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
         };
     }
 
-    @SuppressLint({"SetTextI18n", "ClickableViewAccessibility"})
-    public void showDynamic(Context context, Dynamic dynamic, boolean clickable) {    //公用的显示函数 这样修改和调用都方便
-        if(!TextUtils.isEmpty(dynamic.title)) {
+    @SuppressLint({ "SetTextI18n", "ClickableViewAccessibility" })
+    public void showDynamic(Context context, Dynamic dynamic, boolean clickable) { // 公用的显示函数 这样修改和调用都方便
+        if (!TextUtils.isEmpty(dynamic.title)) {
             title.setVisibility(View.VISIBLE);
             title.setText(dynamic.title);
-        }
-        else title.setVisibility(View.GONE);
+        } else
+            title.setVisibility(View.GONE);
 
         username.setText(dynamic.userInfo.name);
         if (!dynamic.userInfo.vip_nickname_color.isEmpty()) {
             username.setTextColor(Color.parseColor(dynamic.userInfo.vip_nickname_color));
+        } else {
+            username.setTextColor(0xFFFFFFFF);
         }
-        if (pubdate != null) pubdate.setText(dynamic.pubTime);
+        if (pubdate != null)
+            pubdate.setText(dynamic.pubTime);
         if (dynamic.content != null && !TextUtils.isEmpty(dynamic.content)) {
             content.setVisibility(View.VISIBLE);
             content.setText(dynamic.content);
             StringUtil.setCopy(content);
             content.setOnTouchListener(new StringUtil.ClickableSpanTouchListener());
-        } else content.setVisibility(View.GONE);
-        Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(dynamic.userInfo.avatar))
-                .transition(GlideUtil.getTransitionOptions())
-                .placeholder(R.mipmap.akari)
-                .apply(RequestOptions.circleCropTransform())
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .into(avatar);
+        } else
+            content.setVisibility(View.GONE);
+
+        if (!dynamic.userInfo.avatar.equals(lastAvatarUrl)) {
+            lastAvatarUrl = dynamic.userInfo.avatar;
+            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(dynamic.userInfo.avatar))
+                    .transition(GlideUtil.getTransitionOptions())
+                    .placeholder(R.mipmap.akari)
+                    .apply(RequestOptions.circleCropTransform())
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(avatar);
+        }
 
         avatar.setOnClickListener(view -> {
             Intent intent = new Intent();
@@ -232,82 +252,97 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
         });
 
         boolean isPgc = false;
-        for (View view1 : Arrays.asList(cell_dynamic_video, cell_dynamic_child, cell_dynamic_image, cell_dynamic_article)) {
+        for (View view1 : Arrays.asList(cell_dynamic_video, cell_dynamic_child, cell_dynamic_image,
+                cell_dynamic_article)) {
             if (view1 != null) {
                 view1.setVisibility(View.GONE);
             }
         }
-        if (dynamic.major_type != null) switch (dynamic.major_type) {
-            case "MAJOR_TYPE_PGC":
-                isPgc = true;
-            case "MAJOR_TYPE_ARCHIVE":
-            case "MAJOR_TYPE_UGC_SEASON":
-                VideoCard childVideoCard = (VideoCard) dynamic.major_object;
-                VideoCardHolder video_holder = new VideoCardHolder(cell_dynamic_video);
-                video_holder.showVideoCard(childVideoCard, context);
-                boolean finalIsPgc = isPgc;
-                cell_dynamic_video.setOnClickListener(view -> TerminalContext.getInstance().enterVideoDetailPage(context, childVideoCard.aid, "", finalIsPgc ? "media": null));
-                cell_dynamic_video.setVisibility(View.VISIBLE);
-                break;
+        if (dynamic.major_type != null)
+            switch (dynamic.major_type) {
+                case "MAJOR_TYPE_PGC":
+                    isPgc = true;
+                case "MAJOR_TYPE_ARCHIVE":
+                case "MAJOR_TYPE_UGC_SEASON":
+                    VideoCard childVideoCard = (VideoCard) dynamic.major_object;
+                    if (videoCardHolder == null) {
+                        videoCardHolder = new VideoCardHolder(cell_dynamic_video);
+                    }
+                    videoCardHolder.showVideoCard(childVideoCard, context);
+                    boolean finalIsPgc = isPgc;
+                    cell_dynamic_video.setOnClickListener(view -> TerminalContext.getInstance()
+                            .enterVideoDetailPage(context, childVideoCard.aid, "", finalIsPgc ? "media" : null));
+                    cell_dynamic_video.setVisibility(View.VISIBLE);
+                    break;
 
-            case "MAJOR_TYPE_LIVE":
-            case "MAJOR_TYPE_LIVE_RCMD":
-                LiveRoom liveRoom = (LiveRoom) dynamic.major_object;
-                VideoCard childLiveCard = new VideoCard();
-                childLiveCard.title = liveRoom.title;
-                childLiveCard.cover = liveRoom.cover;
-                childLiveCard.upName = liveRoom.uname;
-                childLiveCard.view = "";
-                childLiveCard.type = "live";
+                case "MAJOR_TYPE_LIVE":
+                case "MAJOR_TYPE_LIVE_RCMD":
+                    LiveRoom liveRoom = (LiveRoom) dynamic.major_object;
+                    VideoCard childLiveCard = new VideoCard();
+                    childLiveCard.title = liveRoom.title;
+                    childLiveCard.cover = liveRoom.cover;
+                    childLiveCard.upName = liveRoom.uname;
+                    childLiveCard.view = "";
+                    childLiveCard.type = "live";
 
-                VideoCardHolder card_holder = new VideoCardHolder(cell_dynamic_video);
-                card_holder.showVideoCard(childLiveCard, context);
-                cell_dynamic_video.setOnClickListener(view -> TerminalContext.getInstance().enterLiveDetailPage(context, liveRoom.roomid));
-                cell_dynamic_video.setVisibility(View.VISIBLE);
-                break;
+                    if (videoCardHolder == null) {
+                        videoCardHolder = new VideoCardHolder(cell_dynamic_video);
+                    }
+                    videoCardHolder.showVideoCard(childLiveCard, context);
+                    cell_dynamic_video.setOnClickListener(
+                            view -> TerminalContext.getInstance().enterLiveDetailPage(context, liveRoom.roomid));
+                    cell_dynamic_video.setVisibility(View.VISIBLE);
+                    break;
 
-            case "MAJOR_TYPE_ARTICLE":
-                ArticleCard articleCard = (ArticleCard) dynamic.major_object;
-                ArticleCardHolder article_holder = new ArticleCardHolder(cell_dynamic_article);
-                article_holder.showArticleCard(articleCard, context);
-                cell_dynamic_article.setOnClickListener(view -> TerminalContext.getInstance().enterArticleDetailPage(context, articleCard.id));
-                cell_dynamic_article.setVisibility(View.VISIBLE);
-                break;
+                case "MAJOR_TYPE_ARTICLE":
+                    ArticleCard articleCard = (ArticleCard) dynamic.major_object;
+                    if (articleCardHolder == null) {
+                        articleCardHolder = new ArticleCardHolder(cell_dynamic_article);
+                    }
+                    articleCardHolder.showArticleCard(articleCard, context);
+                    cell_dynamic_article.setOnClickListener(
+                            view -> TerminalContext.getInstance().enterArticleDetailPage(context, articleCard.id));
+                    cell_dynamic_article.setVisibility(View.VISIBLE);
+                    break;
 
-            case "MAJOR_TYPE_DRAW":
-            case "MAJOR_TYPE_OPUS":
-                ArrayList<String> pictureList;
-                if (dynamic.major_object instanceof ArrayList) {
-                    pictureList = (ArrayList<String>) dynamic.major_object;
-                } else {
-                    pictureList = new ArrayList<>();
-                }
+                case "MAJOR_TYPE_DRAW":
+                case "MAJOR_TYPE_OPUS":
+                    ArrayList<String> pictureList;
+                    if (dynamic.major_object instanceof ArrayList) {
+                        pictureList = (ArrayList<String>) dynamic.major_object;
+                    } else {
+                        pictureList = new ArrayList<>();
+                    }
 
-                if(!pictureList.isEmpty()) {
-                    ImageView imageView = cell_dynamic_image.findViewById(R.id.imageView);
-                    Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(pictureList.get(0)))
-                            .transition(GlideUtil.getTransitionOptions())
-                            .placeholder(R.mipmap.placeholder)
-                            .centerCrop()
-                            .format(DecodeFormat.PREFER_RGB_565)
-                            .sizeMultiplier(0.85f)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(imageView);
-                    TextView textView = cell_dynamic_image.findViewById(R.id.imageCount);
-                    textView.setText("共" + pictureList.size() + "张图片");
-                    imageView.setOnClickListener(view -> {
-                        Intent intent = new Intent();
-                        intent.setClass(context, ImageViewerActivity.class);
-                        intent.putExtra("imageList", pictureList);
-                        context.startActivity(intent);
-                    });
-                    cell_dynamic_image.setVisibility(View.VISIBLE);
-                }
-                break;
-        }
+                    if (!pictureList.isEmpty()) {
+                        ImageView imageView = cell_dynamic_image.findViewById(R.id.imageView);
+                        String firstImageUrl = pictureList.get(0);
+                        if (!firstImageUrl.equals(lastImageUrl)) {
+                            lastImageUrl = firstImageUrl;
+                            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(firstImageUrl))
+                                    .transition(GlideUtil.getTransitionOptions())
+                                    .placeholder(R.mipmap.placeholder)
+                                    .centerCrop()
+                                    .format(DecodeFormat.PREFER_RGB_565)
+                                    .sizeMultiplier(0.85f)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                    .into(imageView);
+                        }
+                        TextView textView = cell_dynamic_image.findViewById(R.id.imageCount);
+                        textView.setText("共" + pictureList.size() + "张图片");
+                        imageView.setOnClickListener(view -> {
+                            Intent intent = new Intent();
+                            intent.setClass(context, ImageViewerActivity.class);
+                            intent.putExtra("imageList", pictureList);
+                            context.startActivity(intent);
+                        });
+                        cell_dynamic_image.setVisibility(View.VISIBLE);
+                    }
+                    break;
+            }
 
-        if(dynamic.major_object == null && dynamic.dynamic_forward == null)
-            extraCard.setVisibility(View.GONE);  //这部分在adapter里
+        if (dynamic.major_object == null && dynamic.dynamic_forward == null)
+            extraCard.setVisibility(View.GONE); // 这部分在adapter里
         else
             extraCard.setVisibility(View.VISIBLE);
 
@@ -315,10 +350,12 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
             content.setMaxLines(5);
             if (dynamic.dynamicId != 0) {
                 (isChild ? itemView.findViewById(R.id.dynamic_child) : itemView).setOnClickListener(view -> {
-                    if(context instanceof Activity) {
-                        TerminalContext.getInstance().enterDynamicDetailPageForResult((Activity) context, dynamic.dynamicId, getAdapterPosition(), GO_TO_INFO_REQUEST);
+                    if (context instanceof Activity) {
+                        TerminalContext.getInstance().enterDynamicDetailPageForResult((Activity) context,
+                                dynamic.dynamicId, getAdapterPosition(), GO_TO_INFO_REQUEST);
                     } else {
-                        TerminalContext.getInstance().enterDynamicDetailPage(context, dynamic.dynamicId, getAdapterPosition());
+                        TerminalContext.getInstance().enterDynamicDetailPage(context, dynamic.dynamicId,
+                                getAdapterPosition());
                     }
                 });
                 content.setOnClickListener(view -> {
@@ -345,7 +382,8 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
             TerminalContext.getInstance().setForwardContent(dynamic);
             relayDynamicLauncher.launch(intent);
         };
-        if (item_dynamic_share != null && clickable) item_dynamic_share.setOnClickListener(onRelayClick);
+        if (item_dynamic_share != null && clickable)
+            item_dynamic_share.setOnClickListener(onRelayClick);
 
         View.OnClickListener onDeleteClick = view -> MsgUtil.showMsg("长按删除");
         if (item_dynamic_delete != null) {
@@ -355,12 +393,14 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
 
         if (likeCount != null) {
             if (dynamic.stats != null) {
-                if (dynamic.stats.liked) {           //这里，还有下面，一定要加else！否则会导致错乱
+                if (dynamic.stats.liked) { // 这里，还有下面，一定要加else！否则会导致错乱
                     likeCount.setTextColor(Color.rgb(0xfe, 0x67, 0x9a));
-                    likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null, null);
+                    likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                            ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null, null);
                 } else {
                     likeCount.setTextColor(Color.rgb(0xff, 0xff, 0xff));
-                    likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null, null);
+                    likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                            ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null, null);
                 }
                 likeCount.setText(toWan(dynamic.stats.like));
             } else {
@@ -375,7 +415,9 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
                                 MsgUtil.showMsg("点赞成功");
                                 likeCount.setText(toWan(++dynamic.stats.like));
                                 likeCount.setTextColor(Color.rgb(0xfe, 0x67, 0x9a));
-                                likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null, null);
+                                likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                                        ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null,
+                                        null);
                             });
                         } else
                             ((Activity) context).runOnUiThread(() -> MsgUtil.showMsg("点赞失败"));
@@ -390,7 +432,9 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
                                 MsgUtil.showMsg("取消成功");
                                 likeCount.setText(toWan(--dynamic.stats.like));
                                 likeCount.setTextColor(Color.rgb(0xff, 0xff, 0xff));
-                                likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null, null);
+                                likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                                        ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null,
+                                        null);
                             });
                         } else
                             ((Activity) context).runOnUiThread(() -> MsgUtil.showMsg("取消失败"));

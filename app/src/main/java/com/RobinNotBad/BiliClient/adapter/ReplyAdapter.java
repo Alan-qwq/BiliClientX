@@ -68,7 +68,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public final int replyType;
     OnItemClickListener listener;
 
-    public ReplyAdapter(Context context, ArrayList<Reply> replyList, long oid, long root, int type, int sort, long up_mid) {
+    public ReplyAdapter(Context context, ArrayList<Reply> replyList, long oid, long root, int type, int sort,
+            long up_mid) {
         this.context = context;
         this.replyList = replyList;
         this.oid = oid;
@@ -110,14 +111,15 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 intent.putExtra("replyType", replyType);
                 context.startActivity(intent);
             });
-            String[] sorts = {"未知排序", "未知排序", "时间排序", "热度排序"};
+            String[] sorts = { "未知排序", "未知排序", "时间排序", "热度排序" };
             if (isDetail) {
                 writeReply.sort.setVisibility(View.GONE);
                 writeReply.count_label.setVisibility(View.GONE);
             } else {
                 writeReply.sort.setText(sorts[sort]);
                 writeReply.sort.setOnClickListener(view -> {
-                    if (this.listener != null) listener.onItemClick(0);
+                    if (this.listener != null)
+                        listener.onItemClick(0);
                     writeReply.sort.setText(sorts[sort]);
                 });
                 writeReply.count_label.setText("共" + count + "条评论");
@@ -130,42 +132,61 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             } else {
                 realPosition = position - 1;
             }
+            if (realPosition < 0 || realPosition >= replyList.size())
+                return;
+
             ReplyHolder replyHolder = (ReplyHolder) holder;
             Reply reply = replyList.get(realPosition);
+            if (reply == null || reply.sender == null)
+                return;
 
-            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(reply.sender.avatar))
-                    .transition(GlideUtil.getTransitionOptions())
-                    .placeholder(R.mipmap.akari)
-                    .apply(RequestOptions.circleCropTransform())
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(replyHolder.replyAvatar);
+            if (!GlideUtil.url(reply.sender.avatar).equals(replyHolder.lastAvatarUrl)) {
+                replyHolder.lastAvatarUrl = GlideUtil.url(reply.sender.avatar);
+                Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(reply.sender.avatar))
+                        .transition(GlideUtil.getTransitionOptions())
+                        .placeholder(R.mipmap.akari)
+                        .apply(RequestOptions.circleCropTransform())
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .into(replyHolder.replyAvatar);
+            }
 
             UserInfo sender = reply.sender;
             SpannableStringBuilder name_str = new SpannableStringBuilder();
 
-            //大会员红字
-            if (!TextUtils.isEmpty(sender.vip_nickname_color) && !SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.NO_VIP_COLOR, false))
+            // 大会员红字
+            if (!TextUtils.isEmpty(sender.vip_nickname_color)
+                    && !SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.NO_VIP_COLOR, false))
                 replyHolder.userName.setTextColor(Color.parseColor(sender.vip_nickname_color));
 
-            //up主标识
+            // up主标识
             if (sender.mid == up_mid) {
                 name_str.append(" UP ");
                 name_str.append(reply.sender.name);
-                name_str.setSpan(new RadiusBackgroundSpan(2, (int) context.getResources().getDimension(R.dimen.round_small), Color.WHITE, Color.rgb(207, 75, 95)), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                name_str.setSpan(
+                        new RadiusBackgroundSpan(2, (int) context.getResources().getDimension(R.dimen.round_small),
+                                Color.WHITE, Color.rgb(207, 75, 95)),
+                        0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 name_str.setSpan(new RelativeSizeSpan(0.8f), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            else name_str.append(sender.name);
+            } else
+                name_str.append(sender.name);
             int last_length = name_str.length();
             name_str.append(" ").append(String.valueOf(sender.level));
-            if(sender.is_senior_member == 1) name_str.append("+");
-            name_str.setSpan(StringUtil.getLevelBadge(context, sender), last_length + 1, name_str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (sender.is_senior_member == 1)
+                name_str.append("+");
+            name_str.setSpan(StringUtil.getLevelBadge(context, sender), last_length + 1, name_str.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-            //等级
+            // 等级
             if (!TextUtils.isEmpty(sender.medal_name)) {
                 last_length = name_str.length();
-                name_str.append("  ").append(sender.medal_name).append("Lv").append(String.valueOf(sender.medal_level)).append(" ");
-                name_str.setSpan(new RadiusBackgroundSpan(2, (int) context.getResources().getDimension(R.dimen.round_small), Color.WHITE, Color.argb(140, 158, 186, 232)), last_length + 1, name_str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                name_str.setSpan(new RelativeSizeSpan(0.8f), last_length + 1, name_str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                name_str.append("  ").append(sender.medal_name).append("Lv").append(String.valueOf(sender.medal_level))
+                        .append(" ");
+                name_str.setSpan(
+                        new RadiusBackgroundSpan(2, (int) context.getResources().getDimension(R.dimen.round_small),
+                                Color.WHITE, Color.argb(140, 158, 186, 232)),
+                        last_length + 1, name_str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                name_str.setSpan(new RelativeSizeSpan(0.8f), last_length + 1, name_str.length(),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
             replyHolder.userName.setText(name_str);
@@ -186,10 +207,12 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             if (reply.liked) {
                 replyHolder.likeCount.setTextColor(Color.rgb(0xfe, 0x67, 0x9a));
-                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null, null);
+                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                        ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null, null);
             } else {
                 replyHolder.likeCount.setTextColor(Color.rgb(0xff, 0xff, 0xff));
-                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null, null);
+                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                        ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null, null);
             }
 
             if (reply.childCount != 0 && !(realPosition == 0 && isDetail)) {
@@ -200,41 +223,70 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 else
                     replyHolder.childCount.setText("共" + reply.childCount + "条回复");
 
-                if (reply.childMsgList != null) {
-                    for (Reply child : reply.childMsgList) {
+                if (reply.childMsgList != null && replyHolder.childReplies != null) {
+                    int childCount = reply.childMsgList.size();
+                    int existingViewCount = replyHolder.childReplies.getChildCount();
+
+                    for (int i = 0; i < childCount; i++) {
+                        Reply child = reply.childMsgList.get(i);
+                        if (child == null || child.sender == null)
+                            continue;
+
                         SpannableStringBuilder childMsg = new SpannableStringBuilder();
                         if (child.sender.mid == up_mid) {
                             childMsg.append(" UP ");
                             childMsg.append(child.sender.name);
-                            childMsg.setSpan(new RadiusBackgroundSpan(2, (int) context.getResources().getDimension(R.dimen.round_small), Color.WHITE, Color.rgb(207, 75, 95)), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            childMsg.setSpan(new RadiusBackgroundSpan(2,
+                                    (int) context.getResources().getDimension(R.dimen.round_small), Color.WHITE,
+                                    Color.rgb(207, 75, 95)), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                             childMsg.setSpan(new RelativeSizeSpan(0.8f), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        }
-                        else childMsg.append(child.sender.name);
+                        } else
+                            childMsg.append(child.sender.name);
 
                         childMsg.append("：").append(child.message);
 
-                        if(replyHolder.childReplies == null) return;
-                        @SuppressLint("InflateParams") TextView textView = (TextView) LayoutInflater.from(context).inflate(R.layout.cell_reply_child, null);
+                        TextView textView;
+                        if (i < existingViewCount) {
+                            textView = (TextView) replyHolder.childReplies.getChildAt(i);
+                            textView.setVisibility(View.VISIBLE);
+                        } else {
+                            @SuppressLint("InflateParams")
+                            TextView newTextView = (TextView) LayoutInflater.from(context)
+                                    .inflate(R.layout.cell_reply_child, null);
+                            replyHolder.childReplies.addView(newTextView);
+                            textView = newTextView;
+                        }
                         textView.setText(childMsg);
-                        replyHolder.childReplies.addView(textView);
+                    }
+
+                    for (int i = childCount; i < existingViewCount; i++) {
+                        replyHolder.childReplies.getChildAt(i).setVisibility(View.GONE);
                     }
                 }
-            } else replyHolder.childReplyCard.setVisibility(View.GONE);
+            } else
+                replyHolder.childReplyCard.setVisibility(View.GONE);
 
-            if (reply.upLiked) replyHolder.upLiked.setVisibility(View.VISIBLE);
-            else replyHolder.upLiked.setVisibility(View.GONE);
+            if (reply.upLiked)
+                replyHolder.upLiked.setVisibility(View.VISIBLE);
+            else
+                replyHolder.upLiked.setVisibility(View.GONE);
 
             replyHolder.pubDate.setText(reply.pubTime);
 
-            if (reply.pictureList != null && !reply.pictureList.isEmpty()) {  //图片显示相关
+            if (reply.pictureList != null && !reply.pictureList.isEmpty()) {
                 replyHolder.imageCard.setVisibility(View.VISIBLE);
                 replyHolder.imageCount.setVisibility(View.VISIBLE);
-                Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(reply.pictureList.get(0)))
-                        .transition(GlideUtil.getTransitionOptions())
-                        .placeholder(R.mipmap.placeholder)
-                        .format(DecodeFormat.PREFER_RGB_565)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .into(replyHolder.imageCard);
+
+                String firstImageUrl = GlideUtil.url(reply.pictureList.get(0));
+                if (!firstImageUrl.equals(replyHolder.lastImageUrl)) {
+                    replyHolder.lastImageUrl = firstImageUrl;
+                    Glide.with(BiliTerminal.context).asDrawable().load(firstImageUrl)
+                            .transition(GlideUtil.getTransitionOptions())
+                            .placeholder(R.mipmap.placeholder)
+                            .format(DecodeFormat.PREFER_RGB_565)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .into(replyHolder.imageCard);
+                }
 
                 replyHolder.imageCount.setText("共" + reply.pictureList.size() + "张图片");
                 replyHolder.imageCard.setOnClickListener(view -> {
@@ -274,7 +326,9 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                 MsgUtil.showMsg("点赞成功");
                                 replyHolder.likeCount.setText(toWan(++reply.likeCount));
                                 replyHolder.likeCount.setTextColor(Color.rgb(0xfe, 0x67, 0x9a));
-                                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null, null);
+                                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                                        ContextCompat.getDrawable(context, R.drawable.icon_reply_like1), null, null,
+                                        null);
                             });
                         } else
                             ((Activity) context).runOnUiThread(() -> MsgUtil.showMsg("点赞失败"));
@@ -291,7 +345,9 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                 MsgUtil.showMsg("取消成功");
                                 replyHolder.likeCount.setText(toWan(--reply.likeCount));
                                 replyHolder.likeCount.setTextColor(Color.rgb(0xff, 0xff, 0xff));
-                                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null, null);
+                                replyHolder.likeCount.setCompoundDrawablesWithIntrinsicBounds(
+                                        ContextCompat.getDrawable(context, R.drawable.icon_reply_like0), null, null,
+                                        null);
                             });
                         } else
                             ((Activity) context).runOnUiThread(() -> MsgUtil.showMsg("取消失败"));
@@ -303,8 +359,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 }
             }));
 
-            //删除按钮
-            if(isManager || reply.sender.mid == SharedPreferencesUtil.getLong("mid",0)) {
+            // 删除按钮
+            if (isManager || reply.sender.mid == SharedPreferencesUtil.getLong("mid", 0)) {
                 View.OnClickListener onDeleteClick = view -> MsgUtil.showMsg("长按删除");
                 replyHolder.item_reply_delete.setOnClickListener(onDeleteClick);
                 View.OnLongClickListener onDeleteLongClick = new View.OnLongClickListener() {
@@ -356,10 +412,10 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 };
                 replyHolder.item_reply_delete.setOnLongClickListener(onDeleteLongClick);
                 replyHolder.item_reply_delete.setVisibility(View.VISIBLE);
-            }
-            else replyHolder.item_reply_delete.setVisibility(View.GONE);
+            } else
+                replyHolder.item_reply_delete.setVisibility(View.GONE);
 
-            //回复按钮
+            // 回复按钮
             replyHolder.replyBtn.setOnClickListener(view -> {
                 boolean noParent = isDetail && realPosition == 0;
                 Intent intent = new Intent();
@@ -371,7 +427,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 intent.putExtra("pos", realPosition);
                 if (root != 0 && !noParent)
                     intent.putExtra("parentSender", reply.sender.name);
-                else intent.putExtra("parentSender", "");
+                else
+                    intent.putExtra("parentSender", "");
                 context.startActivity(intent);
             });
         }
@@ -379,14 +436,17 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
-        if(holder instanceof ReplyHolder){
-            ((ReplyHolder) holder).childReplies.removeAllViews();
-            ((ReplyHolder) holder).imageCard.setImageBitmap(null);
+        if (holder instanceof ReplyHolder) {
+            ReplyHolder replyHolder = (ReplyHolder) holder;
+            replyHolder.lastAvatarUrl = null;
+            replyHolder.lastImageUrl = null;
         }
         super.onViewRecycled(holder);
     }
 
     public void startReplyInfoActivity(Reply reply) {
+        if (reply == null)
+            return;
         long rpid = reply.rpid;
         long oid = reply.oid;
         Intent intent = new Intent();
@@ -401,7 +461,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public int getItemCount() {
-        return replyList.size() + 1;
+        return replyList != null ? replyList.size() + 1 : 1;
     }
 
     @Override
@@ -429,7 +489,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         final TextView item_reply_delete;
         final LinearLayout childReplyCard;
         final ImageView imageCard;
-
+        String lastAvatarUrl;
+        String lastImageUrl;
 
         public ReplyHolder(@NonNull View itemView) {
             super(itemView);

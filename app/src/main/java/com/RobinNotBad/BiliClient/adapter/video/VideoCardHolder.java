@@ -28,6 +28,7 @@ import com.bumptech.glide.request.RequestOptions;
 public class VideoCardHolder extends RecyclerView.ViewHolder {
     TextView title, upName, viewCount;
     ImageView cover;
+    private String lastCoverUrl;
 
     public VideoCardHolder(@NonNull View itemView) {
         super(itemView);
@@ -42,38 +43,44 @@ public class VideoCardHolder extends RecyclerView.ViewHolder {
         String str_upName = videoCard.upName;
         if (str_upName == null || str_upName.isEmpty()) {
             upName.setVisibility(View.GONE);
-        } else upName.setText(str_upName);
-
+        } else
+            upName.setText(str_upName);
 
         String str_viewCount = videoCard.view;
         if (str_viewCount == null || str_viewCount.isEmpty()) {
             viewCount.setVisibility(View.GONE);
-        }
-        else {
+        } else {
             viewCount.setText(str_viewCount);
         }
 
         try {
-            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(videoCard.cover))
-                    .transition(GlideUtil.getTransitionOptions())
-                    .placeholder(R.mipmap.placeholder)
-                    .format(DecodeFormat.PREFER_RGB_565)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))).sizeMultiplier(0.85f))
-                    .into(cover);
-        } catch (Exception e){
+            String coverUrl = GlideUtil.url(videoCard.cover);
+            if (!coverUrl.equals(lastCoverUrl)) {
+                lastCoverUrl = coverUrl;
+                Glide.with(BiliTerminal.context).asDrawable().load(coverUrl)
+                        .transition(GlideUtil.getTransitionOptions())
+                        .placeholder(R.mipmap.placeholder)
+                        .format(DecodeFormat.PREFER_RGB_565)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5)))
+                                .sizeMultiplier(0.85f))
+                        .into(cover);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        switch (videoCard.type){
+        switch (videoCard.type) {
             case "live":
                 SpannableString sstr_live = new SpannableString("[直播]" + StringUtil.htmlToString(videoCard.title));
-                sstr_live.setSpan(new ForegroundColorSpan(Color.rgb(207, 75, 95)), 0, 4, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                sstr_live.setSpan(new ForegroundColorSpan(Color.rgb(207, 75, 95)), 0, 4,
+                        Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
                 title.setText(sstr_live);
                 break;
             case "series":
                 SpannableString sstr_series = new SpannableString("[系列]" + StringUtil.htmlToString(videoCard.title));
-                sstr_series.setSpan(new ForegroundColorSpan(Color.rgb(207, 75, 95)), 0, 4, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                sstr_series.setSpan(new ForegroundColorSpan(Color.rgb(207, 75, 95)), 0, 4,
+                        Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
                 title.setText(sstr_series);
                 break;
             default:

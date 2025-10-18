@@ -91,7 +91,12 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (position < 0 || position >= mPrivateMsgList.size())
+            return;
         PrivateMessage msg = mPrivateMsgList.get(position);
+        if (msg == null)
+            return;
+
         try {
             holder.nameTv.setText(msg.name);
             if (selfUid == -1) {
@@ -114,22 +119,25 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
                     holder.nameTv.setVisibility(View.VISIBLE);
                     holder.videoCard.setVisibility(View.GONE);
                     holder.textContentCard.setVisibility(View.VISIBLE);
-                    Log.e("", emoteArray.toString());
-                    CenterThreadPool.run(() -> {
-                        try {
-                            SpannableStringBuilder contentWithEmote = PrivateMsgApi.textReplaceEmote(msg.content.getString("content"), emoteArray, 1f, context);
-                            ((Activity) context).runOnUiThread(() -> holder.textContentTv.setText(contentWithEmote));
-                        } catch (Exception err) {
-                            Log.e("", err.toString());
-                            ((Activity) context).runOnUiThread(() -> {
-                                try {
-                                    holder.textContentTv.setText(msg.content.getString("content"));
-                                } catch (JSONException e) {
-                                    Log.e("", e.toString());
+
+                    try {
+                        String textContent = msg.content.getString("content");
+                        holder.textContentTv.setText(textContent);
+                        CenterThreadPool.run(() -> {
+                            try {
+                                SpannableStringBuilder contentWithEmote = PrivateMsgApi.textReplaceEmote(textContent,
+                                        emoteArray, 1f, context);
+                                if (holder.getAdapterPosition() == position) {
+                                    ((Activity) context)
+                                            .runOnUiThread(() -> holder.textContentTv.setText(contentWithEmote));
                                 }
-                            });
-                        }
-                    });
+                            } catch (Exception err) {
+                                Log.e("PrivateMsgAdapter", err.toString());
+                            }
+                        });
+                    } catch (JSONException e) {
+                        Log.e("PrivateMsgAdapter", e.toString());
+                    }
                     break;
                 case PrivateMessage.TYPE_PIC:
                     holder.picMsg.setVisibility(View.VISIBLE);
@@ -137,24 +145,29 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
                     holder.nameTv.setVisibility(View.VISIBLE);
                     holder.textContentCard.setVisibility(View.GONE);
                     holder.videoCard.setVisibility(View.GONE);
-                    Glide.with(BiliTerminal.context)
-                            .asDrawable()
-                            .load(GlideUtil.url(msg.content.getString("url")))
-                            .transition(GlideUtil.getTransitionOptions())
-                            .override(Target.SIZE_ORIGINAL)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                            .into(holder.picMsg);
-                    holder.picMsg.setOnClickListener(view -> {
-                        ArrayList<String> imageList = new ArrayList<>();
-                        try {
-                            imageList.add(msg.content.getString("url"));
-                        } catch (JSONException e) {
-                            Log.e("", e.toString());
-                        }
-                        Intent intent = new Intent(context, ImageViewerActivity.class);
-                        intent.putStringArrayListExtra("imageList", imageList);
-                        context.startActivity(intent);
-                    });
+                    try {
+                        String picUrl = msg.content.getString("url");
+                        Glide.with(BiliTerminal.context)
+                                .asDrawable()
+                                .load(GlideUtil.url(picUrl))
+                                .transition(GlideUtil.getTransitionOptions())
+                                .override(Target.SIZE_ORIGINAL)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .into(holder.picMsg);
+                        holder.picMsg.setOnClickListener(view -> {
+                            ArrayList<String> imageList = new ArrayList<>();
+                            try {
+                                imageList.add(msg.content.getString("url"));
+                            } catch (JSONException e) {
+                                Log.e("PrivateMsgAdapter", e.toString());
+                            }
+                            Intent intent = new Intent(context, ImageViewerActivity.class);
+                            intent.putStringArrayListExtra("imageList", imageList);
+                            context.startActivity(intent);
+                        });
+                    } catch (JSONException e) {
+                        Log.e("PrivateMsgAdapter", e.toString());
+                    }
                     break;
                 case PrivateMessage.TYPE_RETRACT:
                     holder.tipTv.setVisibility(View.VISIBLE);
@@ -214,12 +227,14 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
     }
 
     public void addItem(ArrayList<PrivateMessage> list) {
+        if (list == null || list.isEmpty())
+            return;
         mPrivateMsgList.addAll(0, list);
         this.notifyItemRangeInserted(0, list.size());
     }
 
     @Override
     public int getItemCount() {
-        return mPrivateMsgList.size();
+        return mPrivateMsgList != null ? mPrivateMsgList.size() : 0;
     }
 }

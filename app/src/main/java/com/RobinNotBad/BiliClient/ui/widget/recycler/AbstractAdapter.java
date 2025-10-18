@@ -51,13 +51,9 @@ public abstract class AbstractAdapter<VH extends BaseHolder> extends RecyclerVie
             bindFooterView(holder);
             return;
         }
-        int realPosition = position;
-        if (headerView != null) {
-            realPosition--;
-        }
-        if (footerView != null) {
-            realPosition--;
-        }
+        int realPosition = position - getHeaderViewCount();
+        if (realPosition < 0)
+            return;
         doBindViewHolder((VH) holder, realPosition);
     }
 

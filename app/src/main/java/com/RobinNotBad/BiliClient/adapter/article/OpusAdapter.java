@@ -43,33 +43,50 @@ public class OpusAdapter extends RecyclerView.Adapter<OpusAdapter.OpusHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull OpusHolder holder, int position) {
+        if (position < 0 || position >= opusList.size())
+            return;
         Opus opus = opusList.get(position);
+        if (opus == null)
+            return;
+
         holder.favTimeText.setText(opus.pubTime);
         holder.titleText.setText(opus.title);
-        Glide.with(BiliTerminal.context).load(GlideUtil.url(opus.cover))
-                .transition(GlideUtil.getTransitionOptions())
-                .placeholder(R.mipmap.placeholder)
-                .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))))
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .into(holder.coverView);
-        if (opus.content.equals("内容失效")) {
-            holder.itemView.setOnClickListener(v -> MsgUtil.showMsg("内容失效，无法打开"));
-        } else {
-            holder.itemView.setOnClickListener(v -> TerminalContext.getInstance().enterOpusDetailPage(context, opus.id));
+
+        String coverUrl = GlideUtil.url(opus.cover);
+        if (!coverUrl.equals(holder.lastCoverUrl)) {
+            holder.lastCoverUrl = coverUrl;
+            Glide.with(BiliTerminal.context).load(coverUrl)
+                    .transition(GlideUtil.getTransitionOptions())
+                    .placeholder(R.mipmap.placeholder)
+                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))))
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(holder.coverView);
         }
 
+        if (opus.content != null && opus.content.equals("内容失效")) {
+            holder.itemView.setOnClickListener(v -> MsgUtil.showMsg("内容失效，无法打开"));
+        } else {
+            holder.itemView
+                    .setOnClickListener(v -> TerminalContext.getInstance().enterOpusDetailPage(context, opus.id));
+        }
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull OpusHolder holder) {
+        holder.lastCoverUrl = null;
+        super.onViewRecycled(holder);
     }
 
     @Override
     public int getItemCount() {
-        return opusList.size();
+        return opusList != null ? opusList.size() : 0;
     }
-
 
     public static class OpusHolder extends RecyclerView.ViewHolder {
         ImageView coverView;
         TextView favTimeText;
         TextView titleText;
+        String lastCoverUrl;
 
         public OpusHolder(View itemView) {
             super(itemView);

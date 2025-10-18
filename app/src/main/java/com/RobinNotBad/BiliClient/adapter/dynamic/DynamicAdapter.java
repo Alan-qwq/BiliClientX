@@ -55,7 +55,8 @@ public class DynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             View view = LayoutInflater.from(this.context).inflate(R.layout.cell_dynamic_action, parent, false);
             return new WriteDynamic(view);
         } else {
-            return new DynamicHolder(LayoutInflater.from(this.context).inflate(R.layout.cell_dynamic, parent, false), dynamicActivity, false);
+            return new DynamicHolder(LayoutInflater.from(this.context).inflate(R.layout.cell_dynamic, parent, false),
+                    dynamicActivity, false);
         }
     }
 
@@ -69,35 +70,43 @@ public class DynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 intent.setClass(context, SendDynamicActivity.class);
                 writeDynamicLauncher.launch(intent);
             });
-            writeDynamic.type.setOnClickListener((view) -> dynamicActivity.selectTypeLauncher.launch(new Intent().setClass(context, ListChooseActivity.class).putExtra("title", "选择类型").putExtra("items", new ArrayList<>(Arrays.asList("全部", "视频投稿", "追番", "专栏")))));
+            writeDynamic.type.setOnClickListener((view) -> dynamicActivity.selectTypeLauncher
+                    .launch(new Intent().setClass(context, ListChooseActivity.class).putExtra("title", "选择类型")
+                            .putExtra("items", new ArrayList<>(Arrays.asList("全部", "视频投稿", "追番", "专栏")))));
             writeDynamic.live.setOnClickListener(view -> {
                 Intent intent = new Intent(context, FollowLiveActivity.class);
                 context.startActivity(intent);
             });
         } else if (holder instanceof DynamicHolder) {
-            long time = System.currentTimeMillis();
-            position--;
-            DynamicHolder dynamicHolder = (DynamicHolder) holder;
-            dynamicHolder.showDynamic(context, dynamicList.get(position), true);      //该函数在DynamicHolder里
+            int realPosition = position - 1;
+            if (realPosition < 0 || realPosition >= dynamicList.size())
+                return;
 
-            if (dynamicList.get(position).dynamic_forward != null) {
+            Dynamic dynamic = dynamicList.get(realPosition);
+            if (dynamic == null)
+                return;
+
+            DynamicHolder dynamicHolder = (DynamicHolder) holder;
+            dynamicHolder.showDynamic(context, dynamic, true);
+
+            if (dynamic.dynamic_forward != null) {
                 View childCard = dynamicHolder.cell_dynamic_child;
-                DynamicHolder childHolder = new DynamicHolder(childCard, dynamicActivity, true);
-                childHolder.showDynamic(context, dynamicList.get(position).dynamic_forward, true);
+                if (dynamicHolder.childDynamicHolder == null) {
+                    dynamicHolder.childDynamicHolder = new DynamicHolder(childCard, dynamicActivity, true);
+                }
+                dynamicHolder.childDynamicHolder.showDynamic(context, dynamic.dynamic_forward, true);
                 childCard.setVisibility(View.VISIBLE);
             } else {
                 dynamicHolder.cell_dynamic_child.setVisibility(View.GONE);
             }
 
-            int finalPosition = position;
-            View.OnLongClickListener onDeleteLongClick = DynamicHolder.getDeleteListener(dynamicActivity, dynamicList, finalPosition, this);
+            View.OnLongClickListener onDeleteLongClick = DynamicHolder.getDeleteListener(dynamicActivity, dynamicList,
+                    realPosition, this);
             dynamicHolder.item_dynamic_delete.setOnLongClickListener(onDeleteLongClick);
-            if (dynamicList.get(position).canDelete)
+            if (dynamic.canDelete)
                 dynamicHolder.item_dynamic_delete.setVisibility(View.VISIBLE);
-            Log.d("BiliClient", "DynamicAdapter onBindViewHolder finish: " + (System.currentTimeMillis() - time));
         }
     }
-
 
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
@@ -106,9 +115,8 @@ public class DynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemCount() {
-        return dynamicList.size() + 1;
+        return dynamicList != null ? dynamicList.size() + 1 : 1;
     }
-
 
     public static class WriteDynamic extends RecyclerView.ViewHolder {
         final MaterialButton write_dynamic, type, live;

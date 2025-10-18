@@ -15,7 +15,6 @@ import com.RobinNotBad.BiliClient.util.TerminalContext;
 
 import java.util.ArrayList;
 
-
 public class ArticleCardAdapter extends RecyclerView.Adapter<ArticleCardHolder> {
 
     final Context context;
@@ -40,22 +39,29 @@ public class ArticleCardAdapter extends RecyclerView.Adapter<ArticleCardHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ArticleCardHolder holder, int position) {
+        if (position < 0 || position >= articleCardList.size())
+            return;
         ArticleCard articleCard = articleCardList.get(position);
+        if (articleCard == null)
+            return;
+
         holder.showArticleCard(articleCard, context);
 
-        holder.itemView.setOnClickListener(view -> TerminalContext.getInstance().enterArticleDetailPage(context, articleCard.id));
+        holder.itemView.setOnClickListener(
+                view -> TerminalContext.getInstance().enterArticleDetailPage(context, articleCard.id));
 
         holder.itemView.setOnLongClickListener(view -> {
             if (longClickListener != null) {
                 longClickListener.onItemLongClick(position);
                 return true;
-            } else return false;
+            } else
+                return false;
         });
     }
 
     @Override
     public int getItemCount() {
-        return articleCardList.size();
+        return articleCardList != null ? articleCardList.size() : 0;
     }
 
 }

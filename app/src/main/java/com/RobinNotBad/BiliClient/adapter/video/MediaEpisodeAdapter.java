@@ -53,12 +53,15 @@ public class MediaEpisodeAdapter extends RecyclerView.Adapter<MediaEpisodeAdapte
     @NonNull
     @Override
     public EpisodeHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(useVerticalLayout ? R.layout.cell_item_vertical : R.layout.cell_episode, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(useVerticalLayout ? R.layout.cell_item_vertical : R.layout.cell_episode, parent, false);
         return new EpisodeHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EpisodeHolder holder, int position) {
+        if (position < 0 || episodeList == null || position >= episodeList.size())
+            return;
         if (listener != null) {
             holder.listener = listener;
         }
@@ -67,7 +70,7 @@ public class MediaEpisodeAdapter extends RecyclerView.Adapter<MediaEpisodeAdapte
 
     @Override
     public int getItemCount() {
-        return episodeList.size();
+        return episodeList != null ? episodeList.size() : 0;
     }
 
     public class EpisodeHolder extends RecyclerView.ViewHolder {
@@ -81,13 +84,17 @@ public class MediaEpisodeAdapter extends RecyclerView.Adapter<MediaEpisodeAdapte
         }
 
         void bind(int currentIndex, boolean isSelected) {
+            if (currentIndex < 0 || episodeList == null || currentIndex >= episodeList.size())
+                return;
             button.setText(episodeList.get(currentIndex).title);
             if (isSelected) {
                 button.setTextColor(0xcc262626);
-                ViewCompat.setBackgroundTintList(button, AppCompatResources.getColorStateList(itemView.getContext(), R.color.background_button_selected));
+                ViewCompat.setBackgroundTintList(button, AppCompatResources.getColorStateList(itemView.getContext(),
+                        R.color.background_button_selected));
             } else {
                 button.setTextColor(0xffebe0e2);
-                ViewCompat.setBackgroundTintList(button, AppCompatResources.getColorStateList(itemView.getContext(), R.color.background_button));
+                ViewCompat.setBackgroundTintList(button,
+                        AppCompatResources.getColorStateList(itemView.getContext(), R.color.background_button));
             }
             button.setOnClickListener(v -> {
                 setSelectedItemIndex(currentIndex);
@@ -98,5 +105,3 @@ public class MediaEpisodeAdapter extends RecyclerView.Adapter<MediaEpisodeAdapte
         }
     }
 }
-
-

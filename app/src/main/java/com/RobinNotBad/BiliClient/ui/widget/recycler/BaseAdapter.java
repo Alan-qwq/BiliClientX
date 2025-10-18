@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,58 +36,77 @@ public abstract class BaseAdapter<M, VH extends BaseHolder> extends AbstractAdap
     }
 
     public boolean appendItem(M item) {
+        if (item == null)
+            return false;
         int size = this.dataList.size();
         boolean result = this.dataList.add(item);
-        notifyItemInserted(size + getHeaderViewCount());
+        if (result) {
+            notifyItemInserted(size + getHeaderViewCount());
+        }
         return result;
     }
 
     public boolean appendList(List<M> list) {
+        if (list == null || list.isEmpty())
+            return false;
         int size = this.dataList.size();
         boolean result = this.dataList.addAll(list);
-        notifyItemRangeInserted(size, list.size());
+        if (result) {
+            notifyItemRangeInserted(size + getHeaderViewCount(), list.size());
+        }
         return result;
     }
 
     public void preposeItem(M item) {
+        if (item == null)
+            return;
         this.dataList.add(0, item);
-        notifyItemInserted(0);
-        notifyItemRangeChanged(0, getItemCount());
+        notifyItemInserted(getHeaderViewCount());
+        notifyItemRangeChanged(getHeaderViewCount(), getItemCount());
     }
 
     public void preposeList(List<M> list) {
+        if (list == null || list.isEmpty())
+            return;
         this.dataList.addAll(0, list);
-        notifyItemRangeInserted(0, list.size());
+        notifyItemRangeInserted(getHeaderViewCount(), list.size());
     }
 
     public void updateItem(int position, M item) {
+        if (position < 0 || position >= this.dataList.size() || item == null)
+            return;
         this.dataList.set(position, item);
         notifyItemChanged(getHeaderViewCount() + position);
     }
 
     public void updateItem(M originalItem, M newItem) {
+        if (originalItem == null || newItem == null)
+            return;
         int index = this.dataList.indexOf(originalItem);
-        if (index >= 0) {
+        if (index >= 0 && index < this.dataList.size()) {
             this.dataList.set(index, newItem);
-            notifyItemChanged(index);
+            notifyItemChanged(getHeaderViewCount() + index);
         }
     }
 
     public void removeItem(int position) {
-        if (this.headerView == null) {
-            this.dataList.remove(position);
-            notifyItemRemoved(position);
-        } else {
-            this.dataList.remove(position - 1);
-            notifyItemRemoved(position - 1);
-        }
+        int realPosition = position - getHeaderViewCount();
+        if (realPosition < 0 || realPosition >= this.dataList.size())
+            return;
+        this.dataList.remove(realPosition);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, getItemCount() - position);
     }
 
     public void removeItem(M item) {
+        if (item == null)
+            return;
         int index = this.dataList.indexOf(item);
-        if (index >= 0) {
+        if (index >= 0 && index < this.dataList.size()) {
             this.dataList.remove(index);
-            notifyItemRemoved(index);
+            int position = getHeaderViewCount() + index;
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, getItemCount() - position);
         }
     }
 
@@ -112,22 +132,24 @@ public abstract class BaseAdapter<M, VH extends BaseHolder> extends AbstractAdap
     }
 
     @Nullable
-    public M getItem(int i) {
-        List<M> list;
-        if ((this.headerView == null || i != 0) && i < this.dataList.size() + getHeaderViewCount()) {
-            if (this.headerView == null) {
-                list = this.dataList;
-            } else {
-                list = this.dataList;
-                i--;
-            }
-            return list.get(i);
+    public M getItem(int position) {
+        if (position < 0)
+            return null;
+        int realPosition = position - getHeaderViewCount();
+        if (realPosition < 0 || realPosition >= this.dataList.size()) {
+            return null;
         }
-        return null;
+        return this.dataList.get(realPosition);
     }
 
+    @Nullable
     public M getItem(VH vh) {
-        return getItem(vh.getAdapterPosition());
+        if (vh == null)
+            return null;
+        int position = vh.getAdapterPosition();
+        if (position == RecyclerView.NO_POSITION)
+            return null;
+        return getItem(position);
     }
 
     public List<M> getAllData() {

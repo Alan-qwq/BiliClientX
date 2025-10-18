@@ -34,9 +34,14 @@ public class SeriesCardAdapter extends RecyclerView.Adapter<VideoCardHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull VideoCardHolder holder, int position) {
+        if (position < 0 || position >= seasonList.size())
+            return;
         Series series = seasonList.get(position);
+        if (series == null)
+            return;
+
         VideoCard videoCard = new VideoCard(series.title, series.intro, series.total, series.cover, 0, "", "series");
-        holder.showVideoCard(videoCard, context);    //此函数在VideoCardHolder里
+        holder.showVideoCard(videoCard, context);
 
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(context, SeriesInfoActivity.class);
@@ -50,6 +55,6 @@ public class SeriesCardAdapter extends RecyclerView.Adapter<VideoCardHolder> {
 
     @Override
     public int getItemCount() {
-        return seasonList.size();
+        return seasonList != null ? seasonList.size() : 0;
     }
 }

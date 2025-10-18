@@ -59,24 +59,30 @@ public class UserVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             });
         } else {
             int realPosition = position - 1;
+            if (realPosition < 0 || realPosition >= videoCardList.size())
+                return;
             VideoCardHolder videoCardHolder = (VideoCardHolder) holder;
             VideoCard videoCard = videoCardList.get(realPosition);
-            videoCardHolder.showVideoCard(videoCard, context);    //此函数在VideoCardHolder里
+            if (videoCard == null)
+                return;
 
-            holder.itemView.setOnClickListener(view -> TerminalContext.getInstance().enterVideoDetailPage(context, videoCard.aid, videoCard.bvid));
+            videoCardHolder.showVideoCard(videoCard, context);
+
+            holder.itemView.setOnClickListener(
+                    view -> TerminalContext.getInstance().enterVideoDetailPage(context, videoCard.aid, videoCard.bvid));
         }
     }
 
-
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
-        if (holder instanceof DynamicHolder) ((DynamicHolder) holder).extraCard.removeAllViews();
+        if (holder instanceof DynamicHolder)
+            ((DynamicHolder) holder).extraCard.removeAllViews();
         super.onViewRecycled(holder);
     }
 
     @Override
     public int getItemCount() {
-        return videoCardList.size() + 1;
+        return videoCardList != null ? videoCardList.size() + 1 : 1;
     }
 
     @Override

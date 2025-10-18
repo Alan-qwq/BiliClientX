@@ -45,8 +45,13 @@ public class VideoCardAdapter extends RecyclerView.Adapter<VideoCardHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull VideoCardHolder holder, int position) {
+        if (position < 0 || position >= videoCardList.size())
+            return;
         VideoCard videoCard = videoCardList.get(position);
-        holder.showVideoCard(videoCard, context);    //此函数在VideoCardHolder里
+        if (videoCard == null)
+            return;
+
+        holder.showVideoCard(videoCard, context);
 
         holder.itemView.setOnClickListener(view -> {
             switch (videoCard.type) {
@@ -62,14 +67,15 @@ public class VideoCardAdapter extends RecyclerView.Adapter<VideoCardHolder> {
         holder.itemView.setOnLongClickListener(view -> {
             if (longClickListener != null) {
                 longClickListener.onItemLongClick(position);
-                return true;    //必须要true表示事件已处理 不再继续传递，不然上面的点按也会触发
-            } else return false;
+                return true;
+            } else
+                return false;
         });
     }
 
     @Override
     public int getItemCount() {
-        return videoCardList.size();
+        return videoCardList != null ? videoCardList.size() : 0;
     }
 
 }

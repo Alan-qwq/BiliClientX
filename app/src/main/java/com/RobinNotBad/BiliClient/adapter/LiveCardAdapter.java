@@ -43,33 +43,41 @@ public class LiveCardAdapter extends RecyclerView.Adapter<VideoCardHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull VideoCardHolder holder, int position) {
+        if (position < 0 || position >= roomList.size())
+            return;
         LiveRoom room = roomList.get(position);
+        if (room == null)
+            return;
 
         VideoCard videoCard = new VideoCard();
         videoCard.title = StringUtil.removeHtml(room.title);
-        if (!room.user_cover.startsWith("http")) videoCard.cover = "http:" + room.user_cover;
-        else videoCard.cover = room.user_cover;
+        if (room.user_cover != null && !room.user_cover.startsWith("http"))
+            videoCard.cover = "http:" + room.user_cover;
+        else
+            videoCard.cover = room.user_cover;
         if (TextUtils.isEmpty(videoCard.cover) || videoCard.cover.equals("http:"))
             videoCard.cover = room.cover;
         videoCard.upName = room.uname;
         videoCard.view = StringUtil.toWan(room.online) + "人观看";
         videoCard.type = "live";
 
-        holder.showVideoCard(videoCard, context);    //此函数在VideoCardHolder里
+        holder.showVideoCard(videoCard, context);
 
-        holder.itemView.setOnClickListener(view -> TerminalContext.getInstance().enterLiveDetailPage(context, room.roomid));
+        holder.itemView
+                .setOnClickListener(view -> TerminalContext.getInstance().enterLiveDetailPage(context, room.roomid));
 
         holder.itemView.setOnLongClickListener(view -> {
             if (longClickListener != null) {
                 longClickListener.onItemLongClick(position);
-                return true;    //必须要true表示事件已处理 不再继续传递，不然上面的点按也会触发
-            } else return false;
+                return true;
+            } else
+                return false;
         });
     }
 
     @Override
     public int getItemCount() {
-        return roomList.size();
+        return roomList != null ? roomList.size() : 0;
     }
 
 }

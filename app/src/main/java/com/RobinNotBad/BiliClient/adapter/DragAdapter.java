@@ -33,11 +33,16 @@ public class DragAdapter extends RecyclerView.Adapter<DragAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (position < 0 || position >= mList.size())
+            return;
         holder.mItemTextView.setText(mList.get(position));
 
         holder.mItemTextView.setOnClickListener(view -> {
             if (mListener != null) {
-                mListener.onItemClick(holder.getAdapterPosition());
+                int adapterPosition = holder.getAdapterPosition();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    mListener.onItemClick(adapterPosition);
+                }
             }
         });
 
@@ -52,7 +57,7 @@ public class DragAdapter extends RecyclerView.Adapter<DragAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return mList.size();
+        return mList != null ? mList.size() : 0;
     }
 
     public int getFixedPosition() {

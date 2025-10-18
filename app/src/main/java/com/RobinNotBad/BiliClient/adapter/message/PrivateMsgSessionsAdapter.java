@@ -31,13 +31,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class PrivateMsgSessionsAdapter extends RecyclerView.Adapter<PrivateMsgSessionsAdapter.PrivateMsgSessionsHolder> {
+public class PrivateMsgSessionsAdapter
+        extends RecyclerView.Adapter<PrivateMsgSessionsAdapter.PrivateMsgSessionsHolder> {
 
     final Context context;
     final ArrayList<PrivateMsgSession> sessionsList;
     final HashMap<Long, UserInfo> userMap;
 
-    public PrivateMsgSessionsAdapter(Context context, ArrayList<PrivateMsgSession> sessionsList, HashMap<Long, UserInfo> userMap) {
+    public PrivateMsgSessionsAdapter(Context context, ArrayList<PrivateMsgSession> sessionsList,
+            HashMap<Long, UserInfo> userMap) {
         this.context = context;
         this.sessionsList = sessionsList;
         this.userMap = userMap;
@@ -52,41 +54,53 @@ public class PrivateMsgSessionsAdapter extends RecyclerView.Adapter<PrivateMsgSe
 
     @Override
     public void onBindViewHolder(@NonNull PrivateMsgSessionsHolder holder, int position) {
+        if (position < 0 || position >= sessionsList.size())
+            return;
         PrivateMsgSession msgContent = sessionsList.get(position);
+        if (msgContent == null)
+            return;
+
         try {
-            if (msgContent.content != null) switch (msgContent.contentType) {
-                case PrivateMessage.TYPE_TEXT:
-                    holder.contentText.setText(msgContent.content.getString("content"));
-                    break;
-                case PrivateMessage.TYPE_PIC:
-                    holder.contentText.setText("[图片消息]");
-                    break;
+            if (msgContent.content != null)
+                switch (msgContent.contentType) {
+                    case PrivateMessage.TYPE_TEXT:
+                        holder.contentText.setText(msgContent.content.getString("content"));
+                        break;
+                    case PrivateMessage.TYPE_PIC:
+                        holder.contentText.setText("[图片消息]");
+                        break;
 
-                case PrivateMessage.TYPE_VIDEO:
-                case PrivateMessage.TYPE_PIC_CARD:
-                case PrivateMessage.TYPE_NOMAL_CARD:
-                    holder.contentText.setText(msgContent.content.getString("title"));
-                    break;
+                    case PrivateMessage.TYPE_VIDEO:
+                    case PrivateMessage.TYPE_PIC_CARD:
+                    case PrivateMessage.TYPE_NOMAL_CARD:
+                        holder.contentText.setText(msgContent.content.getString("title"));
+                        break;
 
-                case PrivateMessage.TYPE_TEXT_WITH_VIDEO:
-                    holder.contentText.setText(msgContent.content.getString("reply_content"));
-                    break;
-                case PrivateMessage.TYPE_RETRACT:
-                    holder.contentText.setText("[撤回消息]");
-                    break;
+                    case PrivateMessage.TYPE_TEXT_WITH_VIDEO:
+                        holder.contentText.setText(msgContent.content.getString("reply_content"));
+                        break;
+                    case PrivateMessage.TYPE_RETRACT:
+                        holder.contentText.setText("[撤回消息]");
+                        break;
 
-                default:
-                    holder.contentText.setText("");
-            }
-            else holder.contentText.setText("");
+                    default:
+                        holder.contentText.setText("");
+                }
+            else
+                holder.contentText.setText("");
 
             holder.contentText.setEllipsize(TextUtils.TruncateAt.END);
-            holder.nameText.setText(Objects.requireNonNull(userMap.get(msgContent.talkerUid)).name);
-            Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(Objects.requireNonNull(userMap.get(msgContent.talkerUid)).avatar))
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .placeholder(R.mipmap.akari)
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(holder.avatarView);
+
+            UserInfo user = userMap != null ? userMap.get(msgContent.talkerUid) : null;
+            if (user != null) {
+                holder.nameText.setText(user.name);
+                Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(user.avatar))
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .placeholder(R.mipmap.akari)
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(holder.avatarView);
+            }
+
             holder.itemView.setOnClickListener(view -> {
                 Intent intent = new Intent(context, PrivateMsgActivity.class);
                 intent.putExtra("uid", msgContent.talkerUid);
@@ -105,9 +119,8 @@ public class PrivateMsgSessionsAdapter extends RecyclerView.Adapter<PrivateMsgSe
 
     @Override
     public int getItemCount() {
-        return sessionsList.size();
+        return sessionsList != null ? sessionsList.size() : 0;
     }
-
 
     public static class PrivateMsgSessionsHolder extends RecyclerView.ViewHolder {
         final ImageView avatarView;

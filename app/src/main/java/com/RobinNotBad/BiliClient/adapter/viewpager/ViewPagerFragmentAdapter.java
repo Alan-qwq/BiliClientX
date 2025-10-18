@@ -23,26 +23,31 @@ public class ViewPagerFragmentAdapter extends FragmentStatePagerAdapter {
     @NonNull
     @Override
     public Fragment getItem(int position) {
+        if (position < 0 || position >= fragmentList.size()) {
+            return new Fragment();
+        }
         return fragmentList.get(position);
     }
 
     @Override
     public int getCount() {
-        return fragmentList.size();
+        return fragmentList != null ? fragmentList.size() : 0;
     }
 
-/*
-    @NonNull
-    @Override
-    public Object instantiateItem(@NonNull ViewGroup container, int position) {
-        Fragment fragment = (Fragment) super.instantiateItem(container, position);
-        this.fm.beginTransaction().show(fragment).commit();
-        return fragment;
-    }
-
-    @Override
-    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-        this.fm.beginTransaction().hide(fragmentList.get(position)).commit();
-    }
-*/
+    /*
+     * @NonNull
+     * 
+     * @Override
+     * public Object instantiateItem(@NonNull ViewGroup container, int position) {
+     * Fragment fragment = (Fragment) super.instantiateItem(container, position);
+     * this.fm.beginTransaction().show(fragment).commit();
+     * return fragment;
+     * }
+     * 
+     * @Override
+     * public void destroyItem(@NonNull ViewGroup container, int position, @NonNull
+     * Object object) {
+     * this.fm.beginTransaction().hide(fragmentList.get(position)).commit();
+     * }
+     */
 }

@@ -16,7 +16,6 @@ import com.RobinNotBad.BiliClient.util.StringUtil;
 
 import java.util.ArrayList;
 
-
 public class SearchHistoryAdapter extends RecyclerView.Adapter<SearchHistoryAdapter.BtnListHolder> {
 
     final Context context;
@@ -46,6 +45,8 @@ public class SearchHistoryAdapter extends RecyclerView.Adapter<SearchHistoryAdap
 
     @Override
     public void onBindViewHolder(@NonNull BtnListHolder holder, int position) {
+        if (position < 0 || position >= historyList.size())
+            return;
         holder.show(historyList.get(position));
 
         holder.itemView.setOnClickListener(view -> {
@@ -57,14 +58,15 @@ public class SearchHistoryAdapter extends RecyclerView.Adapter<SearchHistoryAdap
         holder.itemView.setOnLongClickListener(view -> {
             if (longClickListener != null) {
                 longClickListener.onItemLongClick(position);
-                return true;    //必须要true哦，不然上面的点按也会触发
-            } else return false;
+                return true;
+            } else
+                return false;
         });
     }
 
     @Override
     public int getItemCount() {
-        return historyList.size();
+        return historyList != null ? historyList.size() : 0;
     }
 
     public static class BtnListHolder extends RecyclerView.ViewHolder {

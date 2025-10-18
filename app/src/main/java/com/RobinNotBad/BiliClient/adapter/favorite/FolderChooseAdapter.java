@@ -37,7 +37,8 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
     public boolean added;
     public boolean changed;
 
-    public FolderChooseAdapter(Context context, ArrayList<String> folderList, ArrayList<Long> fidList, ArrayList<Boolean> chooseState, long aid) {
+    public FolderChooseAdapter(Context context, ArrayList<String> folderList, ArrayList<Long> fidList,
+            ArrayList<Boolean> chooseState, long aid) {
         this.context = context;
         this.folderList = folderList;
         this.fidList = fidList;
@@ -54,6 +55,10 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
 
     @Override
     public void onBindViewHolder(@NonNull FolderHolder holder, int position) {
+        if (position < 0 || position >= folderList.size())
+            return;
+        if (position >= chooseState.size() || position >= fidList.size())
+            return;
 
         MaterialCardView cardView = (MaterialCardView) holder.itemView;
 
@@ -61,7 +66,7 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
         setCardView(cardView, chooseState.get(position));
 
         holder.itemView.setOnClickListener(view -> {
-            if (!adding) {
+            if (!adding && position < chooseState.size() && position < fidList.size()) {
                 adding = true;
                 cardView.setStrokeColor(context.getResources().getColor(R.color.low_pink));
                 cardView.setStrokeWidth(ToolsUtil.dp2px(1f));
@@ -75,13 +80,12 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
                                 chooseState.set(position, false);
                                 ((Activity) context).runOnUiThread(() -> setCardView(cardView, false));
                                 changed = true;
-                            } else ((Activity) context).runOnUiThread(() -> {
-                                MsgUtil.showMsg("删除失败！错误码：" + result);
-                                setCardView(cardView, true);
-                            });
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                            } else
+                                ((Activity) context).runOnUiThread(() -> {
+                                    MsgUtil.showMsg("删除失败！错误码：" + result);
+                                    setCardView(cardView, true);
+                                });
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
                     });
@@ -97,15 +101,14 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
                                 ((Activity) context).runOnUiThread(() -> setCardView(cardView, true));
                                 changed = true;
                                 added = true;
-                            } else ((Activity) context).runOnUiThread(() -> {
-                                MsgUtil.showMsg("添加失败！错误码：" + result);
-                                setCardView(cardView, false);
-                            });
+                            } else
+                                ((Activity) context).runOnUiThread(() -> {
+                                    MsgUtil.showMsg("添加失败！错误码：" + result);
+                                    setCardView(cardView, false);
+                                });
                             if (SharedPreferencesUtil.getBoolean("fav_single", false))
                                 ((Activity) context).finish();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
                     });
@@ -117,7 +120,7 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
 
     @Override
     public int getItemCount() {
-        return folderList.size();
+        return folderList != null ? folderList.size() : 0;
     }
 
     public static class FolderHolder extends RecyclerView.ViewHolder {
@@ -141,7 +144,8 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
 
     public boolean isAllDeleted() {
         for (boolean b : chooseState) {
-            if (b) return false;
+            if (b)
+                return false;
         }
         return true;
     }

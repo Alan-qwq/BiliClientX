@@ -45,6 +45,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
     public void setOnLongClickListener(OnItemLongClickListener listener) {
         this.longClickListener = listener;
     }
+
     public void setOnClickListener(OnItemClickListener listener) {
         this.clickListener = listener;
     }
@@ -58,35 +59,40 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
 
     @Override
     public void onBindViewHolder(@NonNull DownloadHolder holder, int position) {
-        if(position==0) {
-            holder.show(DownloadService.section, context);    //第一项为正在下载的项（不存在就gone掉）
+        if (position == 0) {
+            holder.show(DownloadService.section, context);
             holder.showProgress(DownloadService.state, DownloadService.percent);
+        } else {
+            int realPosition = position - 1;
+            if (downloadList != null && realPosition >= 0 && realPosition < downloadList.size()) {
+                holder.show(downloadList.get(realPosition), context);
+            }
+            holder.showProgress(null, -1);
         }
-        else {
-            holder.show(downloadList.get(position - 1), context);    //后续项为待下载的项
-            holder.showProgress(null,-1);
-        }
-
-        //holder.showLocalVideo(downloadList.get(position), context);
 
         holder.itemView.setOnClickListener(view -> {
-            if(clickListener!=null) clickListener.onItemClick(position - 1);
+            int clickPosition = position - 1;
+            if (clickListener != null && downloadList != null && clickPosition >= 0
+                    && clickPosition < downloadList.size()) {
+                clickListener.onItemClick(clickPosition);
+            }
         });
 
         holder.itemView.setOnLongClickListener(view -> {
-            if (longClickListener != null) {
-                longClickListener.onItemLongClick(position - 1);
+            int longClickPosition = position - 1;
+            if (longClickListener != null && downloadList != null && longClickPosition >= 0
+                    && longClickPosition < downloadList.size()) {
+                longClickListener.onItemLongClick(longClickPosition);
                 return true;
-            } else return false;
+            } else
+                return false;
         });
     }
 
     @Override
     public int getItemCount() {
-        if(downloadList==null) return 1;
-        else return downloadList.size() + 1;
+        return downloadList != null ? downloadList.size() + 1 : 1;
     }
-
 
     public static class DownloadHolder extends RecyclerView.ViewHolder {
         final TextView title;
@@ -103,14 +109,14 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
         }
 
         public void show(DownloadSection section, Context context) {
-            if(section == null) {
+            if (section == null) {
                 title.setText("没有下载中的项");
                 extra.setText("点击下面继续下载喵？");
                 cover.setImageResource(R.mipmap.placeholder);
                 return;
             }
             title.setText(section.name_short);
-            switch (section.state){
+            switch (section.state) {
                 case "error":
                     extra.setText("下载出错");
                     break;
@@ -118,29 +124,30 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
                     extra.setText("等待下载");
                     break;
                 case "downloading":
-                    if(DownloadService.section ==null) extra.setText("下载中断");
+                    if (DownloadService.section == null)
+                        extra.setText("下载中断");
                     break;
                 default:
                     extra.setText("未知状态？");
             }
 
-            if(!section.url_cover.isEmpty())
+            if (!section.url_cover.isEmpty())
                 Glide.with(BiliTerminal.context).asDrawable().load(section.url_cover)
-                    .transition(GlideUtil.getTransitionOptions())
-                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))))
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(cover);
+                        .transition(GlideUtil.getTransitionOptions())
+                        .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))))
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .into(cover);
         }
 
-        @SuppressLint({"SetTextI18n"})
-        public void showProgress(String state, float percent){
-            if(state == null || percent==-1) {
+        @SuppressLint({ "SetTextI18n" })
+        public void showProgress(String state, float percent) {
+            if (state == null || percent == -1) {
                 progress.setVisibility(View.GONE);
                 return;
             }
             progress.setVisibility(View.VISIBLE);
             extra.setVisibility(View.VISIBLE);
-            extra.setText(state + "：" + String.format(Locale.CHINA,"%.2f", percent*100));
+            extra.setText(state + "：" + String.format(Locale.CHINA, "%.2f", percent * 100));
             int width = (int) (itemView.getMeasuredWidth() * percent);
             ViewGroup.LayoutParams layoutParams = progress.getLayoutParams();
             layoutParams.width = width;

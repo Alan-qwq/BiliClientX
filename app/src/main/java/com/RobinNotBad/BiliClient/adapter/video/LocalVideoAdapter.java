@@ -53,11 +53,10 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if(viewType == 0) {
+        if (viewType == 0) {
             View view = LayoutInflater.from(this.context).inflate(R.layout.cell_video_local, parent, false);
             return new LocalVideoHolder(view);
-        }
-        else {
+        } else {
             View view = LayoutInflater.from(this.context).inflate(R.layout.cell_goto, parent, false);
             return new GotoHolder(view);
         }
@@ -65,16 +64,23 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if(position!=0) {
+        if (position != 0) {
             int realPosition = position - 1;
-            ((LocalVideoHolder)holder).showLocalVideo(localVideoList.get(realPosition), context);    //此函数在VideoCardHolder里
+            if (realPosition < 0 || realPosition >= localVideoList.size())
+                return;
+            LocalVideo localVideo = localVideoList.get(realPosition);
+            if (localVideo == null)
+                return;
+
+            ((LocalVideoHolder) holder).showLocalVideo(localVideo, context);
 
             holder.itemView.setOnClickListener(view -> {
-                LocalVideo localVideo = localVideoList.get(realPosition);
-                if (localVideo.videoFileList.size() == 1) {
+                if (localVideo.videoFileList != null && localVideo.videoFileList.size() == 1) {
                     PlayerData playerData = new PlayerData(PlayerData.TYPE_LOCAL);
                     playerData.videoUrl = localVideo.videoFileList.get(0);
-                    playerData.danmakuUrl = localVideo.danmakuFileList.get(0);
+                    if (localVideo.danmakuFileList != null && !localVideo.danmakuFileList.isEmpty()) {
+                        playerData.danmakuUrl = localVideo.danmakuFileList.get(0);
+                    }
                     playerData.title = localVideo.title;
 
                     try {
@@ -84,7 +90,7 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         MsgUtil.showMsg("跳转失败");
                         e.printStackTrace();
                     }
-                } else {
+                } else if (localVideo.videoFileList != null && localVideo.videoFileList.size() > 1) {
                     Intent intent = new Intent();
                     intent.setClass(context, LocalPageChooseActivity.class);
                     intent.putExtra("pageList", localVideo.pageList);
@@ -98,19 +104,20 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             holder.itemView.setOnLongClickListener(view -> {
                 if (longClickListener != null) {
                     longClickListener.onItemLongClick(realPosition);
-                    return true;    //必须要true哦，不然上面的点按也会触发
-                } else return false;
+                    return true;
+                } else
+                    return false;
             });
-        }
-        else ((GotoHolder)holder).show(context);
+        } else
+            ((GotoHolder) holder).show(context);
     }
 
     @Override
     public int getItemCount() {
-        return localVideoList.size()+1;
+        return localVideoList != null ? localVideoList.size() + 1 : 1;
     }
 
-    public static class GotoHolder extends RecyclerView.ViewHolder{
+    public static class GotoHolder extends RecyclerView.ViewHolder {
 
         TextView textView;
 
@@ -119,10 +126,9 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             textView = itemView.findViewById(R.id.text);
         }
 
-        public void show(Context context){
+        public void show(Context context) {
             textView.setText("下载列表");
-            itemView.setOnClickListener(v ->
-                    context.startActivity(new Intent(context, DownloadListActivity.class)));
+            itemView.setOnClickListener(v -> context.startActivity(new Intent(context, DownloadListActivity.class)));
         }
     }
 
@@ -141,7 +147,7 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         @SuppressLint("SetTextI18n")
         public void showLocalVideo(LocalVideo videoCard, Context context) {
             title.setText(videoCard.title);
-            String size = String.format(Locale.CHINA,"%.2f",videoCard.size  / 1000000f) + "MB";
+            String size = String.format(Locale.CHINA, "%.2f", videoCard.size / 1000000f) + "MB";
             extra.setText(size);
 
             try {
@@ -150,7 +156,8 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                         .apply(RequestOptions.bitmapTransform(new RoundedCorners(ToolsUtil.dp2px(5))))
                         .diskCacheStrategy(DiskCacheStrategy.NONE)
                         .into(cover);
-            } catch (Exception ignored){}
+            } catch (Exception ignored) {
+            }
         }
     }
 

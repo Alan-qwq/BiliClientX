@@ -31,15 +31,17 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     final Context context;
     final List<SettingSection> list;
-    private static final Map<String, Integer> typeMap = new HashMap<>() {{
-        put("divider", -1);
-        put("switch", 0);
-        put("choose", 1);
-        put("input_int",2);
-        put("input_float",3);
-        put("input_string",4);
+    private static final Map<String, Integer> typeMap = new HashMap<>() {
+        {
+            put("divider", -1);
+            put("switch", 0);
+            put("choose", 1);
+            put("input_int", 2);
+            put("input_float", 3);
+            put("input_string", 4);
 
-    }};
+        }
+    };
 
     public SettingsAdapter(Context context, List<SettingSection> list) {
         this.context = context;
@@ -56,22 +58,31 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
             case 1:
-                return new ChooseHolder(LayoutInflater.from(this.context).inflate(R.layout.cell_setting_choose, parent, false));
+                return new ChooseHolder(
+                        LayoutInflater.from(this.context).inflate(R.layout.cell_setting_choose, parent, false));
             case 2:
             case 3:
             case 4:
-                return new InputHolder(LayoutInflater.from(this.context).inflate(R.layout.cell_setting_input, parent, false));
+                return new InputHolder(
+                        LayoutInflater.from(this.context).inflate(R.layout.cell_setting_input, parent, false));
             case -1:
-                return new DividerHolder(LayoutInflater.from(this.context).inflate(R.layout.cell_divider, parent, false));
+                return new DividerHolder(
+                        LayoutInflater.from(this.context).inflate(R.layout.cell_divider, parent, false));
             default:
-                return new SwitchHolder(LayoutInflater.from(this.context).inflate(R.layout.cell_setting_switch, parent, false));
+                return new SwitchHolder(
+                        LayoutInflater.from(this.context).inflate(R.layout.cell_setting_switch, parent, false));
         }
     }
 
     @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (position < 0 || position >= list.size())
+            return;
         SettingSection settingSection = list.get(position);
+        if (settingSection == null)
+            return;
+
         switch (holder.getItemViewType()) {
             case -1:
                 break;
@@ -94,7 +105,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return list != null ? list.size() : 0;
     }
 
     public static class SwitchHolder extends RecyclerView.ViewHolder {
@@ -108,21 +119,23 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         public void bind(SettingSection settingSection) {
-            if(settingSection.desc==null || settingSection.desc.isEmpty()) desc.setVisibility(View.GONE);
+            if (settingSection.desc == null || settingSection.desc.isEmpty())
+                desc.setVisibility(View.GONE);
             else {
                 desc.setText(settingSection.desc);
                 desc.setVisibility(View.VISIBLE);
             }
             switchMaterial.setText(settingSection.name);
-            switchMaterial.setOnCheckedChangeListener((buttonView, isChecked) ->
-                    SharedPreferencesUtil.putBoolean(settingSection.id, isChecked));
-            switchMaterial.setChecked(SharedPreferencesUtil.getBoolean(settingSection.id, Boolean.parseBoolean(settingSection.defaultValue)));
+            switchMaterial.setOnCheckedChangeListener(
+                    (buttonView, isChecked) -> SharedPreferencesUtil.putBoolean(settingSection.id, isChecked));
+            switchMaterial.setChecked(SharedPreferencesUtil.getBoolean(settingSection.id,
+                    Boolean.parseBoolean(settingSection.defaultValue)));
         }
     }
 
     public static class ChooseHolder extends RecyclerView.ViewHolder {
         final RadioButton chocola;
-        final RadioButton vanilla;    //我在思考这样的命名方式是否合理（玩艹猫玩的
+        final RadioButton vanilla; // 我在思考这样的命名方式是否合理（玩艹猫玩的
         final TextView name;
         final TextView desc;
 
@@ -135,7 +148,8 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         public void bind(SettingSection settingSection) {
-            if(settingSection.desc==null || settingSection.desc.isEmpty()) desc.setVisibility(View.GONE);
+            if (settingSection.desc == null || settingSection.desc.isEmpty())
+                desc.setVisibility(View.GONE);
             else {
                 desc.setText(settingSection.desc);
                 desc.setVisibility(View.VISIBLE);
@@ -145,12 +159,13 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             chocola.setText(strings[0]);
             vanilla.setText(strings[1]);
 
-            boolean value = SharedPreferencesUtil.getBoolean(settingSection.id, Boolean.parseBoolean(settingSection.defaultValue));
+            boolean value = SharedPreferencesUtil.getBoolean(settingSection.id,
+                    Boolean.parseBoolean(settingSection.defaultValue));
             chocola.setChecked(value);
             vanilla.setChecked(!value);
 
-            chocola.setOnCheckedChangeListener((buttonView, isChecked) ->
-                    SharedPreferencesUtil.putBoolean(settingSection.id, isChecked));  //有些选项的true和false不能改了，所以交换
+            chocola.setOnCheckedChangeListener(
+                    (buttonView, isChecked) -> SharedPreferencesUtil.putBoolean(settingSection.id, isChecked)); // 有些选项的true和false不能改了，所以交换
         }
     }
 
@@ -167,44 +182,58 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         public void bind(SettingSection settingSection) {
-            if(settingSection.desc==null || settingSection.desc.isEmpty()) desc.setVisibility(View.GONE);
+            if (settingSection.desc == null || settingSection.desc.isEmpty())
+                desc.setVisibility(View.GONE);
             else {
                 desc.setText(settingSection.desc);
                 desc.setVisibility(View.VISIBLE);
             }
             name.setText(settingSection.name);
-            switch (settingSection.type){
+            switch (settingSection.type) {
                 case "input_int":
-                    int intValue = SharedPreferencesUtil.getInt(settingSection.id, Integer.parseInt(settingSection.defaultValue));
+                    int intValue = SharedPreferencesUtil.getInt(settingSection.id,
+                            Integer.parseInt(settingSection.defaultValue));
                     input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
                     input.setText(String.valueOf(intValue));
                     input.addTextChangedListener(new TextWatcher() {
                         @Override
-                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        }
+
                         @Override
-                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        }
+
                         @Override
                         public void afterTextChanged(Editable editable) {
                             try {
                                 SharedPreferencesUtil.putInt(settingSection.id, Integer.parseInt(editable.toString()));
-                            } catch (Exception ignored){}
+                            } catch (Exception ignored) {
+                            }
                         }
                     });
                     break;
                 case "input_float":
-                    float floatValue = SharedPreferencesUtil.getFloat(settingSection.id, Float.parseFloat(settingSection.defaultValue));
+                    float floatValue = SharedPreferencesUtil.getFloat(settingSection.id,
+                            Float.parseFloat(settingSection.defaultValue));
                     input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                     input.setText(String.valueOf(floatValue));
                     input.addTextChangedListener(new TextWatcher() {
                         @Override
-                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        }
+
                         @Override
-                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        }
+
                         @Override
                         public void afterTextChanged(Editable editable) {
                             try {
-                                SharedPreferencesUtil.putFloat(settingSection.id, Float.parseFloat(editable.toString()));
-                            } catch (Exception ignored){}
+                                SharedPreferencesUtil.putFloat(settingSection.id,
+                                        Float.parseFloat(editable.toString()));
+                            } catch (Exception ignored) {
+                            }
                         }
                     });
                     break;
@@ -214,9 +243,13 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     input.setText(strValue);
                     input.addTextChangedListener(new TextWatcher() {
                         @Override
-                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        }
+
                         @Override
-                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        }
+
                         @Override
                         public void afterTextChanged(Editable editable) {
                             SharedPreferencesUtil.putString(settingSection.id, editable.toString());

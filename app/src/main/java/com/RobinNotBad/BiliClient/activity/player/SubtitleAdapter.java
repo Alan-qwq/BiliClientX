@@ -52,6 +52,8 @@ public class SubtitleAdapter extends RecyclerView.Adapter<SubtitleAdapter.Holder
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
+        if (position < 0 || list == null || position >= list.length)
+            return;
         if (listener != null) {
             holder.listener = listener;
         }
@@ -60,7 +62,7 @@ public class SubtitleAdapter extends RecyclerView.Adapter<SubtitleAdapter.Holder
 
     @Override
     public int getItemCount() {
-        return list.length;
+        return list != null ? list.length : 0;
     }
 
     public class Holder extends RecyclerView.ViewHolder {
@@ -74,13 +76,17 @@ public class SubtitleAdapter extends RecyclerView.Adapter<SubtitleAdapter.Holder
         }
 
         void bind(int currentIndex, boolean isSelected) {
+            if (currentIndex < 0 || list == null || currentIndex >= list.length)
+                return;
             button.setText(list[currentIndex].lang);
             if (isSelected) {
                 button.setTextColor(0xcc262626);
-                ViewCompat.setBackgroundTintList(button, AppCompatResources.getColorStateList(itemView.getContext(), R.color.background_button_selected));
+                ViewCompat.setBackgroundTintList(button, AppCompatResources.getColorStateList(itemView.getContext(),
+                        R.color.background_button_selected));
             } else {
                 button.setTextColor(0xffebe0e2);
-                ViewCompat.setBackgroundTintList(button, AppCompatResources.getColorStateList(itemView.getContext(), R.color.background_button));
+                ViewCompat.setBackgroundTintList(button,
+                        AppCompatResources.getColorStateList(itemView.getContext(), R.color.background_button));
             }
             button.setOnClickListener(v -> {
                 setSelectedItemIndex(currentIndex);
@@ -91,5 +97,3 @@ public class SubtitleAdapter extends RecyclerView.Adapter<SubtitleAdapter.Holder
         }
     }
 }
-
-
