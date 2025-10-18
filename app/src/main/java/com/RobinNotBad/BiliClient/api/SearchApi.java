@@ -15,7 +15,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-
 //搜索API 自己写的
 //逐渐感觉拆json是个很爽的事（
 //2023-07-14
@@ -35,16 +34,18 @@ public class SearchApi {
         url += "page=" + page +
                 "&keyword=" + URLEncoder.encode(search_keyword, "UTF-8") + "&seid=" + seid;
 
-        JSONObject all = NetWorkUtil.getJson(ConfInfoApi.signWBI(url));  //得到一整个json
+        JSONObject all = NetWorkUtil.getJson(ConfInfoApi.signWBI(url)); // 得到一整个json
 
-        if(all.isNull("data")) return null;
-        JSONObject data = all.getJSONObject("data");  //搜索列表中的data项又是一个json，把它提出来
+        if (all.isNull("data"))
+            return null;
+        JSONObject data = all.getJSONObject("data"); // 搜索列表中的data项又是一个json，把它提出来
 
         seid = data.getString("seid");
 
         if (data.has("result") && !data.isNull("result"))
-            return data.getJSONArray("result");  //其实这还不是我们要的结果，下面的函数对它进行再次拆解  这里做了判空
-        else return null;
+            return data.getJSONArray("result"); // 其实这还不是我们要的结果，下面的函数对它进行再次拆解 这里做了判空
+        else
+            return null;
     }
 
     public static Object searchType(String keyword, int page, String type) throws IOException, JSONException {
@@ -57,37 +58,40 @@ public class SearchApi {
         url += "page=" + page +
                 "&keyword=" + URLEncoder.encode(search_keyword, "UTF-8") + "&search_type=" + type + "&seid=" + seid;
 
-        JSONObject all = NetWorkUtil.getJson(ConfInfoApi.signWBI(url));  //得到一整个json
+        JSONObject all = NetWorkUtil.getJson(ConfInfoApi.signWBI(url)); // 得到一整个json
 
-        if(all.isNull("data")) return null;
-        JSONObject data = all.getJSONObject("data");  //搜索列表中的data项又是一个json，把它提出来
+        if (all.isNull("data"))
+            return null;
+        JSONObject data = all.getJSONObject("data"); // 搜索列表中的data项又是一个json，把它提出来
 
         seid = data.getString("seid");
 
         if (data.has("result") && !data.isNull("result"))
-            return data.get("result");  //其实这还不是我们要的结果，下面的函数对它进行再次拆解  这里做了判空
-        else return null;
+            return data.get("result"); // 其实这还不是我们要的结果，下面的函数对它进行再次拆解 这里做了判空
+        else
+            return null;
     }
 
-    public static void getVideosFromSearchResult(JSONArray input, ArrayList<VideoCard> videoCardList, boolean first) throws JSONException {
-        for (int i = 0; i < input.length(); i++) {  //遍历所有的分类，找到视频那一项
+    public static void getVideosFromSearchResult(JSONArray input, ArrayList<VideoCard> videoCardList, boolean first)
+            throws JSONException {
+        for (int i = 0; i < input.length(); i++) { // 遍历所有的分类，找到视频那一项
             JSONObject typecard = input.getJSONObject(i);
             String type = typecard.getString("result_type");
             if (type.equals("video")) {
-                JSONArray data = typecard.getJSONArray("data");    //把这个列表提出来，接着拆
+                JSONArray data = typecard.getJSONArray("data"); // 把这个列表提出来，接着拆
                 for (int j = 0; j < data.length(); j++) {
-                    JSONObject card = data.getJSONObject(j);    //获得视频卡片
+                    JSONObject card = data.getJSONObject(j); // 获得视频卡片
                     if (!card.getString("type").equals("video"))
-                        continue; //警惕虚假视频卡片（阿B为什么要把直播间放进视频结果里）
+                        continue; // 警惕虚假视频卡片（阿B为什么要把直播间放进视频结果里）
 
                     String title = card.getString("title");
                     title = title.replace("<em class=\"keyword\">", "").replace("</em>", "");
-                    //标题里的红字，知道怎么显示但因为懒所以直接删（//显示方式可以用imagespan，参照表情包那部分程序（EmoteUtil），期待后人补齐（
+                    // 标题里的红字，知道怎么显示但因为懒所以直接删（//显示方式可以用imagespan，参照表情包那部分程序（EmoteUtil），期待后人补齐（
                     title = StringUtil.htmlToString(title);
 
                     String bvid = card.getString("bvid");
                     long aid = card.getLong("aid");
-                    String cover = "http:" + card.getString("pic");  //离谱了嗷，前面甚至不肯加个http:
+                    String cover = "http:" + card.getString("pic"); // 离谱了嗷，前面甚至不肯加个http:
                     String upName = card.getString("author");
 
                     long play = card.getLong("play");
@@ -98,11 +102,11 @@ public class SearchApi {
             } else if (type.equals("media_bangumi") && first) {
                 JSONArray data = typecard.getJSONArray("data");
                 for (int j = 0; j < data.length(); j++) {
-                    JSONObject card = data.getJSONObject(j);    //获得番剧卡片
+                    JSONObject card = data.getJSONObject(j); // 获得番剧卡片
 
                     String title = card.getString("title");
                     title = title.replace("<em class=\"keyword\">", "").replace("</em>", "");
-                    //标题里的红字,直接上面复制粘贴
+                    // 标题里的红字,直接上面复制粘贴
                     title = StringUtil.htmlToString(title);
                     String cover = card.getString("cover");
                     String upName = card.getString("areas");
@@ -117,7 +121,7 @@ public class SearchApi {
 
     public static void getUsersFromSearchResult(JSONArray input, List<UserInfo> userInfoList) throws JSONException {
         for (int i = 0; i < input.length(); i++) {
-            JSONObject card = input.getJSONObject(i);    //获得用户卡片
+            JSONObject card = input.getJSONObject(i); // 获得用户卡片
 
             long mid = card.getLong("mid");
             String name = card.getString("uname");
@@ -130,15 +134,17 @@ public class SearchApi {
         }
     }
 
-    public static void getArticlesFromSearchResult(JSONArray input, ArrayList<ArticleCard> articleCardList) throws JSONException {
+    public static void getArticlesFromSearchResult(JSONArray input, ArrayList<ArticleCard> articleCardList)
+            throws JSONException {
         for (int i = 0; i < input.length(); i++) {
             ArticleCard articleCard = new ArticleCard();
-            JSONObject card = input.getJSONObject(i);    //获得专栏卡片
+            JSONObject card = input.getJSONObject(i); // 获得专栏卡片
 
             articleCard.id = card.getLong("id");
             if (card.getJSONArray("image_urls").length() > 0)
                 articleCard.cover = "http:" + card.getJSONArray("image_urls").getString(0);
-            else articleCard.cover = "";
+            else
+                articleCard.cover = "";
             articleCard.upName = card.getString("category_name");
             articleCard.title = StringUtil.htmlReString(card.getString("title"));
             articleCard.view = StringUtil.toWan(card.getInt("view")) + "阅读";
@@ -146,5 +152,38 @@ public class SearchApi {
             articleCardList.add(articleCard);
         }
     }
-}
 
+    /**
+     * 获取搜索建议
+     * 
+     * @param keyword 搜索关键词
+     * @return 返回搜索建议列表，最多10条
+     * @throws IOException   网络请求异常
+     * @throws JSONException JSON解析异常
+     */
+    public static ArrayList<String> getSearchSuggestions(String keyword) throws IOException, JSONException {
+        ArrayList<String> suggestions = new ArrayList<>();
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return suggestions;
+        }
+
+        String url = "https://s.search.bilibili.com/main/suggest?term=" + URLEncoder.encode(keyword, "UTF-8");
+
+        JSONObject response = NetWorkUtil.getJson(url);
+
+        if (response.getInt("code") == 0 && response.has("result")) {
+            JSONObject result = response.getJSONObject("result");
+            if (result.has("tag") && !result.isNull("tag")) {
+                JSONArray tagArray = result.getJSONArray("tag");
+                for (int i = 0; i < tagArray.length(); i++) {
+                    JSONObject tagObj = tagArray.getJSONObject(i);
+                    String value = tagObj.getString("value");
+                    suggestions.add(value);
+                }
+            }
+        }
+
+        return suggestions;
+    }
+}

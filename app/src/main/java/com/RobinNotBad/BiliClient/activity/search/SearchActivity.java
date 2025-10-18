@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,6 +25,8 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.RobinNotBad.BiliClient.R;
 import com.RobinNotBad.BiliClient.activity.base.InstanceActivity;
 import com.RobinNotBad.BiliClient.adapter.SearchHistoryAdapter;
+import com.RobinNotBad.BiliClient.adapter.SearchSuggestionsAdapter;
+import com.RobinNotBad.BiliClient.api.SearchApi;
 import com.RobinNotBad.BiliClient.helper.TutorialHelper;
 import com.RobinNotBad.BiliClient.ui.widget.recycler.CustomLinearManager;
 import com.RobinNotBad.BiliClient.util.JsonUtil;
@@ -40,7 +44,9 @@ import java.util.Objects;
 public class SearchActivity extends InstanceActivity {
     private String lastKeyword = "≠~`";
     private RecyclerView historyRecyclerview;
+    private RecyclerView suggestionsRecyclerview;
     SearchHistoryAdapter searchHistoryAdapter;
+    SearchSuggestionsAdapter searchSuggestionsAdapter;
     ViewPager2 viewPager;
     EditText keywordInput;
     private ConstraintLayout searchBar;
@@ -49,26 +55,32 @@ public class SearchActivity extends InstanceActivity {
     private long animate_last;
     Handler handler;
     ArrayList<String> searchHistory;
+    ArrayList<String> searchSuggestions;
+    private Runnable suggestionRunnable;
+    private boolean suggestionsEnabled;
 
     boolean tutorial_show;
     String classname;
 
-    String[] specialList = {"心理疾病","自杀","自尽","自残","抑郁","双相","安眠药"};
+    String[] specialList = { "心理疾病", "自杀", "自尽", "自残", "抑郁", "双相", "安眠药" };
 
-    @SuppressLint({"MissingInflatedId", "NotifyDataSetChanged", "InflateParams"})
+    @SuppressLint({ "MissingInflatedId", "NotifyDataSetChanged", "InflateParams" })
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         classname = getClass().getSimpleName();
-        tutorial_show = SharedPreferencesUtil.getBoolean("tutorial_pager_"+ classname, true);
+        tutorial_show = SharedPreferencesUtil.getBoolean("tutorial_pager_" + classname, true);
 
-        asyncInflate(R.layout.activity_search ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_search, (layoutView, resId) -> {
             Log.e("debug", "进入搜索页");
 
             TutorialHelper.showTutorialList(this, R.array.tutorial_search, 4);
 
             handler = new Handler();
+
+            // 检查是否启用搜索建议
+            suggestionsEnabled = SharedPreferencesUtil.getBoolean("search_suggestions_enable", true);
 
             viewPager = findViewById(R.id.viewPager);
 
@@ -76,9 +88,28 @@ public class SearchActivity extends InstanceActivity {
             keywordInput = findViewById(R.id.keywordInput);
             searchBar = findViewById(R.id.searchbar);
             historyRecyclerview = findViewById(R.id.history_recyclerview);
+            suggestionsRecyclerview = findViewById(R.id.suggestions_recyclerview);
             viewPager.setOffscreenPageLimit(4);
-            keywordInput.setOnFocusChangeListener((view, b) -> historyRecyclerview.setVisibility(b ? View.VISIBLE : View.GONE));
+
+            keywordInput.setOnFocusChangeListener((view, b) -> {
+                if (b) {
+                    // 获得焦点时，根据输入内容决定显示历史还是建议
+                    String keyword = keywordInput.getText().toString();
+                    if (keyword.isEmpty() || !suggestionsEnabled) {
+                        historyRecyclerview.setVisibility(View.VISIBLE);
+                        suggestionsRecyclerview.setVisibility(View.GONE);
+                    } else {
+                        historyRecyclerview.setVisibility(View.GONE);
+                        suggestionsRecyclerview.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    // 失去焦点时隐藏所有列表
+                    historyRecyclerview.setVisibility(View.GONE);
+                    suggestionsRecyclerview.setVisibility(View.GONE);
+                }
+            });
             historyRecyclerview.setVisibility(View.VISIBLE);
+            suggestionsRecyclerview.setVisibility(View.GONE);
             FragmentStateAdapter vpfAdapter = new FragmentStateAdapter(this) {
                 @Override
                 public int getItemCount() {
@@ -88,11 +119,16 @@ public class SearchActivity extends InstanceActivity {
                 @NonNull
                 @Override
                 public Fragment createFragment(int position) {
-                    if (position == 0) return SearchVideoFragment.newInstance();
-                    if (position == 1) return SearchArticleFragment.newInstance();
-                    if (position == 2) return SearchUserFragment.newInstance();
-                    if (position == 3) return SearchLiveFragment.newInstance();
-                    throw new IllegalArgumentException("return value of getItemCount() method maybe not associate with argument position");
+                    if (position == 0)
+                        return SearchVideoFragment.newInstance();
+                    if (position == 1)
+                        return SearchArticleFragment.newInstance();
+                    if (position == 2)
+                        return SearchUserFragment.newInstance();
+                    if (position == 3)
+                        return SearchLiveFragment.newInstance();
+                    throw new IllegalArgumentException(
+                            "return value of getItemCount() method maybe not associate with argument position");
                 }
             };
             viewPager.setAdapter(vpfAdapter);
@@ -100,18 +136,19 @@ public class SearchActivity extends InstanceActivity {
             viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
                 @Override
                 public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                    if(position!=0) {
-                        onScrolled(256);  //让搜索框隐藏
-                        if(tutorial_show) {
+                    if (position != 0) {
+                        onScrolled(256); // 让搜索框隐藏
+                        if (tutorial_show) {
                             tutorial_show = false;
                             findViewById(R.id.text_tutorial_pager).setVisibility(View.GONE);
-                            SharedPreferencesUtil.putBoolean("tutorial_pager_"+ classname, false);
+                            SharedPreferencesUtil.putBoolean("tutorial_pager_" + classname, false);
                         }
                     }
 
-                    Fragment fragmentCurr = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
+                    Fragment fragmentCurr = getSupportFragmentManager()
+                            .findFragmentByTag("f" + viewPager.getCurrentItem());
                     if (fragmentCurr != null) {
-                        ((SearchFragment) fragmentCurr).refresh();  //在fragment里已做判断
+                        ((SearchFragment) fragmentCurr).refresh(); // 在fragment里已做判断
                     }
                     super.onPageScrolled(position, positionOffset, positionOffsetPixels);
                 }
@@ -120,14 +157,17 @@ public class SearchActivity extends InstanceActivity {
             searchBtn.setOnClickListener(view -> searchKeyword(keywordInput.getText().toString()));
             searchBtn.setOnLongClickListener(this::jumpToTargetId);
             keywordInput.setOnEditorActionListener((textView, actionId, event) -> {
-                if (actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE || event != null && KeyEvent.KEYCODE_ENTER == event.getKeyCode() && KeyEvent.ACTION_DOWN == event.getAction()) {
+                if (actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE || event != null
+                        && KeyEvent.KEYCODE_ENTER == event.getKeyCode() && KeyEvent.ACTION_DOWN == event.getAction()) {
                     searchKeyword(keywordInput.getText().toString());
                 }
                 return false;
             });
 
             try {
-                searchHistory = JsonUtil.jsonToArrayList(new JSONArray(SharedPreferencesUtil.getString(SharedPreferencesUtil.search_history, "[]")), false);
+                searchHistory = JsonUtil.jsonToArrayList(
+                        new JSONArray(SharedPreferencesUtil.getString(SharedPreferencesUtil.search_history, "[]")),
+                        false);
             } catch (JSONException e) {
                 runOnUiThread(() -> MsgUtil.err(e));
                 searchHistory = new ArrayList<>();
@@ -139,11 +179,80 @@ public class SearchActivity extends InstanceActivity {
                 searchHistory.remove(position);
                 searchHistoryAdapter.notifyItemRemoved(position);
                 searchHistoryAdapter.notifyItemRangeChanged(position, searchHistory.size() - position);
-                SharedPreferencesUtil.putString(SharedPreferencesUtil.search_history, new JSONArray(searchHistory).toString());
+                SharedPreferencesUtil.putString(SharedPreferencesUtil.search_history,
+                        new JSONArray(searchHistory).toString());
             });
             historyRecyclerview.setLayoutManager(new CustomLinearManager(this));
             historyRecyclerview.setAdapter(searchHistoryAdapter);
 
+            // 初始化搜索建议
+            searchSuggestions = new ArrayList<>();
+            searchSuggestionsAdapter = new SearchSuggestionsAdapter(this, searchSuggestions);
+            searchSuggestionsAdapter.setOnClickListener(position -> {
+                String suggestion = searchSuggestions.get(position);
+                keywordInput.setText(suggestion);
+                keywordInput.setSelection(suggestion.length());
+                searchKeyword(suggestion);
+            });
+            suggestionsRecyclerview.setLayoutManager(new CustomLinearManager(this));
+            suggestionsRecyclerview.setAdapter(searchSuggestionsAdapter);
+
+            // 添加输入监听器获取搜索建议
+            if (suggestionsEnabled) {
+                keywordInput.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        String keyword = s.toString();
+
+                        // 移除之前的请求
+                        if (suggestionRunnable != null) {
+                            handler.removeCallbacks(suggestionRunnable);
+                        }
+
+                        if (keyword.isEmpty()) {
+                            // 输入为空时显示历史记录
+                            runOnUiThread(() -> {
+                                if (keywordInput.hasFocus()) {
+                                    historyRecyclerview.setVisibility(View.VISIBLE);
+                                    suggestionsRecyclerview.setVisibility(View.GONE);
+                                }
+                            });
+                        } else {
+                            suggestionRunnable = () -> new Thread(() -> {
+                                try {
+                                    ArrayList<String> suggestions = SearchApi.getSearchSuggestions(keyword);
+                                    runOnUiThread(() -> {
+                                        if (keywordInput.hasFocus()) {
+                                            searchSuggestions.clear();
+                                            searchSuggestions.addAll(suggestions);
+                                            searchSuggestionsAdapter.notifyDataSetChanged();
+
+                                            if (!suggestions.isEmpty()) {
+                                                historyRecyclerview.setVisibility(View.GONE);
+                                                suggestionsRecyclerview.setVisibility(View.VISIBLE);
+                                            } else {
+                                                historyRecyclerview.setVisibility(View.VISIBLE);
+                                                suggestionsRecyclerview.setVisibility(View.GONE);
+                                            }
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    Log.e("SearchActivity", "获取搜索建议失败", e);
+                                }
+                            }).start();
+                            handler.postDelayed(suggestionRunnable, 300);
+                        }
+                    }
+                });
+            }
 
             if (getIntent().getStringExtra("keyword") != null) {
                 findViewById(R.id.top).setOnClickListener(view1 -> finish());
@@ -171,8 +280,8 @@ public class SearchActivity extends InstanceActivity {
                 return;
             }
         }
-        for (String s:specialList) {
-            if(str.contains(s)){
+        for (String s : specialList) {
+            if (str.contains(s)) {
                 MsgUtil.showText("特殊彩蛋", getString(R.string.egg_warmwords_warmworld));
                 break;
             }
@@ -196,7 +305,7 @@ public class SearchActivity extends InstanceActivity {
                 refreshing = true;
                 lastKeyword = str;
 
-                //搜索记录
+                // 搜索记录
                 runOnUiThread(() -> {
                     historyRecyclerview.setVisibility(View.GONE);
                     keywordInput.clearFocus();
@@ -205,7 +314,8 @@ public class SearchActivity extends InstanceActivity {
                 if (!searchHistory.contains(str)) {
                     try {
                         searchHistory.add(0, str);
-                        SharedPreferencesUtil.putString(SharedPreferencesUtil.search_history, new JSONArray(searchHistory).toString());
+                        SharedPreferencesUtil.putString(SharedPreferencesUtil.search_history,
+                                new JSONArray(searchHistory).toString());
                         runOnUiThread(() -> {
                             searchHistoryAdapter.notifyItemInserted(0);
                             searchHistoryAdapter.notifyItemRangeChanged(0, searchHistory.size());
@@ -219,7 +329,8 @@ public class SearchActivity extends InstanceActivity {
                         int pos = searchHistory.indexOf(str);
                         searchHistory.remove(str);
                         searchHistory.add(0, str);
-                        SharedPreferencesUtil.putString(SharedPreferencesUtil.search_history, new JSONArray(searchHistory).toString());
+                        SharedPreferencesUtil.putString(SharedPreferencesUtil.search_history,
+                                new JSONArray(searchHistory).toString());
                         runOnUiThread(() -> {
                             searchHistoryAdapter.notifyItemMoved(pos, 0);
                             searchHistoryAdapter.notifyItemRangeChanged(0, searchHistory.size());
@@ -236,18 +347,21 @@ public class SearchActivity extends InstanceActivity {
                         if (fragmentById != null)
                             ((SearchFragment) fragmentById).update(str);
                     }
-                    Fragment fragmentCurr = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
+                    Fragment fragmentCurr = getSupportFragmentManager()
+                            .findFragmentByTag("f" + viewPager.getCurrentItem());
                     if (fragmentCurr != null) {
                         ((SearchFragment) fragmentCurr).refresh();
                     }
-                } catch (Exception e) {report(e);}
+                } catch (Exception e) {
+                    report(e);
+                }
                 refreshing = false;
 
-                if(tutorial_show) {
+                if (tutorial_show) {
                     runOnUiThread(() -> {
                         TextView textView = findViewById(R.id.text_tutorial_pager);
                         textView.setVisibility(View.VISIBLE);
-                        textView.setText(getString(R.string.tutorial_pager,4));
+                        textView.setText(getString(R.string.tutorial_pager, 4));
                     });
                 }
             }
@@ -261,7 +375,8 @@ public class SearchActivity extends InstanceActivity {
             if (dy > 0 && searchBarVisible) {
                 animate_last = System.currentTimeMillis();
                 this.searchBarVisible = false;
-                @SuppressLint("ObjectAnimatorBinding") ObjectAnimator animator = ObjectAnimator.ofFloat(searchBar, "translationY", 0, -height);
+                @SuppressLint("ObjectAnimatorBinding")
+                ObjectAnimator animator = ObjectAnimator.ofFloat(searchBar, "translationY", 0, -height);
                 animator.start();
                 handler.postDelayed(() -> searchBar.setVisibility(View.GONE), 200);
             }
@@ -269,7 +384,8 @@ public class SearchActivity extends InstanceActivity {
                 animate_last = System.currentTimeMillis();
                 this.searchBarVisible = true;
                 searchBar.setVisibility(View.VISIBLE);
-                @SuppressLint("ObjectAnimatorBinding") ObjectAnimator animator = ObjectAnimator.ofFloat(searchBar, "translationY", -height, 0);
+                @SuppressLint("ObjectAnimatorBinding")
+                ObjectAnimator animator = ObjectAnimator.ofFloat(searchBar, "translationY", -height, 0);
                 animator.start();
             }
         }

@@ -223,7 +223,10 @@
     #新增功能放到上面，修复问题放下面，方便用户看见
     <string-array name="update_log_items">
         <item>内置播放器增加了听视频功能</item>
-        <item>内置播放器增加了新的弹幕获取方式</item>
+        <item>内置播放器增加了新的弹幕获取方式，可以获取到更多弹幕</item>
+        <item>内置播放器增加了高能进度条</item>
+        <item>增加了搜索建议</item>
+        <item>修复了一键三连存在错别字的问题</item>
         <item>优化了常年bug的缓存页面的下载管理</item>
         <item>进行了不知道有没有用的性能优化</item>
         <item>优化了少量屎山代码</item>
@@ -234,7 +237,8 @@
     <string name="btn_confirm_settings">确认设置</string>
     <string name="btn_preview">查看预览</string>
     <string name="btn_login_copy">复制</string>
-    <string name="desc_one_triple">开启此选项后，在视频详情页长按点赞按钮可以进行一键三联操作</string>
+    <string name="desc_one_triple">开启此选项后，在视频详情页长按点赞按钮可以进行一键三连操作</string>
+    <string name="desc_search_suggestions_enable">打开此选项，在搜索页输入关键词时会自动显示搜索建议，关闭后仅显示搜索历史</string>
 
     #后来写新功能添加的教程请放在列表的第一个
     <array name="tutorial_space">

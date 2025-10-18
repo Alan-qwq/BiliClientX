@@ -504,7 +504,7 @@ public class VideoInfoFragment extends BaseFragment {
             collectionCard.setVisibility(View.GONE);
         }
 
-        // 一键三联
+        // 一键三连
         rootview.findViewById(R.id.layout_like).setOnLongClickListener(v -> {
             if (SharedPreferencesUtil.getBoolean("like_one_triple", true) &&
                     SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) != 0) {
@@ -531,10 +531,10 @@ public class VideoInfoFragment extends BaseFragment {
                                 coin.setImageResource(R.drawable.icon_coin_1);
                                 like.setImageResource(R.drawable.icon_like_1);
                                 fav.setImageResource(R.drawable.icon_fav_1);
-                                MsgUtil.showMsg("三联成功");
-                            } else MsgUtil.showMsg("三联失败，错误码：" + code);
+                                MsgUtil.showMsg("三连成功");
+                            } else MsgUtil.showMsg("三连失败，错误码：" + code);
                         }catch (Exception e){
-                            MsgUtil.err("三联失败", e);
+                            MsgUtil.err("三连失败", e);
                         }
                     });
                 };
