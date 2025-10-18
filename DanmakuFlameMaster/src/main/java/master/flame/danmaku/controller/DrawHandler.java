@@ -267,7 +267,7 @@ public class DrawHandler extends Handler {
                 if (mDanmakuView != null) {
                     mDanmakuView.clear();
                 }
-                if(this.drawTask != null) {
+                if (this.drawTask != null) {
                     this.drawTask.requestClear();
                     this.drawTask.requestHide();
                 }
@@ -291,8 +291,8 @@ public class DrawHandler extends Handler {
                     quitUpdateThread();
                 }
                 pausedPosition = timer.currMillisecond;
-                if (what == QUIT){
-                    if (this.drawTask != null){
+                if (what == QUIT) {
+                    if (this.drawTask != null) {
                         this.drawTask.quit();
                     }
                     if (mParser != null) {
@@ -349,7 +349,8 @@ public class DrawHandler extends Handler {
         }
         d = mDanmakuView.drawDanmakus();
         removeMessages(UPDATE);
-        if (d > mCordonTime2) {  // this situation may be cuased by ui-thread waiting of DanmakuView, so we sync-timer at once
+        if (d > mCordonTime2) { // this situation may be cuased by ui-thread waiting of DanmakuView, so we
+                                // sync-timer at once
             timer.add(d);
             mDrawTimes.clear();
         }
@@ -395,7 +396,8 @@ public class DrawHandler extends Handler {
                         continue;
                     }
                     d = mDanmakuView.drawDanmakus();
-                    if (d > mCordonTime2) {  // this situation may be cuased by ui-thread waiting of DanmakuView, so we sync-timer at once
+                    if (d > mCordonTime2) { // this situation may be cuased by ui-thread waiting of DanmakuView, so we
+                                            // sync-timer at once
                         timer.add(d);
                         mDrawTimes.clear();
                     }
@@ -413,6 +415,7 @@ public class DrawHandler extends Handler {
         };
         mThread.start();
     }
+
     private long mSpeedOffsetNoRender = 0L;
     private long mSpeedOffsetRender = 0L;
     private float mSpeed = 1.0F;
@@ -420,6 +423,7 @@ public class DrawHandler extends Handler {
     public void setSpeed(float speed) {
         mSpeed = speed;
     }
+
     public long syncTimer(long startMS) {
         if (mInSeekingAction || mInSyncAction) {
             return 0;
@@ -434,7 +438,7 @@ public class DrawHandler extends Handler {
             if (mCallback != null) {
                 mCallback.updateTimer(timer);
             }
-        }  else {
+        } else {
             long gapTime = time - timer.currMillisecond;
             long averageTime = Math.max(mFrameUpdateRate, getAverageRenderingTime());
             if (gapTime > 2000 || mRenderingState.consumingTime > mCordonTime || averageTime > mCordonTime) {
@@ -456,7 +460,9 @@ public class DrawHandler extends Handler {
             }
             mRemainingTime = gapTime;
             timer.add(d);
-//            Log.e("DrawHandler", time+"|d:" + d  + "RemaingTime:" + mRemainingTime + ",gapTime:" + gapTime + ",rtim:" + mRenderingState.consumingTime + ",average:" + averageTime);
+            // Log.e("DrawHandler", time+"|d:" + d + "RemaingTime:" + mRemainingTime +
+            // ",gapTime:" + gapTime + ",rtim:" + mRenderingState.consumingTime +
+            // ",average:" + averageTime);
         }
         if (mCallback != null) {
             mCallback.updateTimer(timer);
@@ -477,8 +483,9 @@ public class DrawHandler extends Handler {
         mCordonTime2 = (long) (mCordonTime * 2.5f);
         mFrameUpdateRate = Math.max(16, averageFrameConsumingTime / 15 * 15);
         mThresholdTime = mFrameUpdateRate + 3;
-//        Log.i("DrawHandler", "initRenderingConfigs test-fps:" + averageFrameConsumingTime + "ms,mCordonTime:"
-//                + mCordonTime + ",mFrameRefreshingRate:" + mFrameUpdateRate);
+        // Log.i("DrawHandler", "initRenderingConfigs test-fps:" +
+        // averageFrameConsumingTime + "ms,mCordonTime:"
+        // + mCordonTime + ",mFrameRefreshingRate:" + mFrameUpdateRate);
     }
 
     private void prepare(final Runnable runnable) {
@@ -534,10 +541,10 @@ public class DrawHandler extends Handler {
     }
 
     private IDrawTask createDrawTask(boolean useDrwaingCache, DanmakuTimer timer,
-                                     Context context,
-                                     int width, int height,
-                                     boolean isHardwareAccelerated,
-                                     IDrawTask.TaskListener taskListener) {
+            Context context,
+            int width, int height,
+            boolean isHardwareAccelerated,
+            IDrawTask.TaskListener taskListener) {
         mDisp = mContext.getDisplayer();
         mDisp.setSize(width, height);
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
@@ -545,8 +552,9 @@ public class DrawHandler extends Handler {
                 displayMetrics.scaledDensity);
         mDisp.resetSlopPixel(mContext.scaleTextSize);
         mDisp.setHardwareAccelerated(isHardwareAccelerated);
-        IDrawTask task = useDrwaingCache ?
-                new CacheManagingDrawTask(timer, mContext, taskListener, 1024 * 1024 * AndroidUtils.getMemoryClass(context) / 3)
+        IDrawTask task = useDrwaingCache
+                ? new CacheManagingDrawTask(timer, mContext, taskListener,
+                        1024 * 1024 * AndroidUtils.getMemoryClass(context) / 3)
                 : new DrawTask(timer, mContext, taskListener);
         task.setParser(mParser);
         task.prepare();
@@ -588,6 +596,8 @@ public class DrawHandler extends Handler {
     }
 
     public void pause() {
+        removeMessages(DrawHandler.RESUME);
+        removeMessages(DrawHandler.UPDATE);
         syncTimerIfNeeded();
         sendEmptyMessage(DrawHandler.PAUSE);
     }
@@ -634,7 +644,7 @@ public class DrawHandler extends Handler {
         if (!mInWaitingState) {
             return;
         }
-        if(drawTask != null) {
+        if (drawTask != null) {
             drawTask.requestClear();
         }
         if (mUpdateInNewThread) {
@@ -685,12 +695,12 @@ public class DrawHandler extends Handler {
 
     private synchronized long getAverageRenderingTime() {
         int frames = mDrawTimes.size();
-        if(frames <= 0)
+        if (frames <= 0)
             return 0;
         try {
             long dtime = mDrawTimes.getLast() - mDrawTimes.getFirst();
             return dtime / frames;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return 0;
         }
@@ -706,7 +716,7 @@ public class DrawHandler extends Handler {
         }
     }
 
-    public IDisplayer getDisplayer(){
+    public IDisplayer getDisplayer() {
         return mDisp;
     }
 
