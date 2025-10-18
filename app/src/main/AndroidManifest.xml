@@ -250,6 +250,11 @@
             android:label="消息"
             android:screenOrientation="locked" />
         <activity
+            android:name=".activity.message.MessageSettingsActivity"
+            android:exported="false"
+            android:label="消息设置"
+            android:screenOrientation="locked" />
+        <activity
             android:name=".activity.message.NoticeActivity"
             android:exported="false"
             android:screenOrientation="locked" />

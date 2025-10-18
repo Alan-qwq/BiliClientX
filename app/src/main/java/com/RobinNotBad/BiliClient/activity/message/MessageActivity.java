@@ -3,6 +3,7 @@ package com.RobinNotBad.BiliClient.activity.message;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,19 +27,24 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 public class MessageActivity extends InstanceActivity {
     private RecyclerView sessionsView;
 
-    @SuppressLint({"SetTextI18n", "InflateParams"})
+    @SuppressLint({ "SetTextI18n", "InflateParams" })
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_message ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_message, (layoutView, resId) -> {
             SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
             swipeRefreshLayout.setEnabled(false);
             swipeRefreshLayout.setRefreshing(true);
+
+            MaterialCardView settingBtn = findViewById(R.id.setting_btn);
+            settingBtn.setOnClickListener(view -> {
+                Intent intent = new Intent(this, MessageSettingsActivity.class);
+                startActivity(intent);
+            });
 
             MaterialCardView reply = findViewById(R.id.reply);
             reply.setOnClickListener(view -> {
@@ -48,7 +54,6 @@ public class MessageActivity extends InstanceActivity {
                 startActivity(intent);
                 ((TextView) findViewById(R.id.reply_text)).setText("回复我的");
             });
-
 
             MaterialCardView like = findViewById(R.id.like);
             like.setOnClickListener(view -> {
@@ -92,9 +97,12 @@ public class MessageActivity extends InstanceActivity {
                     runOnUiThread(() -> {
                         swipeRefreshLayout.setRefreshing(false);
                         try {
-                            ((TextView) findViewById(R.id.reply_text)).setText("回复我的" + ((stats.getInt("reply") > 0) ? ("(" + stats.getInt("reply") + "未读)") : ""));
-                            ((TextView) findViewById(R.id.like_text)).setText("收到的赞" + ((stats.getInt("like") > 0) ? ("(" + stats.getInt("like") + "未读)") : ""));
-                            ((TextView) findViewById(R.id.at_text)).setText("@我" + ((stats.getInt("at") > 0) ? ("(" + stats.getInt("at") + "未读)") : ""));
+                            ((TextView) findViewById(R.id.reply_text)).setText("回复我的"
+                                    + ((stats.getInt("reply") > 0) ? ("(" + stats.getInt("reply") + "未读)") : ""));
+                            ((TextView) findViewById(R.id.like_text)).setText(
+                                    "收到的赞" + ((stats.getInt("like") > 0) ? ("(" + stats.getInt("like") + "未读)") : ""));
+                            ((TextView) findViewById(R.id.at_text)).setText(
+                                    "@我" + ((stats.getInt("at") > 0) ? ("(" + stats.getInt("at") + "未读)") : ""));
                             sessionsView.setLayoutManager(new CustomLinearManager(this));
                             sessionsView.setAdapter(adapter);
                         } catch (Exception e) {
