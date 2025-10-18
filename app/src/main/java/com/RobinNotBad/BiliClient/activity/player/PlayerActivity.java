@@ -29,6 +29,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -49,6 +50,7 @@ import com.RobinNotBad.BiliClient.api.VideoInfoApi;
 import com.RobinNotBad.BiliClient.event.SnackEvent;
 import com.RobinNotBad.BiliClient.model.DmSegMobileReply;
 import com.RobinNotBad.BiliClient.model.HighEnergyData;
+import com.RobinNotBad.BiliClient.model.PlayerData;
 import com.RobinNotBad.BiliClient.model.Subtitle;
 import com.RobinNotBad.BiliClient.model.SubtitleLink;
 import com.RobinNotBad.BiliClient.ui.widget.BatteryView;
@@ -120,13 +122,15 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private float subtitle_delta;
 
     private RelativeLayout layout_control, layout_top, layout_video, layout_card_bg, layout_audio_only;
-    private LinearLayout layout_speed, right_control, right_second, loading_info, bottom_buttons;
-    private LinearLayout card_subtitle, card_danmaku_send;
+    private LinearLayout layout_speed, right_control, loading_info;
+    private RelativeLayout bottom_buttons;
+    private HorizontalScrollView right_second;
+    private LinearLayout card_subtitle, card_danmaku_send, card_page_selector;
 
     private ImageView img_loading;
     private AnimationDrawable anim_loading;
     private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send,
-            btn_audio_only;
+            btn_audio_only, btn_page_selector, btn_auto_next;
     private HighEnergyProgressBar seekbar_progress;
     private SeekBar seekbar_speed;
     private TextView text_progress, text_online, text_volume, loading_text0, loading_text1, text_speed, text_newspeed;
@@ -164,6 +168,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
     private boolean finishWatching = false;
     private boolean loop_enabled;
+    private boolean auto_next_enabled = false;
 
     private BatteryView batteryView;
     private BatteryManager batteryManager;
@@ -175,6 +180,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     public String online_number = "0";
 
     private long aid, cid, mid;
+
+    private ArrayList<String> pagenames;
+    private ArrayList<Long> cids;
+    private int currentPageIndex = 0;
+    private String videoTitle;
 
     @Override
     public void onBackPressed() {
@@ -192,9 +202,9 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         if (intent == null)
             return false;
 
-        video_url = intent.getStringExtra("url");// 视频链接
-        danmaku_url = intent.getStringExtra("danmaku");// 弹幕链接
-        String title = intent.getStringExtra("title");// 视频标题
+        video_url = intent.getStringExtra("url");
+        danmaku_url = intent.getStringExtra("danmaku");
+        String title = intent.getStringExtra("title");
 
         if (video_url == null)
             return false;
@@ -203,6 +213,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         Logu.v("视频", video_url);
         Logu.v("标题", title);
         text_title.setText(title);
+        videoTitle = title;
 
         aid = intent.getLongExtra("aid", 0);
         cid = intent.getLongExtra("cid", 0);
@@ -214,6 +225,20 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         isLiveMode = intent.getBooleanExtra("live_mode", false);
         isOnlineVideo = video_url.contains("http");
         hasDanmaku = !danmaku_url.equals("");
+
+        if (intent.hasExtra("pagenames") && intent.hasExtra("cids")) {
+            pagenames = intent.getStringArrayListExtra("pagenames");
+            ArrayList<Long> cidList = new ArrayList<>();
+            long[] cidArray = intent.getLongArrayExtra("cids");
+            if (cidArray != null) {
+                for (long c : cidArray) {
+                    cidList.add(c);
+                }
+            }
+            cids = cidList;
+            currentPageIndex = intent.getIntExtra("currentPageIndex", 0);
+        }
+
         return true;
     }
 
@@ -324,6 +349,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         layout_card_bg = findViewById(R.id.card_bg);
         card_subtitle = findViewById(R.id.subtitle_card);
         card_danmaku_send = findViewById(R.id.danmaku_send_card);
+        card_page_selector = findViewById(R.id.page_selector_card);
         layout_audio_only = findViewById(R.id.audio_only_layout);
 
         loading_info = findViewById(R.id.loading_info);
@@ -339,6 +365,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         btn_subtitle = findViewById(R.id.subtitle_btn);
         btn_audio_only = findViewById(R.id.audio_only_btn);
         btn_control = findViewById(R.id.button_video);
+        btn_page_selector = findViewById(R.id.button_page_selector);
+        btn_auto_next = findViewById(R.id.auto_next_btn);
         seekbar_progress = findViewById(R.id.videoprogress);
         loading_text0 = findViewById(R.id.loading_text0);
         loading_text1 = findViewById(R.id.loading_text1);
@@ -710,6 +738,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     mDanmakuView.seekTo(0L);
                 }
                 ijkPlayer.start();
+            } else if (auto_next_enabled && hasMultiplePages() && currentPageIndex < pagenames.size() - 1) {
+                switchToPage(currentPageIndex + 1);
             } else {
                 isPlaying = false;
                 if (hasDanmaku && mDanmakuView != null) {
@@ -814,12 +844,19 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             updateAudioOnlyButton();
             btn_audio_only.setOnClickListener(view -> toggleAudioOnlyMode());
             btn_audio_only.setVisibility(View.VISIBLE);
+
+            if (hasMultiplePages()) {
+                btn_page_selector.setVisibility(View.VISIBLE);
+                btn_page_selector.setOnClickListener(view -> showPageSelectorCard());
+                btn_auto_next.setVisibility(View.VISIBLE);
+                updateAutoNextButton();
+                btn_auto_next.setOnClickListener(view -> toggleAutoNext());
+            }
         }
 
         seekbar_progress.setMax(video_all);
         progress_str = StringUtil.toTime(video_all / 1000);
 
-        // 初始化时应用听视频模式设置
         if (isAudioOnlyMode) {
             updateAudioOnlyUI();
         }
@@ -1128,7 +1165,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
     private void downdanmuNew() {
         try {
-            int estimatedDuration = 3600; // 默认值先写 1 小时
+            int estimatedDuration = 3600;
 
             if (ijkPlayer != null) {
                 long duration = ijkPlayer.getDuration();
@@ -1143,7 +1180,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
             if (segments.isEmpty()) {
                 Logu.w("新版弹幕", "未获取到弹幕，尝试使用旧版接口");
-                downdanmuOld();
+                CenterThreadPool.run(() -> downdanmuOld());
                 return;
             }
 
@@ -1154,7 +1191,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             e.printStackTrace();
             Logu.e("新版弹幕", "获取失败: " + e.getMessage() + "，回退到旧版接口");
             runOnUiThread(() -> MsgUtil.toast("新版弹幕获取失败，使用旧版接口"));
-            downdanmuOld();
+            CenterThreadPool.run(() -> downdanmuOld());
         }
     }
 
@@ -1700,6 +1737,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             layout_card_bg.setVisibility(View.GONE);
             card_subtitle.setVisibility(View.GONE);
             card_danmaku_send.setVisibility(View.GONE);
+            card_page_selector.setVisibility(View.GONE);
         });
         btn_danmaku_send.setOnClickListener(view -> {
             layout_card_bg.setVisibility(View.VISIBLE);
@@ -1998,6 +2036,145 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 e.printStackTrace();
             }
         });
+    }
+
+    private boolean hasMultiplePages() {
+        return pagenames != null && pagenames.size() > 1;
+    }
+
+    private void showPageSelectorCard() {
+        if (!hasMultiplePages())
+            return;
+
+        runOnUiThread(() -> {
+            RecyclerView pageSelectorRecycler = findViewById(R.id.page_selector_list);
+            PageSelectorAdapter adapter = new PageSelectorAdapter();
+            adapter.setData(pagenames, currentPageIndex);
+            adapter.setOnItemClickListener(index -> {
+                layout_card_bg.setVisibility(View.GONE);
+                card_page_selector.setVisibility(View.GONE);
+                if (index != currentPageIndex) {
+                    switchToPage(index);
+                }
+            });
+            pageSelectorRecycler.setLayoutManager(new CustomLinearManager(this));
+            pageSelectorRecycler.setAdapter(adapter);
+            layout_card_bg.setVisibility(View.VISIBLE);
+            card_page_selector.setVisibility(View.VISIBLE);
+        });
+    }
+
+    private void switchToPage(int pageIndex) {
+        if (!hasMultiplePages() || pageIndex < 0 || pageIndex >= pagenames.size())
+            return;
+        if (pageIndex == currentPageIndex)
+            return;
+
+        currentPageIndex = pageIndex;
+        long newCid = cids.get(pageIndex);
+        String newTitle = pagenames.get(pageIndex);
+
+        MsgUtil.showMsg("切换到 P" + (pageIndex + 1));
+
+        CenterThreadPool.run(() -> {
+            try {
+                PlayerData playerData = new PlayerData();
+                playerData.aid = aid;
+                playerData.cid = newCid;
+                playerData.title = newTitle;
+                playerData.mid = mid;
+                playerData.qn = SharedPreferencesUtil.getInt("play_qn", 16);
+                playerData.pagenames = pagenames;
+                playerData.cids = cids;
+                playerData.currentPageIndex = currentPageIndex;
+
+                if (isOnlineVideo) {
+                    PlayerApi.getVideo(playerData, false);
+                } else {
+                    runOnUiThread(() -> MsgUtil.showMsg("本地视频暂不支持切换分P"));
+                    return;
+                }
+
+                runOnUiThread(() -> {
+                    if (destroyed)
+                        return;
+
+                    if (ijkPlayer != null) {
+                        ijkPlayer.stop();
+                        ijkPlayer.release();
+                    }
+                    if (mDanmakuView != null) {
+                        mDanmakuView.release();
+                        mDanmakuView = null;
+                    }
+
+                    cid = newCid;
+                    video_url = playerData.videoUrl;
+                    danmaku_url = playerData.danmakuUrl;
+                    text_title.setText(newTitle);
+
+                    loading_info.setVisibility(View.VISIBLE);
+                    anim_loading.start();
+                    loading_text0.setText("加载P" + (pageIndex + 1));
+                    isPrepared = false;
+                    isPlaying = false;
+                    finishWatching = false;
+                    progress_history = 0;
+                    subtitles = null;
+                    subtitleLinks = null;
+                    subtitle_selected = -1;
+
+                    ijkPlayer = new IjkMediaPlayer();
+                    mDanmakuView = findViewById(R.id.sv_danmaku);
+
+                    setDisplay();
+
+                    layout_control.postDelayed(() -> CenterThreadPool.run(() -> {
+                        if (destroyed)
+                            return;
+
+                        runOnUiThread(() -> {
+                            loading_text0.setText("装填弹幕中");
+                            loading_text1.setText("(≧∇≦)");
+                        });
+
+                        if (isOnlineVideo) {
+                            danmakuFile = new File(getCacheDir(), "danmaku.xml");
+                            if (danmakuFile.exists()) {
+                                danmakuFile.delete();
+                            }
+                            downdanmu();
+                        }
+
+                        if (!destroyed && SharedPreferencesUtil.getBoolean("player_subtitle_autoshow", true)) {
+                            downSubtitle(false);
+                        }
+
+                        if (!destroyed && isOnlineVideo && aid > 0 && cid > 0) {
+                            loadHighEnergyData();
+                        }
+                    }), 60);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    MsgUtil.err(e);
+                    MsgUtil.showMsg("切换失败");
+                });
+            }
+        });
+    }
+
+    private void toggleAutoNext() {
+        auto_next_enabled = !auto_next_enabled;
+        updateAutoNextButton();
+        MsgUtil.showMsg(auto_next_enabled ? "已开启自动连播" : "已关闭自动连播");
+    }
+
+    private void updateAutoNextButton() {
+        if (btn_auto_next != null) {
+            btn_auto_next
+                    .setImageResource(auto_next_enabled ? R.drawable.icon_auto_next_on : R.drawable.icon_auto_next_off);
+        }
     }
 
     @Override

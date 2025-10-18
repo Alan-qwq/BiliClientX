@@ -203,6 +203,15 @@ public class PlayerApi {
                 intent.putExtra("mid", playerData.mid);
                 intent.putExtra("progress", playerData.progress);
                 intent.putExtra("live_mode", playerData.isLive());
+                if (playerData.pagenames != null && playerData.cids != null && playerData.pagenames.size() > 1) {
+                    intent.putStringArrayListExtra("pagenames", playerData.pagenames);
+                    long[] cidArray = new long[playerData.cids.size()];
+                    for (int i = 0; i < playerData.cids.size(); i++) {
+                        cidArray[i] = playerData.cids.get(i);
+                    }
+                    intent.putExtra("cids", cidArray);
+                    intent.putExtra("currentPageIndex", playerData.currentPageIndex);
+                }
                 break;
 
             case "mtvPlayer":

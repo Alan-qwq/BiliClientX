@@ -1,6 +1,5 @@
 package com.RobinNotBad.BiliClient.model;
 
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -11,7 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VideoInfo implements Parcelable, Serializable {    //自定义类需要加这个才能传输
+public class VideoInfo implements Parcelable, Serializable { // 自定义类需要加这个才能传输
 
     public static final int COPYRIGHT_SELF = 1;
     public static final int COPYRIGHT_REPRINT = 2;
@@ -19,7 +18,7 @@ public class VideoInfo implements Parcelable, Serializable {    //自定义类�
     public String bvid;
     public long aid;
     public String title;
-    public ArrayList<UserInfo> staff = new ArrayList<>(); //UP主列表
+    public ArrayList<UserInfo> staff = new ArrayList<>(); // UP主列表
     public String cover;
     public String description;
     public String duration;
@@ -29,18 +28,18 @@ public class VideoInfo implements Parcelable, Serializable {    //自定义类�
     public ArrayList<Long> cids = new ArrayList<>();
     public List<At> descAts = new ArrayList<>();
 
-    public boolean upowerExclusive; //充电专属
-    public String argueMsg; //争议信息
-    public boolean isCooperation; //联合投稿
-    public boolean isSteinGate; //互动视频
-    public boolean is360; //全景视频
+    public boolean upowerExclusive; // 充电专属
+    public String argueMsg; // 争议信息
+    public boolean isCooperation; // 联合投稿
+    public boolean isSteinGate; // 互动视频
+    public boolean is360; // 全景视频
 
-    public long epid; //如果是番剧则不为空，应自动跳转
+    public long epid; // 如果是番剧则不为空，应自动跳转
     public int copyright; // 是否转载
     public Collection collection;
 
-    public VideoInfo() {}
-
+    public VideoInfo() {
+    }
 
     protected VideoInfo(Parcel in) {
         bvid = in.readString();
@@ -106,17 +105,20 @@ public class VideoInfo implements Parcelable, Serializable {    //自定义类�
         }
     };
 
-    public VideoCard toCard(){
+    public VideoCard toCard() {
         return new VideoCard(title, staff.get(0).name, StringUtil.toWan(stats.view), cover, aid, bvid);
     }
 
-    public PlayerData toPlayerData(int index){
+    public PlayerData toPlayerData(int index) {
         PlayerData data = new PlayerData();
         data.aid = aid;
         data.cid = cids.get(index);
         data.title = pagenames.size() == 1 ? title : pagenames.get(index);
-        data.mid = SharedPreferencesUtil.getLong("mid",0);
+        data.mid = SharedPreferencesUtil.getLong("mid", 0);
         data.qn = SharedPreferencesUtil.getInt("play_qn", 16);
+        data.pagenames = pagenames;
+        data.cids = cids;
+        data.currentPageIndex = index;
         return data;
     }
 }

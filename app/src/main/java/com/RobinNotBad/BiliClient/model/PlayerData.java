@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+
 public class PlayerData implements Parcelable {
     public static int TYPE_VIDEO = 0;
     public static int TYPE_BANGUMI = 1;
@@ -24,9 +26,16 @@ public class PlayerData implements Parcelable {
     public long cidHistory = 0;
     public int type = 0;
     public long timeStamp;
+    public ArrayList<String> pagenames;
+    public ArrayList<Long> cids;
+    public int currentPageIndex = 0;
 
-    public PlayerData() {}
-    public PlayerData(int type) {this.type = type;}
+    public PlayerData() {
+    }
+
+    public PlayerData(int type) {
+        this.type = type;
+    }
 
     protected PlayerData(Parcel in) {
         title = in.readString();
@@ -41,6 +50,10 @@ public class PlayerData implements Parcelable {
         progress = in.readInt();
         type = in.readInt();
         timeStamp = in.readLong();
+        pagenames = in.createStringArrayList();
+        cids = new ArrayList<>();
+        in.readList(cids, Long.class.getClassLoader());
+        currentPageIndex = in.readInt();
     }
 
     public static final Creator<PlayerData> CREATOR = new Creator<>() {
@@ -74,18 +87,24 @@ public class PlayerData implements Parcelable {
         dest.writeInt(progress);
         dest.writeInt(type);
         dest.writeLong(timeStamp);
+        dest.writeStringList(pagenames);
+        dest.writeList(cids);
+        dest.writeInt(currentPageIndex);
     }
 
-    public boolean isVideo(){
+    public boolean isVideo() {
         return type == TYPE_VIDEO;
     }
-    public boolean isBangumi(){
+
+    public boolean isBangumi() {
         return type == TYPE_BANGUMI;
     }
-    public boolean isLive(){
+
+    public boolean isLive() {
         return type == TYPE_LIVE;
     }
-    public boolean isLocal(){
+
+    public boolean isLocal() {
         return type == TYPE_LOCAL;
     }
 }
