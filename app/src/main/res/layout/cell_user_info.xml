@@ -161,6 +161,57 @@
             tools:ignore="RtlCompat" />
     </com.google.android.material.card.MaterialCardView>
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/electricPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="2dp"
+        android:alpha="0.78"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/exclusiveTip">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/electricPanelHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="6dp"
+                android:gravity="center_vertical"
+                android:text="充电公示"
+                android:textAlignment="textStart"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:drawableEndCompat="@drawable/arrow_down"
+                tools:ignore="RtlCompat" />
+
+            <View
+                android:id="@+id/electricPanelDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="4dp"
+                android:background="#318C8C8C"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/electricUserList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
     <ImageView
         android:id="@+id/officialIcon"
         android:layout_width="14dp"
@@ -182,7 +233,7 @@
         android:textSize="11sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/officialIcon"
-        app:layout_constraintTop_toBottomOf="@id/exclusiveTip" />
+        app:layout_constraintTop_toBottomOf="@id/electricPanel" />
 
     <ImageView
         android:id="@+id/uidIcon"

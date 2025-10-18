@@ -26,8 +26,11 @@ import com.RobinNotBad.BiliClient.activity.ImageViewerActivity;
 import com.RobinNotBad.BiliClient.activity.base.BaseActivity;
 import com.RobinNotBad.BiliClient.activity.message.PrivateMsgActivity;
 import com.RobinNotBad.BiliClient.activity.user.FollowUsersActivity;
+import com.RobinNotBad.BiliClient.adapter.user.ElectricUserAdapter;
+import com.RobinNotBad.BiliClient.api.ElectricApi;
 import com.RobinNotBad.BiliClient.api.UserInfoApi;
 import com.RobinNotBad.BiliClient.model.Dynamic;
+import com.RobinNotBad.BiliClient.model.ElectricPanel;
 import com.RobinNotBad.BiliClient.model.UserInfo;
 import com.RobinNotBad.BiliClient.ui.widget.RadiusBackgroundSpan;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
@@ -41,6 +44,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -125,13 +130,15 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     public static class UserInfoHolder extends RecyclerView.ViewHolder {
         final TextView userName, userFollowings, userLevel, userFans, userDesc, userNotice, userOfficial,
-                exclusiveTipLabel, liveRoomLabel;
-        final MaterialCardView exclusiveTip, liveRoom;
+                exclusiveTipLabel, liveRoomLabel, electricPanelHeader;
+        final MaterialCardView exclusiveTip, liveRoom, electricPanel;
         final ImageView userAvatar, officialIcon;
         final TextView uidTv;
         final MaterialButton followBtn, msgBtn;
+        final RecyclerView electricUserList;
+        final View electricPanelDivider;
 
-        boolean notice_expand, desc_expand;
+        boolean notice_expand, desc_expand, electric_expand;
 
         public UserInfoHolder(@NonNull View itemView) {
             super(itemView);
@@ -151,6 +158,10 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             followBtn = itemView.findViewById(R.id.followBtn);
             msgBtn = itemView.findViewById(R.id.msgBtn);
             uidTv = itemView.findViewById(R.id.uidText);
+            electricPanel = itemView.findViewById(R.id.electricPanel);
+            electricPanelHeader = itemView.findViewById(R.id.electricPanelHeader);
+            electricUserList = itemView.findViewById(R.id.electricUserList);
+            electricPanelDivider = itemView.findViewById(R.id.electricPanelDivider);
             StringUtil.setCopy(userDesc, userNotice);
         }
 
@@ -302,6 +313,55 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 notice_expand = !notice_expand;
             });
 
+            // 加载充电公示数据
+            loadElectricPanel(context, userInfo);
+
+        }
+
+        /**
+         * 加载充电公示数据
+         */
+        private void loadElectricPanel(Context context, UserInfo userInfo) {
+            this.electricPanel.setVisibility(View.GONE);
+            
+            CenterThreadPool.run(() -> {
+                try {
+                    ElectricPanel panel = ElectricApi.getElectricPanel(userInfo.mid);
+                    
+                    if (panel != null && panel.hasData()) {
+                        CenterThreadPool.runOnUiThread(() -> {
+                            this.electricPanel.setVisibility(View.VISIBLE);
+                            
+                            // 设置头部文本
+                            this.electricPanelHeader.setText("充电公示（本月" + panel.count + "人）");
+                            
+                            // 设置RecyclerView
+                            this.electricUserList.setLayoutManager(new LinearLayoutManager(context));
+                            ElectricUserAdapter adapter = new ElectricUserAdapter(context, panel.list);
+                            this.electricUserList.setAdapter(adapter);
+                            
+                            // 设置点击展开/收起
+                            this.electricPanelHeader.setOnClickListener(v -> {
+                                electric_expand = !electric_expand;
+                                if (electric_expand) {
+                                    this.electricUserList.setVisibility(View.VISIBLE);
+                                    this.electricPanelDivider.setVisibility(View.VISIBLE);
+                                    this.electricPanelHeader.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                                            0, 0, R.drawable.arrow_up, 0);
+                                } else {
+                                    this.electricUserList.setVisibility(View.GONE);
+                                    this.electricPanelDivider.setVisibility(View.GONE);
+                                    this.electricPanelHeader.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                                            0, 0, R.drawable.arrow_down, 0);
+                                }
+                            });
+                        });
+                    }
+                } catch (Exception e) {
+                    // 加载失败，不显示充电公示卡片
+                    e.printStackTrace();
+                }
+            });
         }
     }
 }
