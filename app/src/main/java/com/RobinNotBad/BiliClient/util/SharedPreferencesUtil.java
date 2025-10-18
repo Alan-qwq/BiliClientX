@@ -17,6 +17,7 @@ public class SharedPreferencesUtil {
     public static final String NO_VIP_COLOR = "no_vip_color";
     public static final String NO_MEDAL = "no_medal";
     public static final String REPLY_MARQUEE_NAME = "reply_marquee_name";
+    public static final String NEW_DANMAKU_API = "new_danmaku_api";
 
     public static String cookies = "cookies";
     public static String mid = "mid";
@@ -32,7 +33,6 @@ public class SharedPreferencesUtil {
     public static String search_history = "search_history";
     public static String cover_play_enabled = "cover_play_enabled";
     public static String tutorial_version = "tutorial_version";
-
 
     public static SharedPreferences sharedPreferences;
 
@@ -83,6 +83,5 @@ public class SharedPreferencesUtil {
     public static void removeValue(String key) {
         sharedPreferences.edit().remove(key).apply();
     }
-
 
 }

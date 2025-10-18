@@ -47,6 +47,7 @@ import com.RobinNotBad.BiliClient.api.DanmakuApi;
 import com.RobinNotBad.BiliClient.api.PlayerApi;
 import com.RobinNotBad.BiliClient.api.VideoInfoApi;
 import com.RobinNotBad.BiliClient.event.SnackEvent;
+import com.RobinNotBad.BiliClient.model.DmSegMobileReply;
 import com.RobinNotBad.BiliClient.model.Subtitle;
 import com.RobinNotBad.BiliClient.model.SubtitleLink;
 import com.RobinNotBad.BiliClient.ui.widget.BatteryView;
@@ -89,6 +90,7 @@ import master.flame.danmaku.danmaku.model.android.Danmakus;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
 import master.flame.danmaku.danmaku.parser.IDataSource;
 import master.flame.danmaku.danmaku.parser.android.BiliDanmukuParser;
+import master.flame.danmaku.danmaku.parser.android.BiliProtobufDanmakuParser;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -1081,6 +1083,17 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private void downdanmu() {
         if (danmaku_url.isEmpty())
             return;
+
+        boolean useNewApi = SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.NEW_DANMAKU_API, true);
+
+        if (useNewApi) {
+            downdanmuNew();
+        } else {
+            downdanmuOld();
+        }
+    }
+
+    private void downdanmuOld() {
         try {
             Response response = NetWorkUtil.get(danmaku_url, NetWorkUtil.webHeaders);
             BufferedSink bufferedSink = null;
@@ -1099,13 +1112,57 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     bufferedSink.close();
                 }
             }
-            streamDanmaku(danmakuFile.toString());
+            streamDanmaku(danmakuFile.toString(), null);
         } catch (Exception e) {
             runOnUiThread(() -> MsgUtil.err(e));
         }
     }
 
+    private void downdanmuNew() {
+        try {
+            int estimatedDuration = 3600; // 默认值先写 1 小时
+
+            if (ijkPlayer != null) {
+                long duration = ijkPlayer.getDuration();
+                if (duration > 0) {
+                    estimatedDuration = (int) (duration / 1000);
+                }
+            }
+
+            Logu.d("新版弹幕", "开始获取新版弹幕，aid=" + aid + ", cid=" + cid);
+
+            java.util.List<DmSegMobileReply> segments = DanmakuApi.getAllVideoDanmaku(aid, cid, estimatedDuration);
+
+            if (segments.isEmpty()) {
+                Logu.w("新版弹幕", "未获取到弹幕，尝试使用旧版接口");
+                downdanmuOld();
+                return;
+            }
+
+            Logu.d("新版弹幕", "成功获取 " + segments.size() + " 个弹幕分段");
+
+            streamDanmaku(null, segments);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logu.e("新版弹幕", "获取失败: " + e.getMessage() + "，回退到旧版接口");
+            runOnUiThread(() -> MsgUtil.toast("新版弹幕获取失败，使用旧版接口"));
+            downdanmuOld();
+        }
+    }
+
     private BaseDanmakuParser createParser(String stream) {
+        return createParser(stream, null);
+    }
+
+    private BaseDanmakuParser createParser(String stream, java.util.List<DmSegMobileReply> protobufSegments) {
+        if (protobufSegments != null && !protobufSegments.isEmpty()) {
+            BiliProtobufDanmakuParser parser = new BiliProtobufDanmakuParser();
+            parser.sharedPreferences = SharedPreferencesUtil.getSharedPreferences();
+            parser.setDanmakuSegments(protobufSegments);
+            return parser;
+        }
+
+        // 兼容性回退
         if (stream == null) {
             return new BaseDanmakuParser() {
                 @Override
@@ -1127,6 +1184,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     }
 
     private void streamDanmaku(String danmakuFile) {
+        streamDanmaku(danmakuFile, null);
+    }
+
+    private void streamDanmaku(String danmakuFile, java.util.List<DmSegMobileReply> protobufSegments) {
         Logu.v("danmaku", "stream");
 
         mContext = DanmakuContext.create();
@@ -1143,13 +1204,16 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 .setDanmakuTransparency(SharedPreferencesUtil.getFloat("player_danmaku_transparency", 0.5f))
                 .preventOverlapping(overlap);
 
-        BaseDanmakuParser mParser = createParser(danmakuFile);
+        BaseDanmakuParser mParser = createParser(danmakuFile, protobufSegments);
 
         mDanmakuView.setCallback(new DrawHandler.Callback() {
             @Override
             public void prepared() {
                 Logu.v("danmaku", "prepared");
-                addDanmaku("弹幕君准备完毕～(*≧ω≦)", Color.WHITE);
+                String msg = protobufSegments != null
+                        ? "弹幕君准备完毕～(是新来的哦～)"
+                        : "弹幕君准备完毕～(*≧ω≦)";
+                addDanmaku(msg, Color.WHITE);
             }
 
             @Override
