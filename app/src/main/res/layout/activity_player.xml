@@ -7,7 +7,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activity.player.PlayerActivity"
-    android:id="@+id/root_layout">
+    android:id="@+id/root_layout"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
 
     <RelativeLayout
@@ -69,7 +71,9 @@
         android:id="@+id/control_layout"
         android:gravity="bottom"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <TextView
             android:id="@+id/text_subtitle"
@@ -159,9 +163,11 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:background="#348A8A8A"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical">
 
-            <SeekBar
+            <com.RobinNotBad.BiliClient.ui.widget.HighEnergyProgressBar
                 android:id="@+id/videoprogress"
                 style="@style/Widget.AppCompat.SeekBar"
                 android:layout_width="match_parent"

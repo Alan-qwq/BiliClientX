@@ -13,6 +13,7 @@ import com.RobinNotBad.BiliClient.R;
 import com.RobinNotBad.BiliClient.activity.player.PlayerActivity;
 import com.RobinNotBad.BiliClient.activity.settings.SettingPlayerChooseActivity;
 import com.RobinNotBad.BiliClient.activity.video.JumpToPlayerActivity;
+import com.RobinNotBad.BiliClient.model.HighEnergyData;
 import com.RobinNotBad.BiliClient.model.PlayerData;
 import com.RobinNotBad.BiliClient.model.Subtitle;
 import com.RobinNotBad.BiliClient.model.SubtitleLink;
@@ -47,12 +48,12 @@ public class PlayerApi {
     }
 
     public static void startDownloading(VideoInfo videoInfo, int page, int qn) {
-        if(SharedPreferencesUtil.getBoolean("dev_download_old",false)) {
+        if (SharedPreferencesUtil.getBoolean("dev_download_old", false)) {
             Context context = BiliTerminal.context;
 
             Intent intent = new Intent(context, JumpToPlayerActivity.class)
                     .putExtra("data", videoInfo.toPlayerData(page))
-                    .putExtra("download", (videoInfo.pagenames.size() == 1 ? 1 : 2))  //1：单页  2：分页
+                    .putExtra("download", (videoInfo.pagenames.size() == 1 ? 1 : 2)) // 1：单页 2：分页
                     .putExtra("cover", videoInfo.cover)
                     .putExtra("parent_title", videoInfo.title)
                     .putExtra("qn", qn)
@@ -61,33 +62,35 @@ public class PlayerApi {
             return;
         }
 
-        if(videoInfo.cids.size() == 1)
+        if (videoInfo.cids.size() == 1)
             DownloadService.startDownload(videoInfo.title,
                     videoInfo.aid, videoInfo.cids.get(0),
                     videoInfo.cover,
                     qn);
-        else DownloadService.startDownload(videoInfo.title, videoInfo.pagenames.get(page),
-                videoInfo.aid, videoInfo.cids.get(page),
-                videoInfo.cover,
-                qn);
+        else
+            DownloadService.startDownload(videoInfo.title, videoInfo.pagenames.get(page),
+                    videoInfo.aid, videoInfo.cids.get(page),
+                    videoInfo.cover,
+                    qn);
     }
 
     /**
      * 解析视频
      *
      * @param playerData 传入aid、cid、qn等必要数据，可以使用VideoInfo.toPlayerData
-     * @param download 是否下载
+     * @param download   是否下载
      */
     public static void getVideo(PlayerData playerData, boolean download) throws JSONException, IOException {
-        //如果上一次获取在十分钟内就无需再次获取了
-        if (System.currentTimeMillis() - playerData.timeStamp < 600000) return;
+        // 如果上一次获取在十分钟内就无需再次获取了
+        if (System.currentTimeMillis() - playerData.timeStamp < 600000)
+            return;
 
         playerData.timeStamp = System.currentTimeMillis();
 
         playerData.danmakuUrl = "https://comment.bilibili.com/" + playerData.cid + ".xml";
 
         boolean html5 = !download && SharedPreferencesUtil.getString("player", "").equals("mtvPlayer");
-        //html5方式现在已经仅对小电视播放器保留了
+        // html5方式现在已经仅对小电视播放器保留了
 
         String url = "https://api.bilibili.com/x/player/wbi/playurl?"
                 + "avid=" + playerData.aid
@@ -110,7 +113,7 @@ public class PlayerApi {
         playerData.cidHistory = data.optLong("last_play_cid", 0);
         playerData.progress = data.optInt("last_play_time", 0);
 
-        if(playerData.cidHistory == 0) {
+        if (playerData.cidHistory == 0) {
             playerData.cidHistory = playerData.cid;
             playerData.progress = 0;
         }
@@ -144,8 +147,10 @@ public class PlayerApi {
                 .put("fnval", 1)
                 .put("fnvar", 0)
                 .put("qn", playerData.qn)
-                .put("season_type",1)
-                .put("session", ToolsUtil.md5(String.valueOf(System.currentTimeMillis() - SystemClock.currentThreadTimeMillis())))
+                .put("season_type", 1)
+                .put("session",
+                        ToolsUtil.md5(
+                                String.valueOf(System.currentTimeMillis() - SystemClock.currentThreadTimeMillis())))
                 .put("platform", "pc");
 
         String url = "https://api.bilibili.com/pgc/player/web/playurl" + reqData.toString();
@@ -171,7 +176,6 @@ public class PlayerApi {
         playerData.qnStrList = qnStrList;
         playerData.qnValueList = qnValueList;
     }
-
 
     /**
      * 跳转到播放器
@@ -202,7 +206,8 @@ public class PlayerApi {
                 break;
 
             case "mtvPlayer":
-                intent.setClassName(context.getString(R.string.player_package_mtv), "com.xinxiangshicheng.wearbiliplayer.cn.player.PlayerActivity");
+                intent.setClassName(context.getString(R.string.player_package_mtv),
+                        "com.xinxiangshicheng.wearbiliplayer.cn.player.PlayerActivity");
                 intent.setAction(Intent.ACTION_VIEW);
                 intent.putExtra("cookie", SharedPreferencesUtil.getString("cookies", ""));
                 intent.putExtra("mode", (playerData.isLocal() ? "2" : "0"));
@@ -213,7 +218,8 @@ public class PlayerApi {
                 break;
 
             case "aliangPlayer":
-                intent.setClassName(context.getString(R.string.player_package_aliang), "com.aliangmaker.media.PlayVideoActivity");
+                intent.setClassName(context.getString(R.string.player_package_aliang),
+                        "com.aliangmaker.media.PlayVideoActivity");
                 intent.putExtra("name", playerData.title);
                 intent.putExtra("danmaku", playerData.danmakuUrl);
                 intent.putExtra("live_mode", playerData.isLive());
@@ -243,23 +249,27 @@ public class PlayerApi {
         File file = new File(path);
         return FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", file);
 
-        //因为在文件夹里放了.nomedia标识，现在不能用这个了
+        // 因为在文件夹里放了.nomedia标识，现在不能用这个了
         /*
-        Cursor cursor = context.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                new String[]{MediaStore.Video.Media._ID},
-                MediaStore.Video.Media.DATA + "=? ",
-                new String[]{path}, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID));
-            Uri baseUri = Uri.parse("content://media/external/video/media");
-            cursor.close();
-            return Uri.withAppendedPath(baseUri, String.valueOf(id));
-        } else {
-            if (cursor != null) cursor.close();
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Video.Media.DATA, path);
-            return context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
-        }
+         * Cursor cursor = context.getContentResolver().query(MediaStore.Video.Media.
+         * EXTERNAL_CONTENT_URI,
+         * new String[]{MediaStore.Video.Media._ID},
+         * MediaStore.Video.Media.DATA + "=? ",
+         * new String[]{path}, null);
+         * if (cursor != null && cursor.moveToFirst()) {
+         * 
+         * @SuppressLint("Range") int id =
+         * cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID));
+         * Uri baseUri = Uri.parse("content://media/external/video/media");
+         * cursor.close();
+         * return Uri.withAppendedPath(baseUri, String.valueOf(id));
+         * } else {
+         * if (cursor != null) cursor.close();
+         * ContentValues values = new ContentValues();
+         * values.put(MediaStore.Video.Media.DATA, path);
+         * return context.getContentResolver().insert(MediaStore.Video.Media.
+         * EXTERNAL_CONTENT_URI, values);
+         * }
          */
     }
 
@@ -269,13 +279,14 @@ public class PlayerApi {
      * @param folder 字幕文件夹
      * @return 字幕列表
      */
-    public static SubtitleLink[] getSubtitleLinks(File folder){
+    public static SubtitleLink[] getSubtitleLinks(File folder) {
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
         SubtitleLink[] links = new SubtitleLink[files != null ? (files.length + 1) : 1];
-        if(files != null) for (int i = 0; i < files.length; i++) {
-            links[i] = new SubtitleLink(i, files[i].getName(), files[i].toString(), false);
-        }
-        links[links.length-1] = new SubtitleLink(-1,"不显示字幕","null",false);
+        if (files != null)
+            for (int i = 0; i < files.length; i++) {
+                links[i] = new SubtitleLink(i, files[i].getName(), files[i].toString(), false);
+            }
+        links[links.length - 1] = new SubtitleLink(-1, "不显示字幕", "null", false);
         return links;
     }
 
@@ -293,24 +304,23 @@ public class PlayerApi {
         JSONObject data = NetWorkUtil.getJson(url).getJSONObject("data");
 
         JSONArray subtitles = data.getJSONObject("subtitle").getJSONArray("subtitles");
-        Log.d("subtitle",subtitles.toString());
+        Log.d("subtitle", subtitles.toString());
 
         SubtitleLink[] links = new SubtitleLink[subtitles.length() + 1];
         for (int i = 0; i < subtitles.length(); i++) {
             JSONObject subtitle = subtitles.getJSONObject(i);
 
             long id = subtitle.getLong("id");
-            boolean isAI = subtitle.getInt("type")==1;
+            boolean isAI = subtitle.getInt("type") == 1;
             String lang = subtitle.getString("lan_doc");
             String subtitle_url = "https:" + subtitle.getString("subtitle_url");
 
-            SubtitleLink link = new SubtitleLink(id,lang,subtitle_url,isAI);
+            SubtitleLink link = new SubtitleLink(id, lang, subtitle_url, isAI);
             links[i] = link;
         }
-        links[subtitles.length()] = new SubtitleLink(-1,"不显示字幕","null",false);
+        links[subtitles.length()] = new SubtitleLink(-1, "不显示字幕", "null", false);
         return links;
     }
-
 
     /**
      * 通过链接获取字幕
@@ -339,7 +349,8 @@ public class PlayerApi {
      */
     public static Subtitle[] getSubtitle(File file) throws JSONException {
         String str = FileUtil.readString(file);
-        if(str == null) return null;
+        if (str == null)
+            return null;
 
         JSONArray body = new JSONObject(str).getJSONArray("body");
         Subtitle[] subtitles = new Subtitle[body.length()];
@@ -351,5 +362,60 @@ public class PlayerApi {
                     single.getDouble("to"));
         }
         return subtitles;
+    }
+
+    /**
+     * 获取高能进度条数据
+     */
+    public static HighEnergyData getHighEnergyData(long cid, long aid) {
+        try {
+            String url = "https://bvc.bilivideo.com/pbp/data?cid=" + cid;
+            if (aid > 0) {
+                url += "&aid=" + aid;
+            }
+
+            JSONObject response = NetWorkUtil.getJson(url, NetWorkUtil.webHeaders);
+
+            if (response == null) {
+                Logu.w("高能进度条", "响应为空");
+                return null;
+            }
+
+            int code = response.optInt("code", -1);
+            if (code != 0 && code != -1) {
+                Logu.w("高能进度条", "API返回错误码: " + code);
+                return null;
+            }
+
+            HighEnergyData data = new HighEnergyData();
+            data.stepSec = response.optInt("step_sec", 10);
+            data.tagStr = response.optString("tagstr", "");
+            data.debug = response.optString("debug", "");
+
+            JSONObject events = response.optJSONObject("events");
+            if (events != null) {
+                JSONArray defaultArray = events.optJSONArray("default");
+                if (defaultArray != null && defaultArray.length() > 0) {
+                    float[] eventData = new float[defaultArray.length()];
+                    for (int i = 0; i < defaultArray.length(); i++) {
+                        eventData[i] = (float) defaultArray.optDouble(i, 0.0);
+                    }
+                    data.events = eventData;
+                    Logu.d("高能进度条", "成功获取 " + eventData.length + " 个数据点，采样间隔: " + data.stepSec + "秒");
+                } else {
+                    Logu.w("高能进度条", "default数组为空或不存在");
+                    data.events = new float[0];
+                }
+            } else {
+                Logu.w("高能进度条", "events对象不存在");
+                data.events = new float[0];
+            }
+
+            return data;
+        } catch (Exception e) {
+            Logu.e("高能进度条", "获取失败: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 }

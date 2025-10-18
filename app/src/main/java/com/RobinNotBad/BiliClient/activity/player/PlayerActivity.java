@@ -48,9 +48,11 @@ import com.RobinNotBad.BiliClient.api.PlayerApi;
 import com.RobinNotBad.BiliClient.api.VideoInfoApi;
 import com.RobinNotBad.BiliClient.event.SnackEvent;
 import com.RobinNotBad.BiliClient.model.DmSegMobileReply;
+import com.RobinNotBad.BiliClient.model.HighEnergyData;
 import com.RobinNotBad.BiliClient.model.Subtitle;
 import com.RobinNotBad.BiliClient.model.SubtitleLink;
 import com.RobinNotBad.BiliClient.ui.widget.BatteryView;
+import com.RobinNotBad.BiliClient.ui.widget.HighEnergyProgressBar;
 import com.RobinNotBad.BiliClient.ui.widget.recycler.CustomLinearManager;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.Logu;
@@ -125,7 +127,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private AnimationDrawable anim_loading;
     private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send,
             btn_audio_only;
-    private SeekBar seekbar_progress, seekbar_speed;
+    private HighEnergyProgressBar seekbar_progress;
+    private SeekBar seekbar_speed;
     private TextView text_progress, text_online, text_volume, loading_text0, loading_text1, text_speed, text_newspeed;
     public TextView text_title, text_subtitle, text_audio_title, text_audio_subtitle;
 
@@ -302,6 +305,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
             if (!destroyed && SharedPreferencesUtil.getBoolean("player_subtitle_autoshow", true))
                 downSubtitle(false);
+
+            // 加载高能进度条数据
+            if (!destroyed && isOnlineVideo && aid > 0 && cid > 0) {
+                loadHighEnergyData();
+            }
 
             if (!destroyed)
                 setDisplay();
@@ -1959,6 +1967,37 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
     protected boolean eventBusEnabled() {
         return SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.SNACKBAR_ENABLE, true);
+    }
+
+    /**
+     * 加载高能进度条数据
+     */
+    private void loadHighEnergyData() {
+        if (!SharedPreferencesUtil.getBoolean("player_high_energy", false)) {
+            Logu.d("高能进度条", "功能已禁用");
+            return;
+        }
+
+        CenterThreadPool.run(() -> {
+            try {
+                Logu.d("高能进度条", "开始加载数据 aid=" + aid + " cid=" + cid);
+                HighEnergyData data = PlayerApi.getHighEnergyData(cid, aid);
+
+                if (data != null && data.hasValidData()) {
+                    runOnUiThread(() -> {
+                        if (!destroyed && seekbar_progress != null) {
+                            seekbar_progress.setHighEnergyData(data.events, data.stepSec);
+                            Logu.d("高能进度条", "数据加载成功并设置到进度条");
+                        }
+                    });
+                } else {
+                    Logu.w("高能进度条", "未获取到有效数据");
+                }
+            } catch (Exception e) {
+                Logu.e("高能进度条", "加载失败: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
