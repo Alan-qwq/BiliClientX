@@ -84,6 +84,10 @@ public class SettingTerminalPlayerActivity extends RefreshListActivity {
 
                                 add(new SettingSection("switch", "显示旋转按钮", "player_ui_showRotateBtn", "", "true"));
                                 add(new SettingSection("switch", "显示弹幕按钮", "player_ui_showDanmakuBtn", "", "true"));
+                                add(new SettingSection("switch", "显示清晰度按钮", "player_ui_showQualityBtn",
+                                        "", "true"));
+                                add(new SettingSection("switch", "显示分P按钮", "player_ui_showPageBtn",
+                                        "", "true"));
                         }
                 };
 

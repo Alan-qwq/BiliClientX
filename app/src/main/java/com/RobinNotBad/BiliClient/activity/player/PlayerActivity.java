@@ -125,12 +125,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private LinearLayout layout_speed, right_control, loading_info;
     private RelativeLayout bottom_buttons;
     private HorizontalScrollView right_second;
-    private LinearLayout card_subtitle, card_danmaku_send, card_page_selector;
+    private LinearLayout card_subtitle, card_danmaku_send, card_page_selector, card_quality_selector;
 
     private ImageView img_loading;
     private AnimationDrawable anim_loading;
     private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send,
-            btn_audio_only, btn_page_selector, btn_auto_next;
+            btn_audio_only, btn_page_selector, btn_auto_next, btn_quality;
     private HighEnergyProgressBar seekbar_progress;
     private SeekBar seekbar_speed;
     private TextView text_progress, text_online, text_volume, loading_text0, loading_text1, text_speed, text_newspeed;
@@ -187,6 +187,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private int currentPageIndex = 0;
     private String videoTitle;
 
+    private String[] qnStrList;
+    private int[] qnValueList;
+    private int currentQuality = 0;
+
     @Override
     public void onBackPressed() {
         if (!SharedPreferencesUtil.getBoolean("back_disable", false))
@@ -238,6 +242,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             }
             cids = cidList;
             currentPageIndex = intent.getIntExtra("currentPageIndex", 0);
+        }
+
+        if (intent.hasExtra("qnStrList") && intent.hasExtra("qnValueList")) {
+            qnStrList = intent.getStringArrayExtra("qnStrList");
+            qnValueList = intent.getIntArrayExtra("qnValueList");
+            currentQuality = intent.getIntExtra("currentQuality", SharedPreferencesUtil.getInt("play_qn", 16));
         }
 
         return true;
@@ -356,6 +366,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         card_subtitle = findViewById(R.id.subtitle_card);
         card_danmaku_send = findViewById(R.id.danmaku_send_card);
         card_page_selector = findViewById(R.id.page_selector_card);
+        card_quality_selector = findViewById(R.id.quality_selector_card);
         layout_audio_only = findViewById(R.id.audio_only_layout);
 
         loading_info = findViewById(R.id.loading_info);
@@ -373,6 +384,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         btn_control = findViewById(R.id.button_video);
         btn_page_selector = findViewById(R.id.button_page_selector);
         btn_auto_next = findViewById(R.id.auto_next_btn);
+        btn_quality = findViewById(R.id.button_quality);
         seekbar_progress = findViewById(R.id.videoprogress);
         loading_text0 = findViewById(R.id.loading_text0);
         loading_text1 = findViewById(R.id.loading_text1);
@@ -863,6 +875,13 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 updateAutoNextButton();
                 btn_auto_next.setOnClickListener(view -> toggleAutoNext());
             }
+
+            if (SharedPreferencesUtil.getBoolean("player_ui_showQualityBtn", true) && isOnlineVideo) {
+                btn_quality.setVisibility(View.VISIBLE);
+                btn_quality.setOnClickListener(view -> showQualitySelectorCard());
+            }
+
+            if (!SharedPreferencesUtil.getBoolean("player_ui_showPageBtn", true)) btn_page_selector.setVisibility(View.GONE);
         }
 
         seekbar_progress.setMax(video_all);
@@ -1749,6 +1768,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             card_subtitle.setVisibility(View.GONE);
             card_danmaku_send.setVisibility(View.GONE);
             card_page_selector.setVisibility(View.GONE);
+            card_quality_selector.setVisibility(View.GONE);
         });
         btn_danmaku_send.setOnClickListener(view -> {
             layout_card_bg.setVisibility(View.VISIBLE);
@@ -2124,6 +2144,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     danmaku_url = playerData.danmakuUrl;
                     text_title.setText(newTitle);
 
+                    if (playerData.qnStrList != null && playerData.qnValueList != null) {
+                        qnStrList = playerData.qnStrList;
+                        qnValueList = playerData.qnValueList;
+                        currentQuality = playerData.qn;
+                    }
+
                     loading_info.setVisibility(View.VISIBLE);
                     anim_loading.start();
                     loading_text0.setText("加载P" + (pageIndex + 1));
@@ -2186,6 +2212,92 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             btn_auto_next
                     .setImageResource(auto_next_enabled ? R.drawable.icon_auto_next_on : R.drawable.icon_auto_next_off);
         }
+    }
+
+    private void showQualitySelectorCard() {
+        if (qnStrList == null || qnValueList == null || qnStrList.length == 0) {
+            MsgUtil.showMsg("清晰度列表未加载");
+            return;
+        }
+
+        runOnUiThread(() -> {
+            RecyclerView qualitySelectorRecycler = findViewById(R.id.quality_selector_list);
+            com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter adapter = new com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter();
+            adapter.setData(qnStrList, qnValueList, currentQuality);
+            adapter.setOnItemClickListener(index -> {
+                layout_card_bg.setVisibility(View.GONE);
+                card_quality_selector.setVisibility(View.GONE);
+                if (index >= 0 && index < qnValueList.length && qnValueList[index] != currentQuality) {
+                    switchQuality(qnValueList[index]);
+                }
+            });
+            qualitySelectorRecycler
+                    .setLayoutManager(new CustomLinearManager(this, LinearLayoutManager.HORIZONTAL, false));
+            qualitySelectorRecycler.setAdapter(adapter);
+            layout_card_bg.setVisibility(View.VISIBLE);
+            card_quality_selector.setVisibility(View.VISIBLE);
+        });
+    }
+
+    private void switchQuality(int newQuality) {
+        if (!isOnlineVideo || newQuality == currentQuality) {
+            return;
+        }
+
+        MsgUtil.showMsg("正在切换清晰度...");
+
+        CenterThreadPool.run(() -> {
+            try {
+                PlayerData playerData = new PlayerData();
+                playerData.aid = aid;
+                playerData.cid = cid;
+                playerData.title = text_title.getText().toString();
+                playerData.mid = mid;
+                playerData.qn = newQuality;
+                playerData.pagenames = pagenames;
+                playerData.cids = cids;
+                playerData.currentPageIndex = currentPageIndex;
+
+                PlayerApi.getVideo(playerData, false);
+
+                runOnUiThread(() -> {
+                    if (destroyed)
+                        return;
+
+                    final long currentPosition = ijkPlayer != null ? ijkPlayer.getCurrentPosition() : 0;
+                    final boolean wasPlaying = isPlaying;
+
+                    if (ijkPlayer != null) {
+                        ijkPlayer.stop();
+                        ijkPlayer.release();
+                    }
+
+                    video_url = playerData.videoUrl;
+                    currentQuality = newQuality;
+
+                    if (playerData.qnStrList != null && playerData.qnValueList != null) {
+                        qnStrList = playerData.qnStrList;
+                        qnValueList = playerData.qnValueList;
+                    }
+
+                    loading_info.setVisibility(View.VISIBLE);
+                    anim_loading.start();
+                    loading_text0.setText("切换清晰度中");
+                    isPrepared = false;
+                    isPlaying = false;
+
+                    ijkPlayer = new IjkMediaPlayer();
+                    progress_history = currentPosition;
+
+                    setDisplay();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    MsgUtil.err(e);
+                    MsgUtil.showMsg("清晰度切换失败");
+                });
+            }
+        });
     }
 
     @Override

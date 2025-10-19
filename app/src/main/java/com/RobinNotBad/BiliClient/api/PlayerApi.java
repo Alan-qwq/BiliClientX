@@ -294,6 +294,11 @@ public class PlayerApi {
                 intent.putExtra("mid", playerData.mid);
                 intent.putExtra("progress", playerData.progress);
                 intent.putExtra("live_mode", playerData.isLive());
+                if (playerData.qnStrList != null && playerData.qnValueList != null) {
+                    intent.putExtra("qnStrList", playerData.qnStrList);
+                    intent.putExtra("qnValueList", playerData.qnValueList);
+                    intent.putExtra("currentQuality", playerData.qn);
+                }
                 if (playerData.pagenames != null && playerData.cids != null && playerData.pagenames.size() > 1) {
                     intent.putStringArrayListExtra("pagenames", playerData.pagenames);
                     long[] cidArray = new long[playerData.cids.size()];
