@@ -29,6 +29,8 @@ public class PlayerData implements Parcelable {
     public ArrayList<String> pagenames;
     public ArrayList<Long> cids;
     public int currentPageIndex = 0;
+    public DashData dashData; // DASH格式数据
+    public String audioUrl = ""; // 单独的音频URL（用于仅音频下载）
 
     public PlayerData() {
     }
@@ -54,6 +56,8 @@ public class PlayerData implements Parcelable {
         cids = new ArrayList<>();
         in.readList(cids, Long.class.getClassLoader());
         currentPageIndex = in.readInt();
+        audioUrl = in.readString();
+        // dashData不序列化，下载时会重新获取
     }
 
     public static final Creator<PlayerData> CREATOR = new Creator<>() {
@@ -90,6 +94,8 @@ public class PlayerData implements Parcelable {
         dest.writeStringList(pagenames);
         dest.writeList(cids);
         dest.writeInt(currentPageIndex);
+        dest.writeString(audioUrl);
+        // dashData不序列化，下载时会重新获取
     }
 
     public boolean isVideo() {

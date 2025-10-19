@@ -77,7 +77,8 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             holder.itemView.setOnClickListener(view -> {
                 if (localVideo.videoFileList != null && localVideo.videoFileList.size() == 1) {
                     PlayerData playerData = new PlayerData(PlayerData.TYPE_LOCAL);
-                    playerData.videoUrl = localVideo.videoFileList.get(0);
+                    String mediaPath = localVideo.videoFileList.get(0);
+                    playerData.videoUrl = mediaPath;
                     if (localVideo.danmakuFileList != null && !localVideo.danmakuFileList.isEmpty()) {
                         playerData.danmakuUrl = localVideo.danmakuFileList.get(0);
                     }
@@ -85,6 +86,10 @@ public class LocalVideoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
                     try {
                         Intent player = PlayerApi.jumpToPlayer(playerData);
+                        // 如果是仅音频文件，标记为音频模式
+                        if (mediaPath.endsWith("audio.m4a")) {
+                            player.putExtra("audio_only", true);
+                        }
                         context.startActivity(player);
                     } catch (ActivityNotFoundException e) {
                         MsgUtil.showMsg("跳转失败");

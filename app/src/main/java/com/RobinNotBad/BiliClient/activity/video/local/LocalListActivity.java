@@ -68,8 +68,8 @@ public class LocalListActivity extends InstanceActivity {
                     CenterThreadPool.run(() -> FileUtil.deleteFolder(file));
                     MsgUtil.showMsg("删除成功");
                     videoList.remove(position);
-                    adapter.notifyItemRemoved(position+1);
-                    adapter.notifyItemRangeChanged(position+1, videoList.size() - position);
+                    adapter.notifyItemRemoved(position + 1);
+                    adapter.notifyItemRangeChanged(position + 1, videoList.size() - position);
                     longClickPosition = -1;
                     checkEmpty();
                 } else {
@@ -89,7 +89,8 @@ public class LocalListActivity extends InstanceActivity {
 
     private void scan(File folder) {
         File[] files = folder.listFiles();
-        if(files==null) return;
+        if (files == null)
+            return;
 
         for (File video : files) {
             if (video.isDirectory()) {
@@ -104,39 +105,51 @@ public class LocalListActivity extends InstanceActivity {
                 localVideo.sizeList = new ArrayList<>();
 
                 File videoFile = new File(video, "video.mp4");
+                File audioFile = new File(video, "audio.m4a"); // 仅音频文件
                 File danmakuFile = new File(video, "danmaku.xml");
 
-                if (videoFile.exists()) {
-                    File mark = new File(video,".DOWNLOADING");
-                    if(mark.exists()) continue;
+                // 优先检查视频文件，其次检查音频文件
+                File mediaFile = videoFile.exists() ? videoFile : (audioFile.exists() ? audioFile : null);
 
-                    localVideo.sizeList.add(videoFile.length());
-                    localVideo.videoFileList.add(videoFile.toString());
-                    localVideo.danmakuFileList.add(danmakuFile.toString());    //单集视频
+                if (mediaFile != null) {
+                    File mark = new File(video, ".DOWNLOADING");
+                    if (mark.exists())
+                        continue;
+
+                    localVideo.sizeList.add(mediaFile.length());
+                    localVideo.videoFileList.add(mediaFile.toString());
+                    localVideo.danmakuFileList.add(danmakuFile.toString()); // 单集视频
 
                     localVideo.calcTotalSize();
                     videoList.add(localVideo);
-                }
-                else {
-                    File[] pages = video.listFiles();      //分页视频
+                } else {
+                    File[] pages = video.listFiles(); // 分页视频
                     if (pages != null) {
                         for (File page : pages) {
                             if (page.isDirectory()) {
-                                File mark = new File(page,".DOWNLOADING");
-                                if(mark.exists()) continue;
+                                File mark = new File(page, ".DOWNLOADING");
+                                if (mark.exists())
+                                    continue;
 
                                 File pageVideoFile = new File(page, "video.mp4");
+                                File pageAudioFile = new File(page, "audio.m4a"); // 仅音频文件
                                 File pageDanmakuFile = new File(page, "danmaku.xml");
-                                if (pageVideoFile.exists()) {
+
+                                // 优先检查视频文件，其次检查音频文件
+                                File pageMediaFile = pageVideoFile.exists() ? pageVideoFile
+                                        : (pageAudioFile.exists() ? pageAudioFile : null);
+
+                                if (pageMediaFile != null) {
                                     localVideo.pageList.add(page.getName());
-                                    localVideo.sizeList.add(pageVideoFile.length());
-                                    localVideo.videoFileList.add(pageVideoFile.toString());
+                                    localVideo.sizeList.add(pageMediaFile.length());
+                                    localVideo.videoFileList.add(pageMediaFile.toString());
                                     localVideo.danmakuFileList.add(pageDanmakuFile.toString());
                                 }
                             }
                         }
                         localVideo.calcTotalSize();
-                        if(localVideo.videoFileList.size() > 0) videoList.add(localVideo);
+                        if (localVideo.videoFileList.size() > 0)
+                            videoList.add(localVideo);
                     }
                 }
             }
@@ -157,15 +170,16 @@ public class LocalListActivity extends InstanceActivity {
     }
 
     public void refresh() {
-        if(started) CenterThreadPool.run(() -> {
-            runOnUiThread(() -> swipeRefreshLayout.setRefreshing(true));
-            int oldSize = videoList.size();
-            videoList.clear();
-            scan(FileUtil.getVideoDownloadPath());
-            runOnUiThread(() -> {
-                adapter.notifyItemRangeChanged(1, oldSize);
-                swipeRefreshLayout.setRefreshing(false);
+        if (started)
+            CenterThreadPool.run(() -> {
+                runOnUiThread(() -> swipeRefreshLayout.setRefreshing(true));
+                int oldSize = videoList.size();
+                videoList.clear();
+                scan(FileUtil.getVideoDownloadPath());
+                runOnUiThread(() -> {
+                    adapter.notifyItemRangeChanged(1, oldSize);
+                    swipeRefreshLayout.setRefreshing(false);
+                });
             });
-        });
     }
 }

@@ -143,11 +143,22 @@ public class DownloadService extends Service {
                 section = section_tmp;
 
                 // 获取视频链接
-                String url_video, url_danmaku;
+                String url_video, url_danmaku, url_audio;
                 try {
                     PlayerData data = section.toPlayerData();
-                    PlayerApi.getVideo(data, true);
-                    url_video = data.videoUrl;
+
+                    // 如果是仅音频下载，使用DASH格式获取音频流
+                    if (section.isAudioOnly()) {
+                        PlayerApi.getVideoDash(data);
+                        url_audio = section.audioUrl != null && !section.audioUrl.isEmpty()
+                                ? section.audioUrl
+                                : data.audioUrl;
+                        url_video = null; // 仅音频模式不需要视频
+                    } else {
+                        PlayerApi.getVideo(data, true);
+                        url_video = data.videoUrl;
+                        url_audio = null;
+                    }
                     url_danmaku = data.danmakuUrl;
                 } catch (JSONException e) {
                     setState(section.id, "error");
@@ -201,12 +212,23 @@ public class DownloadService extends Service {
                                 continue;
                             }
 
-                            toastState("下载视频");
-                            result = downFile(url_video, new File(path_single, "video.mp4"));
-                            if (result != NORMAL) {
-                                failed = true;
-                                exitCode = result;
-                                continue;
+                            // 根据下载类型选择下载内容
+                            if (section.isAudioOnly()) {
+                                toastState("下载音频");
+                                result = downFile(url_audio, new File(path_single, "audio.m4a"));
+                                if (result != NORMAL) {
+                                    failed = true;
+                                    exitCode = result;
+                                    continue;
+                                }
+                            } else {
+                                toastState("下载视频");
+                                result = downFile(url_video, new File(path_single, "video.mp4"));
+                                if (result != NORMAL) {
+                                    failed = true;
+                                    exitCode = result;
+                                    continue;
+                                }
                             }
 
                             break;
@@ -249,12 +271,23 @@ public class DownloadService extends Service {
                                 continue;
                             }
 
-                            toastState("下载视频");
-                            result = downFile(url_video, new File(path_page, "video.mp4"));
-                            if (result != NORMAL) {
-                                failed = true;
-                                exitCode = result;
-                                continue;
+                            // 根据下载类型选择下载内容
+                            if (section.isAudioOnly()) {
+                                toastState("下载音频");
+                                result = downFile(url_audio, new File(path_page, "audio.m4a"));
+                                if (result != NORMAL) {
+                                    failed = true;
+                                    exitCode = result;
+                                    continue;
+                                }
+                            } else {
+                                toastState("下载视频");
+                                result = downFile(url_video, new File(path_page, "video.mp4"));
+                                if (result != NORMAL) {
+                                    failed = true;
+                                    exitCode = result;
+                                    continue;
+                                }
                             }
 
                             break;
@@ -532,8 +565,6 @@ public class DownloadService extends Service {
         return output;
     }
 
-    // 以下为数据库操作方法
-
     public static DownloadSection getFirst() {
         Cursor cursor = null;
         SQLiteDatabase database = null;
@@ -636,25 +667,28 @@ public class DownloadService extends Service {
         }
     }
 
-    // 以下为外部调用方法
-    public static void startDownload(String title, long aid, long cid, String cover, int qn) {
+    public static void startDownload(String title, long aid, long cid, String cover, int qn, String downloadType,
+            String audioUrl) {
         CenterThreadPool.run(() -> {
             SQLiteDatabase database = null;
             Cursor cursor = null;
             try {
                 DownloadSqlHelper helper = new DownloadSqlHelper(BiliTerminal.context);
                 database = helper.getWritableDatabase();
-                
-                cursor = database.rawQuery("select * from download where aid=? and cid=?", new String[]{String.valueOf(aid), String.valueOf(cid)});
-                if(cursor != null && cursor.getCount() > 0) {
+
+                cursor = database.rawQuery("select * from download where aid=? and cid=?",
+                        new String[] { String.valueOf(aid), String.valueOf(cid) });
+                if (cursor != null && cursor.getCount() > 0) {
                     MsgUtil.showMsg("该视频已在下载队列中");
                     return;
                 }
-                if(cursor != null) cursor.close();
-                
+                if (cursor != null)
+                    cursor.close();
+
                 database.execSQL(
-                        "insert into download(type,state,aid,cid,qn,title,child,cover) values(?,?,?,?,?,?,?,?)",
-                        new Object[] { "video_single", "none", aid, cid, qn, title, "", GlideUtil.url(cover) });
+                        "insert into download(type,state,aid,cid,qn,title,child,cover,download_type,audio_url) values(?,?,?,?,?,?,?,?,?,?)",
+                        new Object[] { "video_single", "none", aid, cid, qn, title, "", GlideUtil.url(cover),
+                                downloadType, audioUrl });
 
                 File path_single = FileUtil.getVideoDownloadPath(title, null);
                 path_single.mkdirs();
@@ -663,36 +697,43 @@ public class DownloadService extends Service {
                 if (!file_sign.exists())
                     file_sign.createNewFile();
 
-                MsgUtil.showMsg("已添加下载");
+                String msg = "audio_only".equals(downloadType) ? "已添加音频下载" : "已添加下载";
+                MsgUtil.showMsg(msg);
 
                 start(-1);
             } catch (Exception e) {
                 MsgUtil.err(e);
             } finally {
-                if(cursor != null) cursor.close();
-                if(database != null) database.close();
+                if (cursor != null)
+                    cursor.close();
+                if (database != null)
+                    database.close();
             }
         });
     }
 
-    public static void startDownload(String parent, String child, long aid, long cid, String cover, int qn) {
+    public static void startDownload(String parent, String child, long aid, long cid, String cover, int qn,
+            String downloadType, String audioUrl) {
         CenterThreadPool.run(() -> {
             SQLiteDatabase database = null;
             Cursor cursor = null;
             try {
                 DownloadSqlHelper helper = new DownloadSqlHelper(BiliTerminal.context);
                 database = helper.getWritableDatabase();
-                
-                cursor = database.rawQuery("select * from download where aid=? and cid=?", new String[]{String.valueOf(aid), String.valueOf(cid)});
-                if(cursor != null && cursor.getCount() > 0) {
+
+                cursor = database.rawQuery("select * from download where aid=? and cid=?",
+                        new String[] { String.valueOf(aid), String.valueOf(cid) });
+                if (cursor != null && cursor.getCount() > 0) {
                     MsgUtil.showMsg("该视频已在下载队列中");
                     return;
                 }
-                if(cursor != null) cursor.close();
-                
+                if (cursor != null)
+                    cursor.close();
+
                 database.execSQL(
-                        "insert into download(type,state,aid,cid,qn,title,child,cover) values(?,?,?,?,?,?,?,?)",
-                        new Object[] { "video_multi", "none", aid, cid, qn, parent, child, GlideUtil.url(cover) });
+                        "insert into download(type,state,aid,cid,qn,title,child,cover,download_type,audio_url) values(?,?,?,?,?,?,?,?,?,?)",
+                        new Object[] { "video_multi", "none", aid, cid, qn, parent, child, GlideUtil.url(cover),
+                                downloadType, audioUrl });
 
                 File path_page = FileUtil.getVideoDownloadPath(parent, child);
                 path_page.mkdirs();
@@ -701,14 +742,17 @@ public class DownloadService extends Service {
                 if (!file_sign.exists())
                     file_sign.createNewFile();
 
-                MsgUtil.showMsg("已添加下载");
+                String msg = "audio_only".equals(downloadType) ? "已添加音频下载" : "已添加下载";
+                MsgUtil.showMsg(msg);
 
                 start(-1);
             } catch (Exception e) {
                 MsgUtil.err(e);
             } finally {
-                if(cursor != null) cursor.close();
-                if(database != null) database.close();
+                if (cursor != null)
+                    cursor.close();
+                if (database != null)
+                    database.close();
             }
         });
     }

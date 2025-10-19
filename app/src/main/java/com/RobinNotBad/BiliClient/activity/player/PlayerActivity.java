@@ -145,6 +145,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             isOnlineVideo, isLiveMode, isSeeking, isDanmakuVisible;
     private boolean menu_opened = false;
     private boolean isAudioOnlyMode = false;
+    private boolean isLocalAudioFile = false; // 标记是否为本地音频文件
 
     private int video_all, video_now, video_now_last;
     private long progress_history;
@@ -280,6 +281,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         loop_enabled = SharedPreferencesUtil.getBoolean("player_loop", false);
         // 从设置读取听视频模式的默认值
         isAudioOnlyMode = SharedPreferencesUtil.getBoolean("player_audio_only", false);
+        // 从Intent读取是否为仅音频模式（用于播放本地音频文件）
+        isLocalAudioFile = getIntent().getBooleanExtra("audio_only", false);
+        if (isLocalAudioFile) {
+            isAudioOnlyMode = true;
+        }
         img_loading.setImageResource(R.drawable.loading_tv_shaking);
         anim_loading = (AnimationDrawable) img_loading.getDrawable();
         anim_loading.start();
@@ -841,9 +847,14 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             btn_loop.setVisibility(View.VISIBLE);
 
             // 听视频模式按钮
-            updateAudioOnlyButton();
-            btn_audio_only.setOnClickListener(view -> toggleAudioOnlyMode());
-            btn_audio_only.setVisibility(View.VISIBLE);
+            // 如果是本地音频文件，隐藏听视频开关（因为已经是纯音频了）
+            if (isLocalAudioFile) {
+                btn_audio_only.setVisibility(View.GONE);
+            } else {
+                updateAudioOnlyButton();
+                btn_audio_only.setOnClickListener(view -> toggleAudioOnlyMode());
+                btn_audio_only.setVisibility(View.VISIBLE);
+            }
 
             if (hasMultiplePages()) {
                 btn_page_selector.setVisibility(View.VISIBLE);

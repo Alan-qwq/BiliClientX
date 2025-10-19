@@ -52,11 +52,16 @@ public class LocalPageChooseActivity extends BaseActivity {
         PageChooseAdapter adapter = new PageChooseAdapter(this, pageList);
         adapter.setOnItemClickListener(position -> {
             PlayerData playerData = new PlayerData(PlayerData.TYPE_LOCAL);
-            playerData.videoUrl = videoFileList.get(position);
+            String mediaPath = videoFileList.get(position);
+            playerData.videoUrl = mediaPath;
             playerData.danmakuUrl = danmakuFileList.get(position);
             playerData.title = pageList.get(position);
             try {
                 Intent player = PlayerApi.jumpToPlayer(playerData);
+                // 如果是仅音频文件，标记为音频模式
+                if (mediaPath.endsWith("audio.m4a")) {
+                    player.putExtra("audio_only", true);
+                }
                 startActivity(player);
             } catch (ActivityNotFoundException e) {
                 MsgUtil.showMsg("没有找到播放器，请检查是否安装");
@@ -67,7 +72,7 @@ public class LocalPageChooseActivity extends BaseActivity {
         adapter.setOnItemLongClickListener(position -> {
             long timestamp = System.currentTimeMillis();
             if (longClickPosition == position && timestamp - longClickTimestamp < 4000) {
-                CenterThreadPool.run(()->{
+                CenterThreadPool.run(() -> {
                     File workPath = FileUtil.getVideoDownloadPath();
                     File videoPath = new File(workPath, title);
                     File pagePath = new File(videoPath, pageList.get(position));
@@ -76,11 +81,12 @@ public class LocalPageChooseActivity extends BaseActivity {
                     pageList.remove(position);
                     videoFileList.remove(position);
                     danmakuFileList.remove(position);
-                    if (pageList.isEmpty()) FileUtil.deleteFolder(videoPath);
+                    if (pageList.isEmpty())
+                        FileUtil.deleteFolder(videoPath);
                 });
 
                 adapter.notifyItemRemoved(position);
-                adapter.notifyItemRangeChanged(0,pageList.size() - position);
+                adapter.notifyItemRangeChanged(0, pageList.size() - position);
 
                 MsgUtil.showMsg("删除成功");
                 longClickPosition = -1;

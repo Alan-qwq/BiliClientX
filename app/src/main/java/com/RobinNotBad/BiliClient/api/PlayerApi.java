@@ -13,6 +13,9 @@ import com.RobinNotBad.BiliClient.R;
 import com.RobinNotBad.BiliClient.activity.player.PlayerActivity;
 import com.RobinNotBad.BiliClient.activity.settings.SettingPlayerChooseActivity;
 import com.RobinNotBad.BiliClient.activity.video.JumpToPlayerActivity;
+import com.RobinNotBad.BiliClient.model.DashAudioStream;
+import com.RobinNotBad.BiliClient.model.DashData;
+import com.RobinNotBad.BiliClient.model.DashVideoStream;
 import com.RobinNotBad.BiliClient.model.HighEnergyData;
 import com.RobinNotBad.BiliClient.model.PlayerData;
 import com.RobinNotBad.BiliClient.model.Subtitle;
@@ -66,12 +69,100 @@ public class PlayerApi {
             DownloadService.startDownload(videoInfo.title,
                     videoInfo.aid, videoInfo.cids.get(0),
                     videoInfo.cover,
-                    qn);
+                    qn, "video", "");
         else
             DownloadService.startDownload(videoInfo.title, videoInfo.pagenames.get(page),
                     videoInfo.aid, videoInfo.cids.get(page),
                     videoInfo.cover,
-                    qn);
+                    qn, "video", "");
+    }
+
+    /**
+     * 开始仅音频下载
+     * 
+     * @param videoInfo 视频信息
+     * @param page      页码
+     * @param qn        清晰度
+     * @param audioUrl  音频流URL
+     */
+    public static void startDownloadingAudioOnly(VideoInfo videoInfo, int page, int qn, String audioUrl) {
+        if (videoInfo.cids.size() == 1)
+            DownloadService.startDownload(videoInfo.title,
+                    videoInfo.aid, videoInfo.cids.get(0),
+                    videoInfo.cover,
+                    qn, "audio_only", audioUrl);
+        else
+            DownloadService.startDownload(videoInfo.title, videoInfo.pagenames.get(page),
+                    videoInfo.aid, videoInfo.cids.get(page),
+                    videoInfo.cover,
+                    qn, "audio_only", audioUrl);
+    }
+
+    /**
+     * 解析视频（DASH格式）
+     *
+     * @param playerData 传入aid、cid、qn等必要数据
+     */
+    public static void getVideoDash(PlayerData playerData) throws JSONException, IOException {
+        playerData.danmakuUrl = "https://comment.bilibili.com/" + playerData.cid + ".xml";
+
+        String url = "https://api.bilibili.com/x/player/wbi/playurl?"
+                + "avid=" + playerData.aid
+                + "&cid=" + playerData.cid
+                + "&qn=" + playerData.qn
+                + "&fnval=16&fnver=0" // 16:DASH格式
+                + "&platform=pc"
+                + "&voice_balance=1"
+                + "&gaia_source=pre-load"
+                + "&isGaiaAvoided=true";
+
+        url = ConfInfoApi.signWBI(url);
+
+        JSONObject body = NetWorkUtil.getJson(url, NetWorkUtil.webHeaders);
+        JSONObject data = body.getJSONObject("data");
+
+        // 解析DASH数据
+        if (data.has("dash")) {
+            JSONObject dashJson = data.getJSONObject("dash");
+            playerData.dashData = DashData.fromJson(dashJson);
+
+            // 设置视频URL（选择指定清晰度的视频流）
+            DashVideoStream videoStream = playerData.dashData.getVideoStream(playerData.qn);
+            if (videoStream != null) {
+                playerData.videoUrl = videoStream.baseUrl;
+            }
+
+            // 设置音频URL（选择最高质量的音频流）
+            DashAudioStream audioStream = playerData.dashData.getBestAudioStream();
+            if (audioStream != null) {
+                playerData.audioUrl = audioStream.baseUrl;
+            }
+        } else {
+            getVideo(playerData, true);
+            return;
+        }
+
+        playerData.cidHistory = data.optLong("last_play_cid", 0);
+        playerData.progress = data.optInt("last_play_time", 0);
+
+        if (playerData.cidHistory == 0) {
+            playerData.cidHistory = playerData.cid;
+            playerData.progress = 0;
+        }
+        Logu.d("history", playerData.progress + "," + playerData.cidHistory);
+
+        JSONArray accept_description = data.getJSONArray("accept_description");
+        JSONArray accept_quality = data.getJSONArray("accept_quality");
+        String[] qnStrList = new String[accept_description.length()];
+        int[] qnValueList = new int[accept_description.length()];
+        for (int i = 0; i < qnStrList.length; i++) {
+            qnStrList[i] = accept_description.optString(i);
+            qnValueList[i] = accept_quality.optInt(i);
+        }
+        Logu.d("qn_str", Arrays.toString(qnStrList));
+        Logu.d("qn_val", Arrays.toString(qnValueList));
+        playerData.qnStrList = qnStrList;
+        playerData.qnValueList = qnValueList;
     }
 
     /**
