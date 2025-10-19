@@ -159,7 +159,7 @@ public class SettingMainActivity extends InstanceActivity {
             //清除教程进度
             MaterialCardView refreshTutorial = findViewById(R.id.refresh_tutorial);
             refreshTutorial.setOnClickListener(view -> {
-                if(refreshTutorialClick++ > 0){
+                if (refreshTutorialClick++ > 0) {
                     refreshTutorialClick = 0;
 
                     for (int i = 0; i < getResources().getStringArray(R.array.tutorial_list).length; i++) {
@@ -167,7 +167,7 @@ public class SettingMainActivity extends InstanceActivity {
                     }
 
                     MsgUtil.showMsg("教程进度已清除");
-                }else MsgUtil.showMsg("再点一次清除");
+                } else MsgUtil.showMsg("再点一次清除");
             });
 
             MaterialCardView test = findViewById(R.id.test);    //用于测试

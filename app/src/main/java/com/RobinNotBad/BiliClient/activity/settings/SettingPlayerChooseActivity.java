@@ -35,7 +35,7 @@ public class SettingPlayerChooseActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_setting_player_choose ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_setting_player_choose, (layoutView, resId) -> {
 
             terminalPlayer = findViewById(R.id.terminalPlayer);
             mtvPlayer = findViewById(R.id.mtvPlayer);

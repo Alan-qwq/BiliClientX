@@ -42,7 +42,7 @@ public class AppInfoApi {
 
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        if(hour >= 23 || hour <= 3){
+        if (hour >= 23 || hour <= 3) {
             MsgUtil.showDialog("温馨提醒", "夜深了，要注意休息呐~", 3);    //早茶光提供的彩蛋（实际上并不能算作彩蛋，太容易触发了？
         }
 
@@ -55,25 +55,23 @@ public class AppInfoApi {
             int last_ver = SharedPreferencesUtil.getInt("app_version_last", 0);
             if (last_ver < version) {
                 String update_apk = SharedPreferencesUtil.getString("terminal_update_pkg", "");
-                if(!TextUtils.isEmpty(update_apk)){
+                if (!TextUtils.isEmpty(update_apk)) {
                     File file = new File(update_apk);
-                    if(file.exists()) {
-                        if(file.delete()) {
+                    if (file.exists()) {
+                        if (file.delete()) {
                             SharedPreferencesUtil.putString("terminal_update_pkg", "");
                             MsgUtil.showMsg("更新包已删除");
-                        }
-                        else MsgUtil.showMsg("更新包删除失败");
-                    }
-                    else SharedPreferencesUtil.putString("terminal_update_pkg", "");
+                        } else MsgUtil.showMsg("更新包删除失败");
+                    } else SharedPreferencesUtil.putString("terminal_update_pkg", "");
                 }
 
-                MsgUtil.showDialog("提醒", context.getString(R.string.text_update_success),5);
+                MsgUtil.showDialog("提醒", context.getString(R.string.text_update_success), 5);
 
                 if (last_ver != 0) {
                     if (last_ver < 20240606)
                         MsgUtil.showDialog("部分风控问题已解决", "当前的新版本实现了对抗部分类型的风控，建议您重新登录账号以确保成功使用");
 
-                    if (last_ver < 20250329 && SharedPreferencesUtil.getBoolean("player_ui_round",false)){
+                    if (last_ver < 20250329 && SharedPreferencesUtil.getBoolean("player_ui_round", false)) {
                         SharedPreferencesUtil.putInt("paddingV_percent", 3);
                         SharedPreferencesUtil.putInt("paddingH_percent", 7);
                     }
@@ -90,7 +88,7 @@ public class AppInfoApi {
 
                 checkUpdate(context, false);
             }
-        } catch (IOException e){
+        } catch (IOException e) {
             MsgUtil.showMsg("无法连接到终端公告接口\n也许是服务器宕机了？\n（对软件内容无影响）");
         } catch (Exception e) {
             Log.e("debug-terminal", e.toString());
@@ -164,9 +162,9 @@ public class AppInfoApi {
             if (realIsDebug && !debug_ver) {
                 checkUpdate(context, need_toast, true);
             }
-        } catch (IOException | JSONException e){
-            MsgUtil.err("检查更新：",e);
-        } catch (Exception e){
+        } catch (IOException | JSONException e) {
+            MsgUtil.err("检查更新：", e);
+        } catch (Exception e) {
             MsgUtil.showMsg(e.getMessage());
         }
     }
@@ -240,14 +238,14 @@ public class AppInfoApi {
 
             JSONObject res = new JSONObject(Objects.requireNonNull(NetWorkUtil.postJson(url, post_data.toString(), customHeaders).body()).string());
             String msg = (res.getInt("code") == 200) ? "" : res.getString("msg");
-            int id = res.optInt("id",-1);
+            int id = res.optInt("id", -1);
             return new ApiResult(id, msg);
         } catch (IOException e) {
             return new ApiResult(-1, context.getString(R.string.err_network));
-        } catch (JSONException e){
+        } catch (JSONException e) {
             return new ApiResult(-514, context.getString(R.string.err_crash_upload_json));
         } catch (PackageManager.NameNotFoundException e) {
-            return new ApiResult(-1919,"");
+            return new ApiResult(-1919, "");
         }
     }
 
@@ -258,7 +256,7 @@ public class AppInfoApi {
         if (result.getInt("code") != 200) throw new Exception("获取失败");
         JSONArray data = result.getJSONArray("data");
 
-        if(data.length() == 0) return 1;
+        if (data.length() == 0) return 1;
 
         @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 

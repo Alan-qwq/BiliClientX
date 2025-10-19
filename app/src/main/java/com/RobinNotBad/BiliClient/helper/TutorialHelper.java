@@ -222,11 +222,11 @@ public class TutorialHelper {
         }
     }
 
-    public static void showPagerTutorial(Activity activity, int pagecount){
-        activity.runOnUiThread(()->{
+    public static void showPagerTutorial(Activity activity, int pagecount) {
+        activity.runOnUiThread(() -> {
             String pagename = activity.getClass().getSimpleName();
             TextView textView = activity.findViewById(R.id.text_tutorial_pager);
-            if(SharedPreferencesUtil.getBoolean("tutorial_pager_"+ pagename, true)) {
+            if (SharedPreferencesUtil.getBoolean("tutorial_pager_" + pagename, true)) {
                 Log.d("debug-tutorial", pagename);
                 textView.setVisibility(View.VISIBLE);
                 textView.setText(activity.getString(R.string.tutorial_pager, pagecount));
@@ -249,8 +249,7 @@ public class TutorialHelper {
                     });
                 }
                 SharedPreferencesUtil.putBoolean("tutorial_pager_" + pagename, false);
-            }
-            else{
+            } else {
                 textView.setVisibility(View.GONE);
             }
         });

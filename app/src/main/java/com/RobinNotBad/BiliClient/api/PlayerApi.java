@@ -79,7 +79,7 @@ public class PlayerApi {
 
     /**
      * 开始仅音频下载
-     * 
+     *
      * @param videoInfo 视频信息
      * @param page      页码
      * @param qn        清晰度
@@ -362,7 +362,7 @@ public class PlayerApi {
          * MediaStore.Video.Media.DATA + "=? ",
          * new String[]{path}, null);
          * if (cursor != null && cursor.moveToFirst()) {
-         * 
+         *
          * @SuppressLint("Range") int id =
          * cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID));
          * Uri baseUri = Uri.parse("content://media/external/video/media");

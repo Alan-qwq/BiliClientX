@@ -10,20 +10,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 
-import com.RobinNotBad.BiliClient.BiliTerminal;
 import com.RobinNotBad.BiliClient.R;
 import com.RobinNotBad.BiliClient.activity.base.BaseActivity;
 import com.RobinNotBad.BiliClient.activity.base.BaseFragment;
 import com.RobinNotBad.BiliClient.adapter.dynamic.DynamicHolder;
 import com.RobinNotBad.BiliClient.model.Dynamic;
-import com.RobinNotBad.BiliClient.util.CenterThreadPool;
-import com.RobinNotBad.BiliClient.util.MsgUtil;
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.RobinNotBad.BiliClient.util.TerminalContext;
 
@@ -46,7 +41,7 @@ public class DynamicInfoFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle bundle = getArguments();
-        if(bundle == null) return;
+        if (bundle == null) return;
         id = getArguments().getLong("id", 0);
     }
 
@@ -63,7 +58,8 @@ public class DynamicInfoFragment extends BaseFragment {
                 .observe(getViewLifecycleOwner(), (dynamicResult) -> dynamicResult.onSuccess((dynamic) -> {
                     this.dynamic = dynamic;
                     initView(view);
-                }).onFailure((e) -> {}));
+                }).onFailure((e) -> {
+                }));
 
     }
 

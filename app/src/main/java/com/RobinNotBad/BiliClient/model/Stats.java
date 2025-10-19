@@ -97,30 +97,30 @@ public class Stats implements Parcelable, Serializable {
 
     public static Stats fromOpus(JSONObject module_stat) {
         Stats stats = new Stats();
-        if(module_stat == null) return stats;
+        if (module_stat == null) return stats;
         JSONObject coin = module_stat.optJSONObject("coin");
-        if(coin != null){
+        if (coin != null) {
             stats.coin = coin.optInt("count");
             stats.coin_disabled = coin.optBoolean("forbidden", true) || coin.optBoolean("hidden", true);
         }
         JSONObject comment = module_stat.optJSONObject("comment");
-        if(comment != null){
+        if (comment != null) {
             stats.reply = comment.optInt("count");
             stats.reply_disabled = comment.optBoolean("forbidden", true);
         }
         JSONObject favorite = module_stat.optJSONObject("favorite");
-        if(favorite != null){
+        if (favorite != null) {
             stats.favorite = favorite.optInt("count");
             stats.fav_disabled = favorite.optBoolean("forbidden", true);
             stats.favoured = favorite.optBoolean("status", true);
         }
         JSONObject forward = module_stat.optJSONObject("forward");
-        if(forward != null){
+        if (forward != null) {
             stats.share = forward.optInt("count");
             stats.share_disabled = forward.optBoolean("forbidden", true);
         }
         JSONObject like = module_stat.optJSONObject("like");
-        if(like != null){
+        if (like != null) {
             stats.like = like.optInt("count");
             stats.like_disabled = like.optBoolean("forbidden", true);
             stats.liked = like.optBoolean("status", true);

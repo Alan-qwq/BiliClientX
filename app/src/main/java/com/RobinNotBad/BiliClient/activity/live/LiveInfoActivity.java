@@ -81,7 +81,7 @@ public class LiveInfoActivity extends BaseActivity {
             RecyclerView quality_list = findViewById(R.id.quality_list);
 
             AnimationUtils.crossFade(loading, scrollView);
-            TerminalContext.getInstance().getLiveInfoByRoomId(room_id).observe(this, (liveInfoResult)-> liveInfoResult.onSuccess((liveInfo) -> {
+            TerminalContext.getInstance().getLiveInfoByRoomId(room_id).observe(this, (liveInfoResult) -> liveInfoResult.onSuccess((liveInfo) -> {
                 room = liveInfo.getLiveRoom();
                 UserInfo userInfo = liveInfo.getUserInfo();
                 playInfo = liveInfo.getLivePlayInfo();
@@ -138,7 +138,7 @@ public class LiveInfoActivity extends BaseActivity {
                             playerData.videoUrl = play_url;
                             playerData.title = "直播·" + room.title;
                             playerData.aid = room_id;
-                            playerData.mid = SharedPreferencesUtil.getLong("mid",0);
+                            playerData.mid = SharedPreferencesUtil.getLong("mid", 0);
 
                             runOnUiThread(() -> {
                                 try {

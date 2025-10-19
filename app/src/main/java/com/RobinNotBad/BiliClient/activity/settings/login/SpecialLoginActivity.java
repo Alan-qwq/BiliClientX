@@ -5,9 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -87,7 +85,7 @@ public class SpecialLoginActivity extends BaseActivity {
             textInput.clearFocus();
 
             refuse.setVisibility(View.GONE);
-            if(BiliTerminal.isDebugBuild()){
+            if (BiliTerminal.isDebugBuild()) {
                 confirm.setOnClickListener(v -> {
                     try {
                         JSONObject input = new JSONObject(textInput.getText().toString());
@@ -100,8 +98,7 @@ public class SpecialLoginActivity extends BaseActivity {
                         runOnUiThread(() -> MsgUtil.showMsg("请检查输入的内容，不要有多余空格或字符"));
                     }
                 });
-            }
-            else confirm.setVisibility(View.GONE);
+            } else confirm.setVisibility(View.GONE);
             copy.setOnClickListener((view) -> {
                 ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clipData = ClipData.newPlainText("label", textInput.getText());

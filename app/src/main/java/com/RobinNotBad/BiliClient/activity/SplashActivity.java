@@ -57,7 +57,7 @@ public class SplashActivity extends Activity {
         Log.e("debug", "进入应用");
 
         splashTextView = findViewById(R.id.splashText);
-        splashText = SharedPreferencesUtil.getString("ui_splashtext","欢迎使用\n哔哩终端");
+        splashText = SharedPreferencesUtil.getString("ui_splashtext", "欢迎使用\n哔哩终端");
 
         splashTimer = new Timer();
         splashTimer.schedule(new TimerTask() {
@@ -113,11 +113,11 @@ public class SplashActivity extends Activity {
 
                     interruptSplash();
 
-                    splashTextView.postDelayed(()->{
+                    splashTextView.postDelayed(() -> {
                         startActivity(intent);
                         CenterThreadPool.run(() -> AppInfoApi.check(SplashActivity.this));
                         finish();
-                    },100);
+                    }, 100);
 
                 } catch (IOException e) {
                     runOnUiThread(() -> {
@@ -125,12 +125,12 @@ public class SplashActivity extends Activity {
                         interruptSplash();
                         splashTextView.setText("网络错误");
                         if (SharedPreferencesUtil.getBoolean("setup", false)) {
-                            splashTextView.postDelayed(()->{
+                            splashTextView.postDelayed(() -> {
                                 Intent intent = new Intent();
                                 intent.setClass(SplashActivity.this, LocalListActivity.class);
                                 startActivity(intent);
                                 finish();
-                            },300);
+                            }, 300);
                         }
                     });
                 } catch (JSONException e) {

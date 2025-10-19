@@ -127,7 +127,7 @@ public class StringUtil {
                 .replace("</em>", "");
     }
 
-    public static String removeHtml(String html){
+    public static String removeHtml(String html) {
         return Jsoup.parse(html).text();
     }
 
@@ -160,9 +160,9 @@ public class StringUtil {
         cm.setPrimaryClip(mClipData);
     }
 
-    public static void setLink(SpannableStringBuilder spannableString){
+    public static void setLink(SpannableStringBuilder spannableString) {
         if (!SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.LINK_ENABLE, true)) return;
-        if(TextUtils.isEmpty(spannableString)) return;
+        if (TextUtils.isEmpty(spannableString)) return;
 
         String text = spannableString.toString();
 
@@ -213,7 +213,7 @@ public class StringUtil {
         }
     }
 
-    public static void setSingleAt(SpannableStringBuilder spannableString, String atName, long atMid){
+    public static void setSingleAt(SpannableStringBuilder spannableString, String atName, long atMid) {
         Pattern pattern = Pattern.compile("@" + atName);
         String text = spannableString.toString();
         Matcher matcher = pattern.matcher(text);
@@ -225,10 +225,10 @@ public class StringUtil {
         }
     }
 
-    public static void setSingleAt(SpannableStringBuilder spannableString, At at){
+    public static void setSingleAt(SpannableStringBuilder spannableString, At at) {
         spannableString.setSpan(new LinkClickableSpan(spannableString.subSequence(at.start, at.end).toString(),
                         TYPE_USER, String.valueOf(at.id)),
-                        at.start, at.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                at.start, at.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     public static void setAtLink(List<At> ats, TextView... textViews) {
@@ -255,14 +255,14 @@ public class StringUtil {
     public static ImageSpan getLevelBadge(Context context, UserInfo userInfo) {
         int level = userInfo.level;
 
-        if(level <= -1 || level >= 7) level = 0;
-        if(userInfo.is_senior_member == 1) level = 7;
+        if (level <= -1 || level >= 7) level = 0;
+        if (userInfo.is_senior_member == 1) level = 7;
 
         Drawable drawable = getDrawable(context, levelBadges[level]);
 
         float lineHeight = getTextHeightWithSize(context);
         float lineWidth = lineHeight * 1.56f;
-        if(userInfo.is_senior_member == 1) lineWidth = lineHeight * 1.96f;
+        if (userInfo.is_senior_member == 1) lineWidth = lineHeight * 1.96f;
         drawable.setBounds(0, 0, (int) lineWidth, (int) lineHeight);
         return new ImageSpan(drawable);
     }
@@ -323,7 +323,7 @@ public class StringUtil {
         public void updateDrawState(@NonNull TextPaint ds) {
             super.updateDrawState(ds);
             ds.setUnderlineText(false);
-            ds.setColor(Color.rgb(0x66,0xcc,0xff));
+            ds.setColor(Color.rgb(0x66, 0xcc, 0xff));
         }
     }
 

@@ -6,8 +6,6 @@ import com.RobinNotBad.BiliClient.model.DmSegMobileReply;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Protobuf 解析器
@@ -17,7 +15,7 @@ public class ProtobufParser {
 
     /**
      * 解析弹幕分段响应
-     * 
+     *
      * @param data protobuf 格式的字节数据
      * @return 弹幕分段响应对象
      */
@@ -46,7 +44,7 @@ public class ProtobufParser {
 
     /**
      * 解析弹幕元素
-     * 
+     *
      * @param data protobuf 格式的字节数据
      * @return 弹幕元素对象
      */

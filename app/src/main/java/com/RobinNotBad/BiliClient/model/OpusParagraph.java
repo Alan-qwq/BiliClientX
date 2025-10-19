@@ -43,12 +43,13 @@ public class OpusParagraph {
     public int type;
     public Object content;
 
-    public OpusParagraph(){}
+    public OpusParagraph() {
+    }
 
     public OpusParagraph(JSONObject para) throws JSONException {
         this.type = para.optInt("para_type");
         this.align = para.optInt("align");
-        switch (type){
+        switch (type) {
             case TYPE_TEXT:
                 this.content = analyzeText(para.optJSONObject("text"));
                 break;
@@ -89,14 +90,14 @@ public class OpusParagraph {
         }
 
         stringBuilder.setSpan(new BackgroundColorSpan(0x33ffffff),
-                0, stringBuilder.length()-1,
+                0, stringBuilder.length() - 1,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         return stringBuilder;
     }
 
     public CharSequence analyzeList(JSONObject list) throws JSONException {
-        if(list == null) return "";
+        if (list == null) return "";
         int listStyle = list.optInt("style");
 
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
@@ -123,7 +124,7 @@ public class OpusParagraph {
             for (int i = 0; i < childrenPrimary.length(); i++) {
                 if (i != 0) stringBuilder.append("\n");
                 JSONObject childPrimary = childrenPrimary.optJSONObject(i);
-                if(childPrimary == null) break;
+                if (childPrimary == null) break;
                 switch (listStyle) {
                     case LIST_STYLE_NUMBER:
                         stringBuilder.append(String.valueOf(childPrimary.optInt("order"))).append(". ");
@@ -134,7 +135,7 @@ public class OpusParagraph {
                 }
 
                 JSONArray childrenSecondary = childPrimary.optJSONArray("children");
-                if(childrenSecondary != null) {
+                if (childrenSecondary != null) {
                     SpannableStringBuilder childBuilder = new SpannableStringBuilder();
                     for (int j = 0; j < childrenSecondary.length(); j++) {
                         JSONObject childSecondary = childrenSecondary.optJSONObject(j);
@@ -149,9 +150,9 @@ public class OpusParagraph {
     }
 
     public CharSequence analyzeText(JSONObject text) throws JSONException {
-        if(text == null) return "";
+        if (text == null) return "";
         JSONArray nodes = text.optJSONArray("nodes");
-        if(nodes == null) return "";
+        if (nodes == null) return "";
 
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
         for (int i = 0; i < nodes.length(); i++) {
@@ -161,12 +162,12 @@ public class OpusParagraph {
                     JSONObject word = node.getJSONObject("word");
 
                     int startPosition = stringBuilder.length();
-                    stringBuilder.append(word.optString("words",""));
+                    stringBuilder.append(word.optString("words", ""));
                     int endPosition = stringBuilder.length();
 
                     //粗体斜体，BOLD/ITALIC/BOLD_ITALIC 正好对应 1/2/3 所以可以这样减少判断量？
                     JSONObject style = word.optJSONObject("style");
-                    if(style != null) {
+                    if (style != null) {
                         boolean bold = style.optBoolean("bold");
                         boolean italic = style.optBoolean("italic");
                         int styleInt = (bold ? Typeface.BOLD : 0) + (italic ? Typeface.ITALIC : 0);
@@ -175,7 +176,7 @@ public class OpusParagraph {
                     }
 
                     //字体大小，使用的是相对大小，17号的字体在手表上还是太逆天了
-                    int fontSize = word.optInt("font_size",17);
+                    int fontSize = word.optInt("font_size", 17);
                     if (fontSize != FONT_SIZE_BILI_DEFAULT) {
                         float fontScale = fontSize * 1.0f / FONT_SIZE_BILI_DEFAULT;
                         stringBuilder.setSpan(new RelativeSizeSpan(fontScale), startPosition, endPosition, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -184,7 +185,7 @@ public class OpusParagraph {
                     //字体颜色
                     String color = word.optString("color", "#18191c");
                     if (color.startsWith("#") && !color.equals("#18191c")) try {
-                            stringBuilder.setSpan(new ForegroundColorSpan(Color.parseColor(color)), startPosition, endPosition, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        stringBuilder.setSpan(new ForegroundColorSpan(Color.parseColor(color)), startPosition, endPosition, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     } catch (Exception ignored) {
                         Logu.e("color error", color);
                     }
@@ -213,9 +214,9 @@ public class OpusParagraph {
     }
 
     public String[] analyzePic(JSONObject allJson) throws JSONException {
-        if(allJson == null) return new String[0];
+        if (allJson == null) return new String[0];
         JSONArray picsJson = allJson.optJSONArray("pics");
-        if(picsJson == null) return new String[0];
+        if (picsJson == null) return new String[0];
         String[] pics = new String[picsJson.length()];
         for (int i = 0; i < picsJson.length(); i++) {
             String url = picsJson.getJSONObject(i).optString("url");
@@ -225,18 +226,18 @@ public class OpusParagraph {
     }
 
     public String[] analyzeDivider(JSONObject allJson) throws JSONException {
-        if(allJson == null) return new String[0];
+        if (allJson == null) return new String[0];
         String url = allJson.getJSONObject("pic").optString("url");
-        return new String[] {url.startsWith("http") ? url : "http:" + url};
+        return new String[]{url.startsWith("http") ? url : "http:" + url};
     }
 
-    public CharSequence analyzeOpus(JSONArray rich_list) throws JSONException{
-        if(rich_list == null) return "";
+    public CharSequence analyzeOpus(JSONArray rich_list) throws JSONException {
+        if (rich_list == null) return "";
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
-        for (int i = 0;i < rich_list.length();i++){
+        for (int i = 0; i < rich_list.length(); i++) {
             JSONObject rich = rich_list.getJSONObject(i);
             int startLength = stringBuilder.length();
-            switch (rich.getString("type")){
+            switch (rich.getString("type")) {
                 case "RICH_TEXT_NODE_TYPE_AT":
                     stringBuilder.append(rich.getString("text"));
                     At at = new At(rich.optLong("rid"), startLength, stringBuilder.length());

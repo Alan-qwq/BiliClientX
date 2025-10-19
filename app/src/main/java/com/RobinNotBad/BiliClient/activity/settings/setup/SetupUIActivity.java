@@ -32,18 +32,17 @@ public class SetupUIActivity extends BaseActivity {
         uiPaddingV.setText(String.valueOf(SharedPreferencesUtil.getInt("paddingV_percent", 0)));
 
         SwitchMaterial round = findViewById(R.id.switch_round);
-        round.setChecked(SharedPreferencesUtil.getBoolean("player_ui_round",false));
+        round.setChecked(SharedPreferencesUtil.getBoolean("player_ui_round", false));
         round.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
+            if (isChecked) {
                 uiPaddingH.setText("5");
                 uiPaddingV.setText("3");
-                SharedPreferencesUtil.putBoolean("player_ui_round",true);
+                SharedPreferencesUtil.putBoolean("player_ui_round", true);
                 MsgUtil.showMsg("界面边距已更改\n可以手动微调喵");
-            }
-            else{
+            } else {
                 uiPaddingH.setText("0");
                 uiPaddingV.setText("0");
-                SharedPreferencesUtil.putBoolean("player_ui_round",false);
+                SharedPreferencesUtil.putBoolean("player_ui_round", false);
             }
         });
 
@@ -66,7 +65,7 @@ public class SetupUIActivity extends BaseActivity {
             SharedPreferencesUtil.putInt("paddingH_percent", 0);
             SharedPreferencesUtil.putInt("paddingV_percent", 0);
             SharedPreferencesUtil.putFloat("dpi", 1.0f);
-            SharedPreferencesUtil.putBoolean("player_ui_round",false);
+            SharedPreferencesUtil.putBoolean("player_ui_round", false);
             uiScaleInput.setText("1.0");
             uiPaddingH.setText("0");
             uiPaddingV.setText("0");

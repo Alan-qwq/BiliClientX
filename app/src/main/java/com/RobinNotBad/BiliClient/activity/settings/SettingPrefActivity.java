@@ -15,7 +15,7 @@ import java.util.List;
 
 public class SettingPrefActivity extends RefreshListActivity {
 
-    @SuppressLint({ "MissingInflatedId", "SetTextI18n", "InflateParams" })
+    @SuppressLint({"MissingInflatedId", "SetTextI18n", "InflateParams"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

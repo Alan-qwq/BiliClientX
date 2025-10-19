@@ -23,7 +23,7 @@ public class SettingUIActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_setting_ui ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_setting_ui, (layoutView, resId) -> {
 
             uiScaleInput = findViewById(R.id.ui_scale_input);
             uiScaleInput.setText(String.valueOf(SharedPreferencesUtil.getFloat("dpi", 1.0F)));
@@ -40,18 +40,17 @@ public class SettingUIActivity extends BaseActivity {
             density_input.setText(String.valueOf((density == -1 ? displayMetrics.densityDpi + "(默认)" : density)));
 
             SwitchMaterial round = findViewById(R.id.switch_round);
-            round.setChecked(SharedPreferencesUtil.getBoolean("player_ui_round",false));
+            round.setChecked(SharedPreferencesUtil.getBoolean("player_ui_round", false));
             round.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if(isChecked){
+                if (isChecked) {
                     uiPaddingH.setText("5");
                     uiPaddingV.setText("3");
-                    SharedPreferencesUtil.putBoolean("player_ui_round",true);
+                    SharedPreferencesUtil.putBoolean("player_ui_round", true);
                     MsgUtil.showMsg("界面边距已更改\n可以手动微调喵");
-                }
-                else{
+                } else {
                     uiPaddingH.setText("0");
                     uiPaddingV.setText("0");
-                    SharedPreferencesUtil.putBoolean("player_ui_round",false);
+                    SharedPreferencesUtil.putBoolean("player_ui_round", false);
                 }
             });
 
@@ -66,7 +65,7 @@ public class SettingUIActivity extends BaseActivity {
                 SharedPreferencesUtil.putInt("paddingV_percent", 0);
                 SharedPreferencesUtil.putFloat("dpi", 1.0f);
                 SharedPreferencesUtil.putInt("density", -1);
-                SharedPreferencesUtil.putBoolean("player_ui_round",false);
+                SharedPreferencesUtil.putBoolean("player_ui_round", false);
                 uiScaleInput.setText("1.0");
                 uiPaddingH.setText("0");
                 uiPaddingV.setText("0");
@@ -112,7 +111,7 @@ public class SettingUIActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        if(uiScaleInput != null) save();
+        if (uiScaleInput != null) save();
         super.onDestroy();
     }
 }

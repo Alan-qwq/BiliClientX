@@ -136,7 +136,7 @@ public class FavoriteApi {
             opus.content = item.optString("content");
             opus.cover = item.optString("cover");
             opus.title = item.optString("title");
-            if(opus.title.isEmpty()) opus.title = opus.content;
+            if (opus.title.isEmpty()) opus.title = opus.content;
             opus.id = Long.parseLong(item.getString("opus_id"));
             opus.pubTime = item.optString("time_text");
             list.add(opus);

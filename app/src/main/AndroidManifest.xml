@@ -309,6 +309,11 @@
             android:label="历史记录"
             android:screenOrientation="locked" />
         <activity
+            android:name=".activity.user.LoginRecordActivity"
+            android:exported="false"
+            android:label="登录记录"
+            android:screenOrientation="locked" />
+        <activity
             android:name=".activity.user.WatchLaterActivity"
             android:exported="false"
             android:label="稍后再看"

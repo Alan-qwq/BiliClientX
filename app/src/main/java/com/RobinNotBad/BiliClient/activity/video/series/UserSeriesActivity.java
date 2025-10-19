@@ -6,12 +6,10 @@ import android.util.Log;
 import com.RobinNotBad.BiliClient.activity.base.RefreshListActivity;
 import com.RobinNotBad.BiliClient.adapter.video.SeriesCardAdapter;
 import com.RobinNotBad.BiliClient.api.SeriesApi;
-import com.RobinNotBad.BiliClient.model.Collection;
 import com.RobinNotBad.BiliClient.model.Series;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 
 import java.util.ArrayList;
-import java.util.List;
 
 //用户的视频系列列表
 //2024-06-13

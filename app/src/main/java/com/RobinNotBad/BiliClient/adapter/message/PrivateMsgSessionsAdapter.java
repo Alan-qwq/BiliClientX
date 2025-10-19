@@ -29,7 +29,6 @@ import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 
 public class PrivateMsgSessionsAdapter
         extends RecyclerView.Adapter<PrivateMsgSessionsAdapter.PrivateMsgSessionsHolder> {
@@ -39,7 +38,7 @@ public class PrivateMsgSessionsAdapter
     final HashMap<Long, UserInfo> userMap;
 
     public PrivateMsgSessionsAdapter(Context context, ArrayList<PrivateMsgSession> sessionsList,
-            HashMap<Long, UserInfo> userMap) {
+                                     HashMap<Long, UserInfo> userMap) {
         this.context = context;
         this.sessionsList = sessionsList;
         this.userMap = userMap;

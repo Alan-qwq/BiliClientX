@@ -27,13 +27,15 @@ public class OpusApi {
         opus.id = id;
 
         String url;
-        if (id > 100000000) url = "https://www.bilibili.com/opus/" + id; // 别问，问就是动态和专栏都被统一了，判断不了类型，只能判断id长度了。能用。
+        if (id > 100000000)
+            url = "https://www.bilibili.com/opus/" + id; // 别问，问就是动态和专栏都被统一了，判断不了类型，只能判断id长度了。能用。
         else url = "https://www.bilibili.com/read/cv" + id;
         try {
             Response response = NetWorkUtil.get(url);
-            if (id <= 100000000) response = NetWorkUtil.get(response.headers().get("location")); // 访问/read/cv[id]的话会重定向到/opus/，这里要手动“重定向”，因为OkHTTP不认。
+            if (id <= 100000000)
+                response = NetWorkUtil.get(response.headers().get("location")); // 访问/read/cv[id]的话会重定向到/opus/，这里要手动“重定向”，因为OkHTTP不认。
             ResponseBody responseBody = response.body();
-            if(responseBody == null) return opus;
+            if (responseBody == null) return opus;
 
             String html = responseBody.string();
 
@@ -43,7 +45,7 @@ public class OpusApi {
             opus.commentId = Integer.parseInt(basic.optString("comment_id_str", "0"));
             opus.commentType = basic.optInt("comment_type");
 
-            if(detail.isNull("modules")) return opus;    //isNull其实涵盖了!has的情况，之前都是咋想的判断两次，我简直是sb
+            if (detail.isNull("modules")) return opus;    //isNull其实涵盖了!has的情况，之前都是咋想的判断两次，我简直是sb
             JSONArray modules = detail.getJSONArray("modules");
 
             for (int i = 0; i < modules.length(); i++) {
@@ -57,7 +59,7 @@ public class OpusApi {
                         JSONObject module_top = module.getJSONObject("module_top");
                         JSONObject display = module_top.getJSONObject("display");
                         int displayType = display.optInt("type");
-                        if(displayType == 1){
+                        if (displayType == 1) {
                             JSONObject album = display.getJSONObject("album");
                             JSONArray pics = album.getJSONArray("pics");
                             for (int j = 0; j < pics.length(); j++) {
@@ -90,13 +92,13 @@ public class OpusApi {
                 }
             }
 
-            if(opus.upInfo == null) opus.upInfo = new UserInfo();
-            if(opus.stats == null) opus.stats = new Stats();
-        } catch (IllegalArgumentException e){ // 取不出来的时候，会重定向，但重定向的域名是//开头的，会报错
+            if (opus.upInfo == null) opus.upInfo = new UserInfo();
+            if (opus.stats == null) opus.stats = new Stats();
+        } catch (IllegalArgumentException e) { // 取不出来的时候，会重定向，但重定向的域名是//开头的，会报错
             //这里给opus设置一个参数，让OpusInfoActivity跳转到旧版的DynamicInfoActivity，从而无需重写解析
             //判断方式很简单粗暴，看报错信息里有没有URL这个关键字，有就是跳转错误
             String errMsg = e.getMessage();
-            if(errMsg != null && errMsg.contains("URL")) opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
+            if (errMsg != null && errMsg.contains("URL")) opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
             else MsgUtil.err(e);
             return opus;
 
@@ -136,12 +138,12 @@ public class OpusApi {
 
         String dynamicType = item.getString("type");
 
-        if(item.isNull("modules")) return;
+        if (item.isNull("modules")) return;
         JSONObject modules = item.getJSONObject("modules");
 
         //up主信息
         UserInfo author = new UserInfo();
-        if(!modules.isNull("module_author")) {
+        if (!modules.isNull("module_author")) {
             JSONObject module_author = modules.getJSONObject("module_author");
             author.mid = module_author.getLong("mid");
             author.name = module_author.getString("name");
@@ -163,14 +165,14 @@ public class OpusApi {
 
         ArrayList<OpusParagraph> paragraphList = new ArrayList<>();
 
-        if (!module_dynamic.isNull("desc")){
+        if (!module_dynamic.isNull("desc")) {
             JSONObject object = new JSONObject();
             object.put("para_type", OpusParagraph.TYPE_TEXT_OPUS);
             object.put("data", module_dynamic.getJSONObject("desc").getJSONArray("rich_text_nodes"));
             paragraphList.add(new OpusParagraph(object));
         }
 
-        if(!module_dynamic.isNull("major")){
+        if (!module_dynamic.isNull("major")) {
             JSONObject major = module_dynamic.getJSONObject("major");
 
             if (!major.isNull("opus")) {
@@ -192,7 +194,7 @@ public class OpusApi {
                 paragraphList.add(new OpusParagraph(object));
             }
 
-            if (!major.isNull("archive")){
+            if (!major.isNull("archive")) {
                 // 这里是视频卡片
             }
 

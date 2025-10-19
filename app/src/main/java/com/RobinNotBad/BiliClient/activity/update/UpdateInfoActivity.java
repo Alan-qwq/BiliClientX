@@ -44,7 +44,7 @@ public class UpdateInfoActivity extends BaseActivity {
         @Override
         public void onActivityResult(ActivityResult o) {
             Logu.d("下载回调", "onActivityResult");
-            if(apkFile != null && apkFile.exists()){
+            if (apkFile != null && apkFile.exists()) {
                 downloadComplete();
             }
         }
@@ -63,7 +63,7 @@ public class UpdateInfoActivity extends BaseActivity {
         String updateLog = intent.getStringExtra("updateLog");
         int canDownload = intent.getIntExtra("canDownload", 0);
 
-        asyncInflate(R.layout.activity_update_info ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_update_info, (layoutView, resId) -> {
 
             versionNameTv = findViewById(R.id.versionName);
             versionCodeTv = findViewById(R.id.versionCode);
@@ -97,7 +97,7 @@ public class UpdateInfoActivity extends BaseActivity {
                         String url = AppInfoApi.getDownloadUrl(versionCode);
 
                         apkFile = new File(FileUtil.getDownloadPath(), FileUtil.getFileNameFromLink(url));
-                        if(apkFile.exists()) {
+                        if (apkFile.exists()) {
                             MsgUtil.showMsg("已有本地安装包！");
                             downloadComplete();
                             return;
@@ -204,8 +204,8 @@ public class UpdateInfoActivity extends BaseActivity {
         });
     }
 
-    private void downloadComplete(){
-        runOnUiThread(()->{
+    private void downloadComplete() {
+        runOnUiThread(() -> {
             SharedPreferencesUtil.putString("terminal_update_pkg", apkFile.getAbsolutePath());
             downloadBtn.setVisibility(View.GONE);
             MaterialButton installBtn = findViewById(R.id.install);
@@ -216,8 +216,8 @@ public class UpdateInfoActivity extends BaseActivity {
             installBtn.setOnClickListener(v -> startActivity(new Intent(this, UpdateInstallActivity.class)
                     .putExtra("path", apkFile.getAbsolutePath())));
 
-            deleteBtn.setOnClickListener(v -> CenterThreadPool.run(()->{
-                if(apkFile.delete()) MsgUtil.showMsg("删除成功");
+            deleteBtn.setOnClickListener(v -> CenterThreadPool.run(() -> {
+                if (apkFile.delete()) MsgUtil.showMsg("删除成功");
                 else MsgUtil.showMsg("删除失败");
                 SharedPreferencesUtil.putString("terminal_update_pkg", "");
                 finish();

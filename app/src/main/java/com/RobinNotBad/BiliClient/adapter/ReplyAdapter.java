@@ -69,7 +69,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     OnItemClickListener listener;
 
     public ReplyAdapter(Context context, ArrayList<Reply> replyList, long oid, long root, int type, int sort,
-            long up_mid) {
+                        long up_mid) {
         this.context = context;
         this.replyList = replyList;
         this.oid = oid;
@@ -111,7 +111,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 intent.putExtra("replyType", replyType);
                 context.startActivity(intent);
             });
-            String[] sorts = { "未知排序", "未知排序", "时间排序", "热度排序" };
+            String[] sorts = {"未知排序", "未知排序", "时间排序", "热度排序"};
             if (isDetail) {
                 writeReply.sort.setVisibility(View.GONE);
                 writeReply.count_label.setVisibility(View.GONE);

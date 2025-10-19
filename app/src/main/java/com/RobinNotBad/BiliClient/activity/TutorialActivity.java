@@ -12,7 +12,6 @@ import com.RobinNotBad.BiliClient.R;
 import com.RobinNotBad.BiliClient.activity.base.BaseActivity;
 import com.RobinNotBad.BiliClient.helper.TutorialHelper;
 import com.RobinNotBad.BiliClient.model.Tutorial;
-import com.RobinNotBad.BiliClient.util.AsyncLayoutInflaterX;
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 
@@ -29,7 +28,7 @@ public class TutorialActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_tutorial ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_tutorial, (layoutView, resId) -> {
 
             Intent intent = getIntent();
 

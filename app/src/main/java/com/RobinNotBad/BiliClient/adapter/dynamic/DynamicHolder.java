@@ -104,14 +104,14 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
     }
 
     public static void removeDynamicFromList(List<Dynamic> dynamicList, int finalPosition,
-            RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
+                                             RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
         dynamicList.remove(finalPosition);
         adapter.notifyItemRemoved(finalPosition + 1);
         adapter.notifyItemRangeChanged(finalPosition + 1, dynamicList.size() - finalPosition);
     }
 
     public static View.OnLongClickListener getDeleteListener(Activity dynamicActivity, List<Dynamic> dynamicList,
-            int finalPosition, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
+                                                             int finalPosition, RecyclerView.Adapter<RecyclerView.ViewHolder> adapter) {
         return new View.OnLongClickListener() {
             private int longClickPosition = -1;
             private long longClickTime = -1;
@@ -178,7 +178,7 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
                                         dynamicActivity.setResult(Activity.RESULT_OK,
                                                 dynamicActivity.getIntent().getExtras() != null
                                                         ? new Intent()
-                                                                .putExtras(dynamicActivity.getIntent().getExtras())
+                                                        .putExtras(dynamicActivity.getIntent().getExtras())
                                                         : new Intent());
                                         dynamicActivity.finish();
                                         MsgUtil.showMsg("删除成功~");
@@ -210,7 +210,7 @@ public class DynamicHolder extends RecyclerView.ViewHolder {
         };
     }
 
-    @SuppressLint({ "SetTextI18n", "ClickableViewAccessibility" })
+    @SuppressLint({"SetTextI18n", "ClickableViewAccessibility"})
     public void showDynamic(Context context, Dynamic dynamic, boolean clickable) { // 公用的显示函数 这样修改和调用都方便
         if (!TextUtils.isEmpty(dynamic.title)) {
             title.setVisibility(View.VISIBLE);

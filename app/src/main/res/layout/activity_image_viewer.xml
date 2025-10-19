@@ -43,7 +43,7 @@
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/top"/>
+        android:layout_below="@id/top" />
 
     <ImageButton
         android:id="@+id/btn_download"
@@ -59,7 +59,7 @@
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/text_page"

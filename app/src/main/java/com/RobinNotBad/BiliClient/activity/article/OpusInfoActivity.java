@@ -51,37 +51,36 @@ public class OpusInfoActivity extends BaseActivity {
         ViewPager viewPager = findViewById(R.id.viewPager);
 
 
-
         TerminalContext.getInstance().getOpusById(oid)
-            .observe(this, (result) -> result.onSuccess((opus)-> {
-                if(opus.type == Opus.TYPE_DYNAMIC_OLD_STYLE){
-                    Intent intent1 = new Intent(this, DynamicInfoActivity.class);
-                    intent1.putExtra("id", oid);
-                    intent1.putExtra("seekReply", seek_reply);
-                    startActivity(intent1);
-                    finish();
-                    return;
-                }
+                .observe(this, (result) -> result.onSuccess((opus) -> {
+                    if (opus.type == Opus.TYPE_DYNAMIC_OLD_STYLE) {
+                        Intent intent1 = new Intent(this, DynamicInfoActivity.class);
+                        intent1.putExtra("id", oid);
+                        intent1.putExtra("seekReply", seek_reply);
+                        startActivity(intent1);
+                        finish();
+                        return;
+                    }
 
-                List<Fragment> fragmentList = new ArrayList<>();
+                    List<Fragment> fragmentList = new ArrayList<>();
 
-                OpusInfoFragment oiFragment = OpusInfoFragment.newInstance(oid);
-                fragmentList.add(oiFragment);
+                    OpusInfoFragment oiFragment = OpusInfoFragment.newInstance(oid);
+                    fragmentList.add(oiFragment);
 
-                replyFragment = ReplyFragment.newInstance(opus.commentId, opus.commentType, opus.stats.reply, seek_reply, opus.upInfo.mid);
-                replyFragment.setManager(opus.upInfo);
-                fragmentList.add(replyFragment);
+                    replyFragment = ReplyFragment.newInstance(opus.commentId, opus.commentType, opus.stats.reply, seek_reply, opus.upInfo.mid);
+                    replyFragment.setManager(opus.upInfo);
+                    fragmentList.add(replyFragment);
 
-                ViewPagerFragmentAdapter vpfAdapter = new ViewPagerFragmentAdapter(getSupportFragmentManager(), fragmentList);
-                viewPager.setAdapter(vpfAdapter);
-                if (seek_reply != -1) viewPager.setCurrentItem(1);
+                    ViewPagerFragmentAdapter vpfAdapter = new ViewPagerFragmentAdapter(getSupportFragmentManager(), fragmentList);
+                    viewPager.setAdapter(vpfAdapter);
+                    if (seek_reply != -1) viewPager.setCurrentItem(1);
 
-                AnimationUtils.crossFade(loadingView, oiFragment.getView());
-                TutorialHelper.showPagerTutorial(this,2);
-            }).onFailure((error) -> {
-                loadingView.setImageResource(R.mipmap.loading_2233_error);
-                MsgUtil.err(error);
-            }));
+                    AnimationUtils.crossFade(loadingView, oiFragment.getView());
+                    TutorialHelper.showPagerTutorial(this, 2);
+                }).onFailure((error) -> {
+                    loadingView.setImageResource(R.mipmap.loading_2233_error);
+                    MsgUtil.err(error);
+                }));
 
 
     }

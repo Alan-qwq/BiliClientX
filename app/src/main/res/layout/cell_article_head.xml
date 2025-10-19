@@ -69,7 +69,7 @@
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"
             android:src="@mipmap/placeholder"
-            tools:ignore="UnusedAttribute"/>
+            tools:ignore="UnusedAttribute" />
 
         <TextView
             android:id="@+id/topCount"

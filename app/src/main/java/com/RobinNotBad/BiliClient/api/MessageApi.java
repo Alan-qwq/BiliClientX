@@ -137,7 +137,7 @@ public class MessageApi {
             JSONObject cursor = all.getJSONObject("data").optJSONObject("cursor");
             return new Pair<>(cursor == null ? null
                     : new MessageCard.Cursor(cursor.optBoolean("is_end", true), cursor.optLong("id", -1),
-                            cursor.optLong("time", -1)),
+                    cursor.optLong("time", -1)),
                     totalArray);
         } else {
             return new Pair<>(null, new ArrayList<>());
@@ -236,7 +236,7 @@ public class MessageApi {
             JSONObject cursor = all.getJSONObject("data").optJSONObject("cursor");
             return new Pair<>(cursor == null ? null
                     : new MessageCard.Cursor(cursor.optBoolean("is_end", true), cursor.optLong("id", -1),
-                            cursor.optLong("time", -1)),
+                    cursor.optLong("time", -1)),
                     totalArray);
         } else {
             return new Pair<>(null, new ArrayList<>());
@@ -330,7 +330,7 @@ public class MessageApi {
             JSONObject cursor = all.getJSONObject("data").optJSONObject("cursor");
             return new Pair<>(cursor == null ? null
                     : new MessageCard.Cursor(cursor.optBoolean("is_end", true), cursor.optLong("id", -1),
-                            cursor.optLong("time", -1)),
+                    cursor.optLong("time", -1)),
                     totalArray);
         } else {
             return new Pair<>(null, new ArrayList<>());
@@ -340,7 +340,7 @@ public class MessageApi {
     public static ArrayList<MessageCard> getSystemMsg() throws IOException, JSONException {
         String url = "https://message.bilibili.com/x/sys-msg/query_user_notify?csrf="
                 + NetWorkUtil.getInfoFromCookie("bili_jct",
-                        SharedPreferencesUtil.getString(SharedPreferencesUtil.cookies, ""))
+                SharedPreferencesUtil.getString(SharedPreferencesUtil.cookies, ""))
                 + "&page_size=35&build=0&mobi_app=web";
         JSONObject all = NetWorkUtil.getJson(url);
         if (all.has("data") && !all.isNull("data")) {

@@ -22,7 +22,10 @@ import com.RobinNotBad.BiliClient.adapter.video.VideoCardHolder;
 import com.RobinNotBad.BiliClient.model.Collection;
 import com.RobinNotBad.BiliClient.model.VideoCard;
 import com.RobinNotBad.BiliClient.model.VideoInfo;
-import com.RobinNotBad.BiliClient.util.*;
+import com.RobinNotBad.BiliClient.util.GlideUtil;
+import com.RobinNotBad.BiliClient.util.StringUtil;
+import com.RobinNotBad.BiliClient.util.TerminalContext;
+import com.RobinNotBad.BiliClient.util.ToolsUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -46,7 +49,7 @@ public class CollectionInfoActivity extends RefreshListActivity {
         long mid = getIntent().getLongExtra("mid", -1);
         setPageName("合集详情");
 
-        TerminalContext.getInstance().getVideoInfoByAidOrBvId(from_aid,null).observe(this, result -> result.onSuccess((videoInfo -> {
+        TerminalContext.getInstance().getVideoInfoByAidOrBvId(from_aid, null).observe(this, result -> result.onSuccess((videoInfo -> {
             collection = videoInfo.collection;
 
             RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;

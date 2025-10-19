@@ -43,7 +43,8 @@
         </item>
         <item>
             <type>0</type>
-            <text>注意：如果点赞或投币时报错，那么说明你的B站账号可能被风控了（该问题无永久解决方案）</text>
+            <text>注意：如果点赞或投币时报错，那么说明你的B站账号可能被风控了（该问题无永久解决方案）
+            </text>
             <style>italic</style>
             <color>#ffffff</color>
         </item>

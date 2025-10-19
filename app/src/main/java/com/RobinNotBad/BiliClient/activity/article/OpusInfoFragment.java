@@ -65,21 +65,21 @@ public class OpusInfoFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerView);
 
-        if(SharedPreferencesUtil.getBoolean("ui_landscape",false)) {
+        if (SharedPreferencesUtil.getBoolean("ui_landscape", false)) {
             WindowManager windowManager = (WindowManager) view.getContext().getSystemService(Context.WINDOW_SERVICE);
             Display display = windowManager.getDefaultDisplay();
             DisplayMetrics metrics = new DisplayMetrics();
-            if(Build.VERSION.SDK_INT >= 17) display.getRealMetrics(metrics);
+            if (Build.VERSION.SDK_INT >= 17) display.getRealMetrics(metrics);
             else display.getMetrics(metrics);
             int paddings = metrics.widthPixels / 6;
-            recyclerView.setPadding(paddings,0,paddings,0);
+            recyclerView.setPadding(paddings, 0, paddings, 0);
         }
 
         TerminalContext.getInstance().getOpusById(oid)
-                .observe(getViewLifecycleOwner(), (result) -> result.onSuccess((opus)-> {
-                    if(!isAdded()) return;
+                .observe(getViewLifecycleOwner(), (result) -> result.onSuccess((opus) -> {
+                    if (!isAdded()) return;
                     OpusContentAdapter adapter = new OpusContentAdapter(requireActivity(), opus);
-                    requireActivity().runOnUiThread(()->{
+                    requireActivity().runOnUiThread(() -> {
                         recyclerView.setLayoutManager(new CustomLinearManager(requireContext()));
                         recyclerView.setAdapter(adapter);
                     });

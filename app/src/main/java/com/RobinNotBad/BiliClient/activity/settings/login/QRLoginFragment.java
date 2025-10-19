@@ -63,7 +63,7 @@ public class QRLoginFragment extends Fragment {
         super.onCreate(savedInstance);
 
         Bundle bundle = getArguments();
-        if(bundle!=null) from_setup = bundle.getBoolean("from_setup",false);
+        if (bundle != null) from_setup = bundle.getBoolean("from_setup", false);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class QRLoginFragment extends Fragment {
                     scanStat.setText("登录接口可能失效，请找开发者");
                 });
                 e.printStackTrace();
-            } catch (Exception e){
+            } catch (Exception e) {
                 CenterThreadPool.runOnUiThread(() -> {
                     qrImageView.setEnabled(true);
                     scanStat.setText("遇到其他错误：\n" + e.getMessage());
@@ -180,7 +180,7 @@ public class QRLoginFragment extends Fragment {
                 try {
                     Response response = LoginApi.getLoginState();
                     assert response.body() != null;
-                    if(!isAdded()) {
+                    if (!isAdded()) {
                         this.cancel();
                         return;
                     }
@@ -206,7 +206,7 @@ public class QRLoginFragment extends Fragment {
                             break;
                         case 0:
                             this.cancel();
-                            CenterThreadPool.runOnUiThread(()->scanStat.setText("正在处理登录……"));
+                            CenterThreadPool.runOnUiThread(() -> scanStat.setText("正在处理登录……"));
                             String cookies = SharedPreferencesUtil.getString(SharedPreferencesUtil.cookies, "");
 
                             SharedPreferencesUtil.putLong(SharedPreferencesUtil.mid, Long.parseLong(NetWorkUtil.getInfoFromCookie("DedeUserID", cookies)));

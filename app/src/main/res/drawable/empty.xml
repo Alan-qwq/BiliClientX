@@ -2,5 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <size
         android:width="0dp"
-        android:height="@dimen/linearlayout_divider"/>
+        android:height="@dimen/linearlayout_divider" />
 </shape>

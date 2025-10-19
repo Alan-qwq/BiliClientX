@@ -76,7 +76,7 @@ public class BaseActivity extends AppCompatActivity {
         WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         Display display = windowManager.getDefaultDisplay();
         DisplayMetrics metrics = new DisplayMetrics();
-        if(Build.VERSION.SDK_INT >= 17) display.getRealMetrics(metrics);
+        if (Build.VERSION.SDK_INT >= 17) display.getRealMetrics(metrics);
         else display.getMetrics(metrics);
 
         int scrW = metrics.widthPixels;
@@ -86,7 +86,7 @@ public class BaseActivity extends AppCompatActivity {
             int paddingH = scrW * paddingH_percent / 100;
             int paddingT = scrH * paddingV_percent / 100;
             int paddingB = paddingT;
-            if(SharedPreferencesUtil.getBoolean("player_ui_round", false))
+            if (SharedPreferencesUtil.getBoolean("player_ui_round", false))
                 paddingB += scrH * 0.03;
             window_width = scrW - paddingH * 2;
             window_height = scrH - paddingT - paddingB;
@@ -116,8 +116,8 @@ public class BaseActivity extends AppCompatActivity {
 
     public void setTopbarExit() {
         View view = findViewById(R.id.top);
-        if(view==null) return;
-        if(Build.VERSION.SDK_INT > 17 && view.hasOnClickListeners()) return;
+        if (view == null) return;
+        if (Build.VERSION.SDK_INT > 17 && view.hasOnClickListeners()) return;
         view.setOnClickListener(view1 -> {
             if (Build.VERSION.SDK_INT < 17 || !isDestroyed()) {
                 finish();
@@ -126,12 +126,12 @@ public class BaseActivity extends AppCompatActivity {
         Logu.d("debug", "set_exit");
     }
 
-    public void setRound(){
+    public void setRound() {
         //圆屏适配
 
         TextView pagename = findViewById(R.id.pageName);
         TextView clock = findViewById(R.id.timeText);
-        if(pagename != null) {
+        if (pagename != null) {
             pagename.setMaxLines(1);
             pagename.setEllipsize(TextUtils.TruncateAt.END);
             if (SharedPreferencesUtil.getBoolean("player_ui_round", false)) {
@@ -152,10 +152,10 @@ public class BaseActivity extends AppCompatActivity {
                         pnParams.topMargin = (int) (window_height * 0.01) + ToolsUtil.sp2px(12);
                         pnParams.bottomMargin = (int) (window_height * 0.01);
                         pagename.setLayoutParams(pnParams);
-                        pagename.setPadding(0,0,ToolsUtil.dp2px(5),0);
+                        pagename.setPadding(0, 0, ToolsUtil.dp2px(5), 0);
                         Logu.d("round", "ok");
                     }
-                } catch (Throwable e){
+                } catch (Throwable e) {
                     MsgUtil.err("圆屏适配执行错误：", e);
                 }
             }
@@ -164,7 +164,7 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_MENU) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
             if (Build.VERSION.SDK_INT < 17 || !isDestroyed()) {
                 finish();
             }
@@ -219,7 +219,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void setDensity(int targetDensityDpi) {
-        if(Build.VERSION.SDK_INT < 17) return;
+        if (Build.VERSION.SDK_INT < 17) return;
         Resources resources = getResources();
 
         if (resources.getConfiguration().densityDpi == targetDensityDpi) return;
@@ -256,31 +256,34 @@ public class BaseActivity extends AppCompatActivity {
     public void setForceSingleColumn() {
         force_single_column = true;
     }
-    
+
     @Override
     public void onContentChanged() {
         super.onContentChanged();
         //自动适配表冠
-        if(SharedPreferencesUtil.getBoolean("ui_rotatory_enable", false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {    //既然不支持，那低版本直接跳过
+        if (SharedPreferencesUtil.getBoolean("ui_rotatory_enable", false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {    //既然不支持，那低版本直接跳过
             ViewGroup rootView = (ViewGroup) this.getWindow().getDecorView();
             setRotaryScroll(rootView);
         }
     }
 
     private void setRotaryScroll(View view) {
-        if(view instanceof ViewGroup) {
+        if (view instanceof ViewGroup) {
             ViewGroup vp = (ViewGroup) view;
             try {
                 for (int i = 0; i < vp.getChildCount(); i++) {
                     View viewChild = vp.getChildAt(i);
 
                     float multiple = -114;
-                    if (viewChild instanceof ScrollView || viewChild instanceof NestedScrollView) multiple=SharedPreferencesUtil.getFloat("ui_rotatory_scroll",0);
-                    if (viewChild instanceof RecyclerView) multiple=SharedPreferencesUtil.getFloat("ui_rotatory_recycler",0);
-                    if (viewChild instanceof ListView) multiple=SharedPreferencesUtil.getFloat("ui_rotatory_list",0);
+                    if (viewChild instanceof ScrollView || viewChild instanceof NestedScrollView)
+                        multiple = SharedPreferencesUtil.getFloat("ui_rotatory_scroll", 0);
+                    if (viewChild instanceof RecyclerView)
+                        multiple = SharedPreferencesUtil.getFloat("ui_rotatory_recycler", 0);
+                    if (viewChild instanceof ListView)
+                        multiple = SharedPreferencesUtil.getFloat("ui_rotatory_list", 0);
 
-                    if(multiple==-114) setRotaryScroll(viewChild);  //不符合上面的情况说明不是可滑动列表
-                    if(multiple<=0) return;    //负值和0都不执行
+                    if (multiple == -114) setRotaryScroll(viewChild);  //不符合上面的情况说明不是可滑动列表
+                    if (multiple <= 0) return;    //负值和0都不执行
 
                     float finalMultiple = multiple;
                     viewChild.setOnGenericMotionListener((v, ev) -> {
@@ -294,7 +297,8 @@ public class BaseActivity extends AppCompatActivity {
                                 ((NestedScrollView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
                             else if (viewChild instanceof RecyclerView)
                                 ((RecyclerView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
-                            else ((ListView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
+                            else
+                                ((ListView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
 
                             viewChild.requestFocus();
 
@@ -304,18 +308,18 @@ public class BaseActivity extends AppCompatActivity {
                         return false;
                     });
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        } 
+        }
     }
 
     @Override
-    public boolean isDestroyed(){
+    public boolean isDestroyed() {
         return getLifecycle().getCurrentState().equals(Lifecycle.State.DESTROYED) || isFinishing();
     }
 
-    public String getClassName(){
+    public String getClassName() {
         return this.getClass().getSimpleName();
     }
 }

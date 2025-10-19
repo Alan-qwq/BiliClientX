@@ -47,7 +47,8 @@ public class SettingQualityActivity extends BaseActivity {
 
     private void save(int position) {
         String str = adapter.getName(position);
-        if(qnMap.containsKey(str)) SharedPreferencesUtil.putInt("play_qn", Objects.requireNonNull(qnMap.get(str)));
+        if (qnMap.containsKey(str))
+            SharedPreferencesUtil.putInt("play_qn", Objects.requireNonNull(qnMap.get(str)));
         finish();
     }
 }

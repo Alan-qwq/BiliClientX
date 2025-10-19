@@ -164,8 +164,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private long timestamp_click;
     private boolean onLongClick = false;
 
-    private final float[] speed_values = { 0.5F, 0.75F, 1.0F, 1.25F, 1.5F, 1.75F, 2.0F, 3.0F };
-    private final String[] speed_strs = { "x 0.5", "x 0.75", "x 1.0", "x 1.25", "x 1.5", "x 1.75", "x 2.0", "x 3.0" };
+    private final float[] speed_values = {0.5F, 0.75F, 1.0F, 1.25F, 1.5F, 1.75F, 2.0F, 3.0F};
+    private final String[] speed_strs = {"x 0.5", "x 0.75", "x 1.0", "x 1.25", "x 1.5", "x 1.75", "x 2.0", "x 3.0"};
 
     private boolean finishWatching = false;
     private boolean loop_enabled;
@@ -881,7 +881,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 btn_quality.setOnClickListener(view -> showQualitySelectorCard());
             }
 
-            if (!SharedPreferencesUtil.getBoolean("player_ui_showPageBtn", true)) btn_page_selector.setVisibility(View.GONE);
+            if (!SharedPreferencesUtil.getBoolean("player_ui_showPageBtn", true))
+                btn_page_selector.setVisibility(View.GONE);
         }
 
         seekbar_progress.setMax(video_all);

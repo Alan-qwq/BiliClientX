@@ -91,7 +91,7 @@ public class MessageSettingsActivity extends BaseActivity {
                     "是否接收消息提醒",
                     MessageSettingItem.TYPE_CHOOSE,
                     value == 1,
-                    new String[] { "接收", "不接收" }));
+                    new String[]{"接收", "不接收"}));
         }
 
         if (currentSettings.has("show_unfollowed_msg")) {

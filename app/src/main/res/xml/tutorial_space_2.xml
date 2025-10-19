@@ -6,7 +6,9 @@
     <content>
         <item>
             <type>0</type>
-            <text>注意：若打开主页时报错或无法加载动态/投稿列表，则可能说明你的B站账号被风控了（无永久解决方法）</text>
+            <text>
+                注意：若打开主页时报错或无法加载动态/投稿列表，则可能说明你的B站账号被风控了（无永久解决方法）
+            </text>
             <style>italic</style>
             <color>#ffffff</color>
         </item>

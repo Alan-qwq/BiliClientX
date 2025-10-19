@@ -47,14 +47,13 @@ public class ImageViewerActivity extends BaseActivity {
         ImageButton download = findViewById(R.id.btn_download);
         download.setOnClickListener(v -> {
             long time_now = System.currentTimeMillis();
-            if(time_now - longClickTimestamp < 3000){
+            if (time_now - longClickTimestamp < 3000) {
                 Intent intent1 = new Intent(this, DownloadActivity.class)
                         .putExtra("link", imageList.get(viewPager.getCurrentItem()))
                         .putExtra("path", FileUtil.getPicturePath().getAbsolutePath())
                         .putExtra("type", 0);
                 startActivity(intent1);
-            }
-            else MsgUtil.showMsg("再次点击下载");
+            } else MsgUtil.showMsg("再次点击下载");
             longClickTimestamp = time_now;
         });
 
@@ -70,7 +69,7 @@ public class ImageViewerActivity extends BaseActivity {
                 photoView.setMaximumScale(6.25f);
             } catch (OutOfMemoryError e) {
                 MsgUtil.showMsg("超出内存，加载失败");
-            } catch (Exception e){
+            } catch (Exception e) {
                 MsgUtil.err("图片查看", e);
             }
 
@@ -86,7 +85,7 @@ public class ImageViewerActivity extends BaseActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if(positionOffset % 1 == 0)
+                if (positionOffset % 1 == 0)
                     textView.setText("第" + (position + 1) + "/" + imageList.size() + "张");
             }
 

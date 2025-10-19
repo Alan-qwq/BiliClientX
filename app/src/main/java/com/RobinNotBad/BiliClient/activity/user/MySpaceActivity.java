@@ -29,7 +29,7 @@ public class MySpaceActivity extends InstanceActivity {
 
     private ImageView userAvatar;
     private TextView userName, userFans, userExp;
-    private MaterialCardView myInfo, follow, watchLater, favorite, bangumi, history, creative, logout;
+    private MaterialCardView myInfo, follow, watchLater, favorite, bangumi, history, creative, loginRecord, logout;
 
     private boolean confirmLogout = false;
 
@@ -38,7 +38,7 @@ public class MySpaceActivity extends InstanceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_myspace,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_myspace, (layoutView, resId) -> {
             Log.e("debug", "进入个人页");
 
             userAvatar = findViewById(R.id.userAvatar);
@@ -53,6 +53,7 @@ public class MySpaceActivity extends InstanceActivity {
             bangumi = findViewById(R.id.bangumi);
             history = findViewById(R.id.history);
             creative = findViewById(R.id.creative);
+            loginRecord = findViewById(R.id.login_record);
             logout = findViewById(R.id.logout);
 
 
@@ -116,6 +117,12 @@ public class MySpaceActivity extends InstanceActivity {
                         });
                         if (!SharedPreferencesUtil.getBoolean("creative_enable", true))
                             creative.setVisibility(View.GONE);
+
+                        loginRecord.setOnClickListener(view -> {
+                            Intent intent = new Intent();
+                            intent.setClass(MySpaceActivity.this, LoginRecordActivity.class);
+                            startActivity(intent);
+                        });
 
                         logout.setOnClickListener(view -> {
                             if (confirmLogout) {

@@ -142,7 +142,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Downlo
                         .into(cover);
         }
 
-        @SuppressLint({ "SetTextI18n" })
+        @SuppressLint({"SetTextI18n"})
         public void showProgress(String state, float percent) {
             if (state == null || percent == -1) {
                 progress.setVisibility(View.GONE);

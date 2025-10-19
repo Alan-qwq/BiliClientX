@@ -76,7 +76,7 @@
             android:layout_height="38dp"
             android:background="@drawable/background_privatemsg_send"
             android:src="@drawable/send"
-            android:layout_alignParentEnd="true"/>
+            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
 </FrameLayout>

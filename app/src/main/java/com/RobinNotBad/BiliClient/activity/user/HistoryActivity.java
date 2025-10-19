@@ -45,8 +45,7 @@ public class HistoryActivity extends RefreshListActivity {
                     if (lastResult.isBottom) {
                         setBottom(true);
                     }
-                }
-                else MsgUtil.showMsg(lastResult.message);
+                } else MsgUtil.showMsg(lastResult.message);
 
             } catch (Exception e) {
                 loadFail(e);

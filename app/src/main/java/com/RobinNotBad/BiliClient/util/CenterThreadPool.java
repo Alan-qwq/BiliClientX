@@ -2,20 +2,30 @@ package com.RobinNotBad.BiliClient.util;
 
 import android.os.Build;
 import android.os.Handler;
-
 import android.os.Looper;
+
 import androidx.core.util.Consumer;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.EmptyCoroutineContext;
-import kotlinx.coroutines.*;
+import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
+import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.Dispatchers;
 
 /**
  * @author silent碎月
@@ -30,7 +40,7 @@ public class CenterThreadPool {
     private static final AtomicReference<ExecutorService> THREAD_POOL;
 
     private static ExecutorService getThreadPoolInstance() {
-        if(THREAD_POOL == null) return null;
+        if (THREAD_POOL == null) return null;
         int bestThreadPoolSize = Runtime.getRuntime().availableProcessors();
         while (THREAD_POOL.get() == null) {
             THREAD_POOL.compareAndSet(null, new ThreadPoolExecutor(
@@ -71,7 +81,7 @@ public class CenterThreadPool {
                 //协程不可用时尝试以原生线程池运行
             } else if (THREAD_POOL != null) {
                 ExecutorService service = getThreadPoolInstance();
-                if(service != null) service.submit(runnable);
+                if (service != null) service.submit(runnable);
                 else new Thread(runnable).start();
             } else {
                 //都不可用再开线程
@@ -157,10 +167,12 @@ public class CenterThreadPool {
     public static void runOnUiThread(Runnable runnable) {
         MAIN_THREAD_HANDLER.post(runnable);
     }
+
     public static void runOnUIThreadAfter(long time, TimeUnit unit, Runnable runnable) {
         long millis = TimeUnit.MILLISECONDS.convert(time, unit);
         MAIN_THREAD_HANDLER.postDelayed(runnable, millis);
     }
+
     public static void runOnUIThreadAfter(long time, Runnable runnable) {
         MAIN_THREAD_HANDLER.postDelayed(runnable, time);
     }

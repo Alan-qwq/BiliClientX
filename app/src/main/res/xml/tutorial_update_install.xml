@@ -15,7 +15,8 @@
         </item>
         <item>
             <type>0</type>
-            <text>你可以在此处选择安装方案后安装下载的更新安装包，也可以查看路径后使用其他方式安装</text>
+            <text>你可以在此处选择安装方案后安装下载的更新安装包，也可以查看路径后使用其他方式安装
+            </text>
             <style>none</style>
             <color>#ffffff</color>
         </item>

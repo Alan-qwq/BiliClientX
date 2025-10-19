@@ -1,7 +1,5 @@
 package com.RobinNotBad.BiliClient.activity.settings.login;
 
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -29,7 +27,7 @@ public class LoginActivity extends BaseActivity {
         Log.e("debug", "进入登录页面");
         setPageName("登录");
 
-        boolean from_setup = getIntent().getBooleanExtra("from_setup",false);
+        boolean from_setup = getIntent().getBooleanExtra("from_setup", false);
 
         /*
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {

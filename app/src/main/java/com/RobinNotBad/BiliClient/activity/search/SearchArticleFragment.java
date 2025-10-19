@@ -11,7 +11,6 @@ import com.RobinNotBad.BiliClient.adapter.article.ArticleCardAdapter;
 import com.RobinNotBad.BiliClient.api.SearchApi;
 import com.RobinNotBad.BiliClient.model.ArticleCard;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
-import com.RobinNotBad.BiliClient.util.MsgUtil;
 
 import org.json.JSONArray;
 
@@ -48,7 +47,7 @@ public class SearchArticleFragment extends SearchFragment {
     }
 
     private void continueLoading(int page) {
-        CenterThreadPool.run(()-> {
+        CenterThreadPool.run(() -> {
             Log.e("debug", "加载下一页");
             try {
                 JSONArray result = (JSONArray) SearchApi.searchType(keyword, page, "article");
@@ -56,14 +55,13 @@ public class SearchArticleFragment extends SearchFragment {
                     if (page == 1) showEmptyView(false);
                     ArrayList<ArticleCard> list = new ArrayList<>();
                     SearchApi.getArticlesFromSearchResult(result, list);
-                    if(list.size()==0) setBottom(true);
+                    if (list.size() == 0) setBottom(true);
                     CenterThreadPool.runOnUiThread(() -> {
                         int lastSize = articleCardList.size();
                         articleCardList.addAll(list);
                         articleCardAdapter.notifyItemRangeInserted(lastSize + 1, articleCardList.size() - lastSize);
                     });
-                }
-                else setBottom(true);
+                } else setBottom(true);
             } catch (Exception e) {
                 report(e);
             }
@@ -79,7 +77,7 @@ public class SearchArticleFragment extends SearchFragment {
             int size_old = this.articleCardList.size();
             this.articleCardList.clear();
             if (size_old != 0) this.articleCardAdapter.notifyItemRangeRemoved(0, size_old);
-            CenterThreadPool.run(()->continueLoading(page));
+            CenterThreadPool.run(() -> continueLoading(page));
         });
     }
 }

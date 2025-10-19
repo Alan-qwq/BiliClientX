@@ -15,7 +15,7 @@ import java.util.List;
 
 public class SettingLaboratoryActivity extends RefreshListActivity {
 
-    @SuppressLint({ "MissingInflatedId", "SetTextI18n" })
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

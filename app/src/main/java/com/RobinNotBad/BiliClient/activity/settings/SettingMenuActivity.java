@@ -3,11 +3,9 @@ package com.RobinNotBad.BiliClient.activity.settings;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.RobinNotBad.BiliClient.R;
 import com.RobinNotBad.BiliClient.activity.base.BaseActivity;
-import com.RobinNotBad.BiliClient.util.AsyncLayoutInflaterX;
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -21,7 +19,7 @@ public class SettingMenuActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_setting_menu ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_setting_menu, (layoutView, resId) -> {
 
             menu_popular = findViewById(R.id.menu_popular);
             menu_popular.setChecked(SharedPreferencesUtil.getBoolean("menu_popular", true));

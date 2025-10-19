@@ -47,7 +47,7 @@ public class HighEnergyProgressBar extends androidx.appcompat.widget.AppCompatSe
 
     /**
      * 设置高能数据
-     * 
+     *
      * @param data    高能数据数组，每个值表示该时间段的弹幕密度
      * @param stepSec 采样间隔（秒）
      */

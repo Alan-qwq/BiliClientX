@@ -60,7 +60,7 @@ public class CatchActivity extends BaseActivity {
             else
                 allow_upload = true;
 
-            if(allow_upload) btn_upload.setOnClickListener(view -> {
+            if (allow_upload) btn_upload.setOnClickListener(view -> {
                 btn_upload.setEnabled(false);
                 if (SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, -1) == -1)
                     MsgUtil.toast("我们不对未登录时遇到的问题负责\n——除非它真的经常出现且非常影响使用");
@@ -68,7 +68,8 @@ public class CatchActivity extends BaseActivity {
                     CenterThreadPool.run(() -> {
                         ApiResult res = AppInfoApi.uploadStack(stack, this);
                         runOnUiThread(() -> {
-                            if(res.code >= 0) btn_upload.setText("请带着你的报错ID：" + res.code + "\n和你崩溃前进行的操作\n去找开发者\n（提醒：开发者不保证会修好也不保证随时回复你）");
+                            if (res.code >= 0)
+                                btn_upload.setText("请带着你的报错ID：" + res.code + "\n和你崩溃前进行的操作\n去找开发者\n（提醒：开发者不保证会修好也不保证随时回复你）");
                             else btn_upload.setText(res.message);
 
                             if (res.code == -1) btn_upload.setEnabled(true);

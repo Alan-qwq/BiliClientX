@@ -43,9 +43,9 @@ public class MsgUtil {
     }
 
     public static void showMsgLong(String str) {
-        Logu.i("long",str);
+        Logu.i("long", str);
         if (SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.SNACKBAR_ENABLE, true)) {
-            CenterThreadPool.runOnUiThread(() -> EventBus.getDefault().postSticky(new SnackEvent(str,Snackbar.LENGTH_LONG)));
+            CenterThreadPool.runOnUiThread(() -> EventBus.getDefault().postSticky(new SnackEvent(str, Snackbar.LENGTH_LONG)));
         } else {
             toastLong(str);
         }
@@ -77,7 +77,8 @@ public class MsgUtil {
         int duration;
         if (snackEvent.getDuration() > 0) duration = snackEvent.getDuration();
         else if (snackEvent.getDuration() == Snackbar.LENGTH_SHORT) duration = 1950;
-        else if (snackEvent.getDuration() == Snackbar.LENGTH_INDEFINITE) duration = Integer.MAX_VALUE;
+        else if (snackEvent.getDuration() == Snackbar.LENGTH_INDEFINITE)
+            duration = Integer.MAX_VALUE;
         else duration = 2750;
 
         long endTime = snackEvent.getStartTime() + duration;
@@ -110,8 +111,8 @@ public class MsgUtil {
     public static Snackbar createSnack(View view, CharSequence text, int duration, Action action) {
         Snackbar snackbar;
         snackbar = Snackbar.make(view, text, duration);
-        snackbar.setBackgroundTint(Color.argb(0x85,0x80,0x80,0x80));
-        snackbar.setTextColor(Color.rgb(0xeb,0xe0,0xe2));
+        snackbar.setBackgroundTint(Color.argb(0x85, 0x80, 0x80, 0x80));
+        snackbar.setTextColor(Color.rgb(0xeb, 0xe0, 0xe2));
         View snackBarView = snackbar.getView();
         snackBarView.setOnTouchListener((v, event) -> false);
         snackBarView.setPadding(ToolsUtil.dp2px(6), 0, 0, 0);
@@ -137,12 +138,13 @@ public class MsgUtil {
         return snackbar;
     }
 
-    public static void err(Throwable e){
-        err(null,e);
+    public static void err(Throwable e) {
+        err(null, e);
     }
+
     public static void err(String desc, Throwable e) {
         Context context = BiliTerminal.context;
-        if(desc!=null) Log.e("debug-error",desc);
+        if (desc != null) Log.e("debug-error", desc);
         e.printStackTrace();
 
         StringBuilder output = new StringBuilder(TextUtils.isEmpty(desc) ? "" : desc + "\n");
@@ -152,8 +154,7 @@ public class MsgUtil {
         if (e instanceof IOException) {
             showMsg(context.getString(R.string.err_network));
             return;
-        }
-        else if (e instanceof JSONException) {
+        } else if (e instanceof JSONException) {
             output.append(context.getString(R.string.err_json));
 
             if (SharedPreferencesUtil.getBoolean("dev_jsonerr_detailed", false)) {
@@ -169,19 +170,17 @@ public class MsgUtil {
             else {
                 output.append(e_str.replace("org.json.JSONException:", ""));
             }
-        }
-        else if(e instanceof IndexOutOfBoundsException) {
+        } else if (e instanceof IndexOutOfBoundsException) {
             if (SharedPreferencesUtil.getBoolean("dev_recyclererr_detailed", false)) {
                 Writer writer = new StringWriter();
                 PrintWriter printWriter = new PrintWriter(writer);
                 e.printStackTrace(printWriter);
                 showText(desc + "Adapter错误", writer.toString());
                 return;
-            } else{
+            } else {
                 output.append("遇到Adapter错误：\n无需上报，除非你在某个界面经常遇到");
             }
-        }
-        else if(e instanceof SQLException) output.append(context.getString(R.string.err_sql));
+        } else if (e instanceof SQLException) output.append(context.getString(R.string.err_sql));
         else {
             output.append("错误：");
             output.append(e_str);

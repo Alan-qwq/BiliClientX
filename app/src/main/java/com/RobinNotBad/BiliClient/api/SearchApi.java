@@ -155,7 +155,7 @@ public class SearchApi {
 
     /**
      * 获取搜索建议
-     * 
+     *
      * @param keyword 搜索关键词
      * @return 返回搜索建议列表，最多10条
      * @throws IOException   网络请求异常

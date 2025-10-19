@@ -62,7 +62,7 @@ public class DynamicApi {
                 .toString(), NetWorkUtil.webHeaders));
         try {
             ResponseBody body = resp.body();
-            if(body == null) return -1;
+            if (body == null) return -1;
             JSONObject result = new JSONObject(body.string());
             if (result.getString("code").equals("0") && result.has("data"))
                 return result.getJSONObject("data").getLong("dynamic_id");
@@ -105,7 +105,7 @@ public class DynamicApi {
         Response resp = Objects.requireNonNull(NetWorkUtil.postJson(url, reqBody.toString()));
         try {
             ResponseBody body = resp.body();
-            if(body == null) return  -1;
+            if (body == null) return -1;
             JSONObject result = new JSONObject(body.string());
             if (result.getString("code").equals("0") && result.has("data"))
                 return result.getJSONObject("data").getLong("dyn_id");
@@ -160,7 +160,7 @@ public class DynamicApi {
                 .toString(), NetWorkUtil.webHeaders));
         try {
             ResponseBody body = resp.body();
-            if(body == null) return -1;
+            if (body == null) return -1;
             JSONObject result = new JSONObject(body.string());
             if (result.getString("code").equals("0") && result.has("data"))
                 return result.getJSONObject("data").getLong("dynamic_id");
@@ -249,7 +249,7 @@ public class DynamicApi {
                 .toString(), NetWorkUtil.webHeaders));
         try {
             ResponseBody responseBody = resp.body();
-            if(responseBody == null) return -1;
+            if (responseBody == null) return -1;
             JSONObject result = new JSONObject(responseBody.string());
             return result.getInt("code");
         } catch (Exception e) {
@@ -266,7 +266,7 @@ public class DynamicApi {
                 .toString(), NetWorkUtil.webHeaders));
         try {
             ResponseBody body = resp.body();
-            if(body == null) return -1;
+            if (body == null) return -1;
             JSONObject result = new JSONObject(body.string());
             return result.getInt("code");
         } catch (JSONException ignored) {
@@ -338,10 +338,11 @@ public class DynamicApi {
         Logu.v("--------------");
         Dynamic dynamic = new Dynamic();
 
-        if(!dynamic_json.isNull("id_str"))
+        if (!dynamic_json.isNull("id_str"))
             try {
-                dynamic.dynamicId = Long.parseLong(dynamic_json.optString("id_str","0"));
-            } catch (Exception ignored){}
+                dynamic.dynamicId = Long.parseLong(dynamic_json.optString("id_str", "0"));
+            } catch (Exception ignored) {
+            }
         else {
             dynamic.dynamicId = 0;
         }
@@ -349,10 +350,11 @@ public class DynamicApi {
 
         JSONObject basic = dynamic_json.getJSONObject("basic");
         String comment_id = basic.optString("comment_id_str", "0");
-        if(!TextUtils.isEmpty(comment_id))
+        if (!TextUtils.isEmpty(comment_id))
             try {
                 dynamic.comment_id = Long.parseLong(comment_id);
-            } catch (Exception ignored){}
+            } catch (Exception ignored) {
+            }
         else
             dynamic.comment_id = 0;
 
@@ -397,8 +399,7 @@ public class DynamicApi {
                 JSONObject desc = module_dynamic.getJSONObject("desc");
                 JSONArray rich_text_nodes = desc.optJSONArray("rich_text_nodes");
                 dynamic.content = analyzeTextContent(rich_text_nodes);
-            }
-            else dynamic.content = "";
+            } else dynamic.content = "";
 
             //这里面什么都有，直译为主要的
             if (!module_dynamic.isNull("major")) {
@@ -473,11 +474,11 @@ public class DynamicApi {
                         JSONObject opusJson = major.getJSONObject("opus");
 
                         String title = opusJson.optString("title");
-                        if(!TextUtils.isEmpty(title) && !"null".equals(title))
+                        if (!TextUtils.isEmpty(title) && !"null".equals(title))
                             dynamic.title = title;
 
                         JSONArray pics = opusJson.optJSONArray("pics");
-                        if(pics != null){
+                        if (pics != null) {
                             ArrayList<String> opusPicList = new ArrayList<>();
                             for (int i = 0; i < pics.length(); i++)
                                 opusPicList.add(pics.getJSONObject(i).optString("url"));
@@ -486,7 +487,7 @@ public class DynamicApi {
                         }
 
                         JSONObject summary = opusJson.optJSONObject("summary");
-                        if(summary != null)
+                        if (summary != null)
                             dynamic.content = analyzeTextContent(summary.optJSONArray("rich_text_nodes"));
                         else
                             dynamic.content = "";
@@ -503,8 +504,7 @@ public class DynamicApi {
                 if (module_additional.getString("type").equals("ADDITIONAL_TYPE_UGC")) {
                     dynamic.major_type = "MAJOR_TYPE_ARCHIVE";
                     dynamic.major_object = analyzeVideoCard(module_additional.getJSONObject("ugc"));
-                }
-                else Logu.v("addi", module_additional.getString("type"));
+                } else Logu.v("addi", module_additional.getString("type"));
             }
         }
 
@@ -548,21 +548,21 @@ public class DynamicApi {
         );
     }
 
-    private static SpannableStringBuilder analyzeTextContent(JSONArray rich_text_nodes){
-        if(rich_text_nodes == null) return new SpannableStringBuilder("[动态内容解析异常]");
+    private static SpannableStringBuilder analyzeTextContent(JSONArray rich_text_nodes) {
+        if (rich_text_nodes == null) return new SpannableStringBuilder("[动态内容解析异常]");
 
         ArrayList<Emote> emoteList = new ArrayList<>();
         ArrayList<At> atList = new ArrayList<>();
         SpannableStringBuilder content = new SpannableStringBuilder();
         for (int i = 0; i < rich_text_nodes.length(); i++) {
             JSONObject rich_text_node = rich_text_nodes.optJSONObject(i);
-            if(rich_text_node == null) continue;
+            if (rich_text_node == null) continue;
             String type = rich_text_node.optString("type");
             switch (type) {
                 case "RICH_TEXT_NODE_TYPE_EMOJI":
                     content.append(rich_text_node.optString("text"));
                     JSONObject emoji = rich_text_node.optJSONObject("emoji");
-                    if(emoji == null) continue;
+                    if (emoji == null) continue;
                     emoteList.add(new Emote(emoji.optString("text"), emoji.optString("icon_url"), emoji.optInt("size")));
                     break;
                 case "RICH_TEXT_NODE_TYPE_AT":
@@ -580,7 +580,7 @@ public class DynamicApi {
         }
 
         EmoteUtil.textReplaceEmote(content.toString(), emoteList, 1.0f, BiliTerminal.context, content);
-        for (At at: atList) {
+        for (At at : atList) {
             StringUtil.setSingleAt(content, at);
         }
 

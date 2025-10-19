@@ -25,7 +25,7 @@ public class CreativeCenterActivity extends BaseActivity {
                     JSONObject stats = CreativeCenterApi.getVideoStat();
                     runOnUiThread(() -> {
                         try {
-                            if (stats == null){
+                            if (stats == null) {
                                 MsgUtil.showMsg("先去成为UP主吧~");
                                 finish();
                             } else {

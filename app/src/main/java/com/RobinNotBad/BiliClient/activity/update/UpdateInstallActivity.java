@@ -61,7 +61,7 @@ public class UpdateInstallActivity extends BaseActivity {
 
         TutorialHelper.showTutorialList(this, R.array.tutorial_update_install, 3);
 
-        asyncInflate(R.layout.activity_update_install,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_update_install, (layoutView, resId) -> {
 
             pathTv = findViewById(R.id.path);
             installBtn = findViewById(R.id.install);

@@ -47,29 +47,35 @@ public class AnimationUtils {
     public static void crossFade(final View toHide, final View toShow, final int duration) {
         runOnUiThread(() -> {
             if (!SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.LOAD_TRANSITION, true)) {
-                if(toHide!=null) toHide.setVisibility(View.GONE);
-                if(toShow!=null) toShow.setVisibility(View.VISIBLE);
+                if (toHide != null) toHide.setVisibility(View.GONE);
+                if (toShow != null) toShow.setVisibility(View.VISIBLE);
                 return;
             }
-            if(toHide != null) {
+            if (toHide != null) {
                 ObjectAnimator fadeOut = ObjectAnimator.ofFloat(toHide, "alpha", 1f, 0f);
                 fadeOut.setDuration(duration);
                 fadeOut.addListener(new Animator.AnimatorListener() {
                     @Override
-                    public void onAnimationStart(@NonNull Animator animation) {}
+                    public void onAnimationStart(@NonNull Animator animation) {
+                    }
+
                     @Override
                     public void onAnimationEnd(@NonNull Animator animation) {
                         toHide.setVisibility(View.GONE);
                     }
+
                     @Override
-                    public void onAnimationCancel(@NonNull Animator animation) {}
+                    public void onAnimationCancel(@NonNull Animator animation) {
+                    }
+
                     @Override
-                    public void onAnimationRepeat(@NonNull Animator animation) {}
+                    public void onAnimationRepeat(@NonNull Animator animation) {
+                    }
                 });
                 fadeOut.start();
             }
 
-            if(toShow != null) {
+            if (toShow != null) {
                 ObjectAnimator showUp = ObjectAnimator.ofFloat(toShow, "alpha", 0f, 1f);
                 showUp.setDuration(duration);
                 toShow.setVisibility(View.VISIBLE);

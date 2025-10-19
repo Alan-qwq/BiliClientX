@@ -43,8 +43,7 @@ public class Reply implements Serializable {
     }
 
     /**
-     *
-     * @param isRoot 是否是根评论
+     * @param isRoot    是否是根评论
      * @param replyJson 评论json对象
      * @throws JSONException json解析异常
      */
@@ -81,7 +80,7 @@ public class Reply implements Serializable {
         SpannableStringBuilder messageSpannable = new SpannableStringBuilder((isTop ? TOP_TIP : "")
                 + StringUtil.htmlToString(content.getString("message")));
 
-        if(isTop) StringUtil.setTopSpan(messageSpannable);
+        if (isTop) StringUtil.setTopSpan(messageSpannable);
 
         this.likeCount = replyJson.getInt("like");
         this.liked = replyJson.getInt("action") == 1;
@@ -118,7 +117,6 @@ public class Reply implements Serializable {
         JSONObject upAction = replyJson.getJSONObject("up_action");
         this.upLiked = upAction.getBoolean("like");
         this.upReplied = upAction.getBoolean("reply");
-
 
 
         if (isRoot) {

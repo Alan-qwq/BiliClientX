@@ -46,7 +46,7 @@ public class SendDynamicActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_send_dynamic ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_send_dynamic, (layoutView, resId) -> {
 
             if (SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) == 0) {
                 setResult(RESULT_CANCELED);
@@ -60,7 +60,7 @@ public class SendDynamicActivity extends BaseActivity {
             FrameLayout extraCard = findViewById(R.id.forwardCard);
             VideoInfo video = null;
             Dynamic forward = null;
-            if(TerminalContext.getInstance().getForwardContent() instanceof VideoInfo) {
+            if (TerminalContext.getInstance().getForwardContent() instanceof VideoInfo) {
                 video = (VideoInfo) TerminalContext.getInstance().getForwardContent();
             } else {
                 forward = (Dynamic) TerminalContext.getInstance().getForwardContent();
@@ -71,7 +71,7 @@ public class SendDynamicActivity extends BaseActivity {
                 holder.showDynamic(this, forward, false);
             } else if (video != null) {
                 VideoCardHolder holder = new VideoCardHolder(LayoutInflater.from(this).inflate(R.layout.cell_video_list, extraCard));
-                holder.showVideoCard(video.toCard(),this);
+                holder.showVideoCard(video.toCard(), this);
             }
 
             send.setOnClickListener(view -> {

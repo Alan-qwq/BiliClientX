@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.RobinNotBad.BiliClient.BiliTerminal;
@@ -44,8 +45,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -216,8 +215,8 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             if (userInfo.official != 0) {
                 this.officialIcon.setVisibility(View.VISIBLE);
                 this.userOfficial.setVisibility(View.VISIBLE);
-                String[] official_signs = { "哔哩哔哩不知名UP主", "哔哩哔哩知名UP主", "哔哩哔哩大V达人", "哔哩哔哩企业认证",
-                        "哔哩哔哩组织认证", "哔哩哔哩媒体认证", "哔哩哔哩政府认证", "哔哩哔哩高能主播", "社会不知名人士", "社会知名人士" };
+                String[] official_signs = {"哔哩哔哩不知名UP主", "哔哩哔哩知名UP主", "哔哩哔哩大V达人", "哔哩哔哩企业认证",
+                        "哔哩哔哩组织认证", "哔哩哔哩媒体认证", "哔哩哔哩政府认证", "哔哩哔哩高能主播", "社会不知名人士", "社会知名人士"};
                 this.userOfficial.setText(official_signs[userInfo.official]
                         + (userInfo.officialDesc.isEmpty() ? "" : ("\n" + userInfo.officialDesc)));
             } else {
@@ -323,23 +322,23 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
          */
         private void loadElectricPanel(Context context, UserInfo userInfo) {
             this.electricPanel.setVisibility(View.GONE);
-            
+
             CenterThreadPool.run(() -> {
                 try {
                     ElectricPanel panel = ElectricApi.getElectricPanel(userInfo.mid);
-                    
+
                     if (panel != null && panel.hasData()) {
                         CenterThreadPool.runOnUiThread(() -> {
                             this.electricPanel.setVisibility(View.VISIBLE);
-                            
+
                             // 设置头部文本
                             this.electricPanelHeader.setText("充电公示（本月" + panel.count + "人）");
-                            
+
                             // 设置RecyclerView
                             this.electricUserList.setLayoutManager(new LinearLayoutManager(context));
                             ElectricUserAdapter adapter = new ElectricUserAdapter(context, panel.list);
                             this.electricUserList.setAdapter(adapter);
-                            
+
                             // 设置点击展开/收起
                             this.electricPanelHeader.setOnClickListener(v -> {
                                 electric_expand = !electric_expand;

@@ -37,7 +37,7 @@ public class AboutActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        asyncInflate(R.layout.activity_setting_about ,(layoutView, resId) -> {
+        asyncInflate(R.layout.activity_setting_about, (layoutView, resId) -> {
             Log.e("debug", "进入关于页面");
 
             try {
@@ -49,7 +49,7 @@ public class AboutActivity extends BaseActivity {
                 code_str.setSpan(new StyleSpan(Typeface.BOLD), 0, 3, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                 ((TextView) findViewById(R.id.app_version_code)).setText(code_str);
 
-                String updateLog =  ToolsUtil.getUpdateLog(this);
+                String updateLog = ToolsUtil.getUpdateLog(this);
                 ((TextView) findViewById(R.id.updatelog_view)).setText("\n更新细节：" + updateLog);
                 StringUtil.setCopy(findViewById(R.id.updatelog_view), updateLog);
             } catch (PackageManager.NameNotFoundException e) {
@@ -108,7 +108,7 @@ public class AboutActivity extends BaseActivity {
 
                 developerCardList.get(i).setOnClickListener(view -> {
                     long uid = developerUidList.get(finalI);
-                    if(uid == -1) return;
+                    if (uid == -1) return;
                     Intent intent = new Intent()
                             .setClass(this, UserInfoActivity.class)
                             .putExtra("mid", uid);
@@ -151,8 +151,7 @@ public class AboutActivity extends BaseActivity {
                 if (SharedPreferencesUtil.getBoolean("developer", false)) {
                     MsgUtil.showMsg("已关闭开发者模式！");
                     SharedPreferencesUtil.putBoolean("developer", false);
-                }
-                else {
+                } else {
                     eggClick_Dev++;
                     if (eggClick_Dev == 7) {
                         SharedPreferencesUtil.putBoolean("developer", true);

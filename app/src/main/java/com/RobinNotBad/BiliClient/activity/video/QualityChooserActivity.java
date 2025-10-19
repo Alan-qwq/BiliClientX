@@ -1,6 +1,5 @@
 package com.RobinNotBad.BiliClient.activity.video;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 

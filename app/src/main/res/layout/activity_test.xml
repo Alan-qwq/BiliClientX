@@ -104,8 +104,7 @@
                 android:minHeight="40dp"
                 android:padding="8dp"
                 android:text=""
-                android:textSize="13sp"
-                 />
+                android:textSize="13sp" />
 
             <EditText
                 android:id="@+id/input_data"
@@ -118,8 +117,7 @@
                 android:padding="8dp"
                 android:text=""
                 android:textSize="13sp"
-                android:visibility="gone"
-                 />
+                android:visibility="gone" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switch_wbi"
@@ -150,8 +148,7 @@
                     android:textAlignment="textEnd"
                     android:textSize="13sp"
                     android:visibility="visible"
-                    app:drawableEndCompat="@drawable/arrow_forward"
-                    />
+                    app:drawableEndCompat="@drawable/arrow_forward" />
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -169,8 +166,7 @@
                     android:textAlignment="textEnd"
                     android:textSize="13sp"
                     android:visibility="visible"
-                    app:drawableEndCompat="@drawable/arrow_forward"
-                    />
+                    app:drawableEndCompat="@drawable/arrow_forward" />
             </com.google.android.material.card.MaterialCardView>
 
             <EditText
@@ -183,8 +179,7 @@
                 android:minHeight="40dp"
                 android:padding="8dp"
                 android:text=""
-                android:textSize="13sp"
-                 />
+                android:textSize="13sp" />
         </LinearLayout>
 
     </ScrollView>

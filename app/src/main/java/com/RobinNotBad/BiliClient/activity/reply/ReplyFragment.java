@@ -103,9 +103,9 @@ public class ReplyFragment extends RefreshListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            aid = getArguments().getLong("aid",0);
-            count = getArguments().getInt("count",0);
-            type = getArguments().getInt("type",0);
+            aid = getArguments().getLong("aid", 0);
+            count = getArguments().getInt("count", 0);
+            type = getArguments().getInt("type", 0);
             replyType = type;
             dontload = getArguments().getBoolean("dontload", false);
             seek = getArguments().getLong("seek", -1);
@@ -118,14 +118,14 @@ public class ReplyFragment extends RefreshListFragment {
         setForceSingleColumn();
         super.onViewCreated(view, savedInstanceState);
 
-        if(SharedPreferencesUtil.getBoolean("ui_landscape",false)) {
+        if (SharedPreferencesUtil.getBoolean("ui_landscape", false)) {
             WindowManager windowManager = (WindowManager) view.getContext().getSystemService(Context.WINDOW_SERVICE);
             Display display = windowManager.getDefaultDisplay();
             DisplayMetrics metrics = new DisplayMetrics();
-            if(Build.VERSION.SDK_INT >= 17) display.getRealMetrics(metrics);
+            if (Build.VERSION.SDK_INT >= 17) display.getRealMetrics(metrics);
             else display.getMetrics(metrics);
             int paddings = metrics.widthPixels / 6;
-            recyclerView.setPadding(paddings,0,paddings,0);
+            recyclerView.setPadding(paddings, 0, paddings, 0);
         }
 
         setOnRefreshListener(() -> refresh(aid));
@@ -137,8 +137,9 @@ public class ReplyFragment extends RefreshListFragment {
 
         if (!dontload) refresh(aid);
     }
+
     public void setManager(Object source) {
-        if(SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) == 0) return;
+        if (SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) == 0) return;
 
         try {
             if (source != null) {
@@ -150,8 +151,7 @@ public class ReplyFragment extends RefreshListFragment {
                             break;
                         }
                     }
-                }
-                else if (source instanceof UserInfo) {
+                } else if (source instanceof UserInfo) {
                     isManager = ((UserInfo) source).mid == SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0);
                 }
             }

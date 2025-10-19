@@ -30,7 +30,7 @@ public class JsonUtil {
         int i = index + searchKey.length();
         for (int j = i; j < input.length(); j++) {
             char thisChar = input.charAt(j);
-            char nextChar = input.charAt(j+1);
+            char nextChar = input.charAt(j + 1);
             if (thisChar == '{' || thisChar == '[') count++;
             if (thisChar == '}' || thisChar == ']') count--;
 

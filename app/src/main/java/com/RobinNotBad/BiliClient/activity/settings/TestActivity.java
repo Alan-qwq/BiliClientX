@@ -35,7 +35,7 @@ public class TestActivity extends BaseActivity {
 
     SwitchMaterial sw_wbi, sw_post;
     EditText input_link, input_data, output;
-    MaterialCardView btn_crash,btn_request, btn_cookies, btn_opus;
+    MaterialCardView btn_crash, btn_request, btn_cookies, btn_opus;
 
     JSONArray conversation;
 
@@ -60,32 +60,32 @@ public class TestActivity extends BaseActivity {
 
         btn_request = findViewById(R.id.request);
 
-        btn_request.setOnClickListener(view -> CenterThreadPool.run(()->{
+        btn_request.setOnClickListener(view -> CenterThreadPool.run(() -> {
             try {
                 String url = input_link.getText().toString();
-                if(!url.startsWith("https://") && !url.startsWith("http://")) url = "https://" + url;
+                if (!url.startsWith("https://") && !url.startsWith("http://"))
+                    url = "https://" + url;
 
                 if (sw_wbi.isChecked()) url = ConfInfoApi.signWBI(url);
 
-                runOnUiThread(()->{
+                runOnUiThread(() -> {
                     output.setText("");
                     MsgUtil.showMsg("发出请求！");
                 });
                 String result;
-                if(sw_post.isChecked()) {
+                if (sw_post.isChecked()) {
                     String data = input_data.getText().toString();
                     result = Objects.requireNonNull(NetWorkUtil.post(url, data).body()).string();
-                }
-                else {
+                } else {
                     result = Objects.requireNonNull(NetWorkUtil.get(url).body()).string();
                 }
 
-                runOnUiThread(()->{
+                runOnUiThread(() -> {
                     output.setText(result);
                     MsgUtil.showMsg("请求成功！");
                 });
-            }catch (Exception e){
-                runOnUiThread(()->{
+            } catch (Exception e) {
+                runOnUiThread(() -> {
                     output.setText(e.toString());
                     MsgUtil.showMsg("请求失败！");
                 });
@@ -127,7 +127,7 @@ public class TestActivity extends BaseActivity {
                             e.printStackTrace();
                         }
                         conversation.put(prompt);
-                        runOnUiThread(()-> input_link.setText(SharedPreferencesUtil.getString("dev_catgirl_apikey", "")));
+                        runOnUiThread(() -> input_link.setText(SharedPreferencesUtil.getString("dev_catgirl_apikey", "")));
                         return;
                     }
 
@@ -212,7 +212,7 @@ public class TestActivity extends BaseActivity {
                                 deltaContent = delta.optString("content");
                             } else deltaContent = "";
 
-                            if(!reasoning) contentBuilder.append(deltaContent);
+                            if (!reasoning) contentBuilder.append(deltaContent);
                             runOnUiThread(() -> output.append(deltaContent));
                         }
                     }
@@ -245,7 +245,7 @@ public class TestActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        if(conversation == null)
+        if (conversation == null)
             SharedPreferencesUtil.putString("dev_test_link", input_link.getText().toString());
         super.onDestroy();
     }

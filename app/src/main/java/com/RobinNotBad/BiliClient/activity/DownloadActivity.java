@@ -72,14 +72,14 @@ public class DownloadActivity extends BaseActivity {
 
         type = intent.getIntExtra("type", 0);  //0=单个文件，1=视频，2=分页视频
         link = intent.getStringExtra("link");
-        no_bili_headers = intent.getBooleanExtra("terminal",false);
+        no_bili_headers = intent.getBooleanExtra("terminal", false);
 
         progressText = findViewById(R.id.progressText);
         progressView = findViewById(R.id.progressView);
 
         scrHeight = window_height;
 
-        if(!FileUtil.checkStoragePermission()) FileUtil.requestStoragePermission(this);
+        if (!FileUtil.checkStoragePermission()) FileUtil.requestStoragePermission(this);
 
         timer.schedule(showText, 100, 100);
         CenterThreadPool.run(() -> {
@@ -177,7 +177,7 @@ public class DownloadActivity extends BaseActivity {
                     bufferedSink.close();
                 }
             }
-            if(response.body()!=null) response.body().close();
+            if (response.body() != null) response.body().close();
             response.close();
         } catch (IOException e) {
             runOnUiThread(() -> MsgUtil.showMsg("弹幕下载失败！"));

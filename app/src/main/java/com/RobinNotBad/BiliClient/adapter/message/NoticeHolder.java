@@ -93,7 +93,7 @@ public class NoticeHolder extends RecyclerView.ViewHolder {
             VideoCardHolder holder = new VideoCardHolder(View.inflate(context, R.layout.cell_dynamic_video, extraCard));
             holder.showVideoCard(childVideoCard, context);
             holder.itemView.findViewById(R.id.videoCardView).setOnClickListener(view ->
-                TerminalContext.getInstance().enterVideoDetailPage(context, 0, childVideoCard.bvid)
+                    TerminalContext.getInstance().enterVideoDetailPage(context, 0, childVideoCard.bvid)
             );
         }
         if (message.replyInfo != null || message.dynamicInfo != null) {
@@ -102,7 +102,7 @@ public class NoticeHolder extends RecyclerView.ViewHolder {
             holder.showReplyCard(childReply);
             holder.itemView.findViewById(R.id.cardView).setOnClickListener(view -> {
                 try {
-                    if(message.itemType.equals("reply") || message.getType == MessageCard.GET_TYPE_REPLY) {
+                    if (message.itemType.equals("reply") || message.getType == MessageCard.GET_TYPE_REPLY) {
                         long seekReply = message.rootId == 0 ? message.sourceId : message.rootId;
                         switch (message.businessId) {
                             case ReplyApi.REPLY_TYPE_VIDEO_CHILD:
@@ -123,8 +123,7 @@ public class NoticeHolder extends RecyclerView.ViewHolder {
                             default:
                                 MsgUtil.showMsg("不支持这个类型喵：" + message.businessId);
                         }
-                    }
-                    else switch (message.getType) {
+                    } else switch (message.getType) {
                         case MessageCard.GET_TYPE_LIKE:
                         case MessageCard.GET_TYPE_AT:
                             switch (message.itemType) {

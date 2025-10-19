@@ -84,7 +84,7 @@ public class WriteReplyActivity extends BaseActivity {
                     CenterThreadPool.run(() -> {
                         String text = editText.getText().toString();
                         if (!text.isEmpty()) {
-                            if(checkKy(text) && dontKyPlease){
+                            if (checkKy(text) && dontKyPlease) {
                                 MsgUtil.showDialog("保护措施……", getString(R.string.reply_dont_ky), 15);
                                 dontKyPlease = false;
                                 return;
@@ -126,9 +126,9 @@ public class WriteReplyActivity extends BaseActivity {
      *
      * @param str 评论文本
      */
-    private boolean checkKy(String str){
-        if(str.contains("哔哩终端")) return true;
-        if(str.contains("终端")){
+    private boolean checkKy(String str) {
+        if (str.contains("哔哩终端")) return true;
+        if (str.contains("终端")) {
             return str.contains("表") || str.contains("b站") || str.contains("B站") || str.contains("bili") || str.contains("哔");
         }
         return false;

@@ -16,13 +16,13 @@
         android:id="@+id/videoArea"
         android:layout_width="1px"
         android:layout_height="1px"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true" />
 
 
     <master.flame.danmaku.ui.widget.DanmakuView
         android:id="@+id/sv_danmaku"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
     <RelativeLayout
         android:id="@+id/audio_only_layout"
@@ -99,7 +99,7 @@
             android:text="@string/text_default_progress"
             android:alpha="0.8"
             android:textSize="11sp"
-            android:layout_above="@id/bottom_control"/>
+            android:layout_above="@id/bottom_control" />
 
         <TextView
             android:id="@+id/text_online"

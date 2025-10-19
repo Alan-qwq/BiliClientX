@@ -24,8 +24,8 @@ public class DanmakuElem {
     }
 
     public DanmakuElem(long id, int progress, int mode, int fontsize, int color,
-            String midHash, String content, long ctime, int weight,
-            String action, int pool, String idStr, int attr, String animation) {
+                       String midHash, String content, long ctime, int weight,
+                       String action, int pool, String idStr, int attr, String animation) {
         this.id = id;
         this.progress = progress;
         this.mode = mode;

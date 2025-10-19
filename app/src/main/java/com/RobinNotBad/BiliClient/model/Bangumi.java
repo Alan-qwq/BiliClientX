@@ -44,12 +44,12 @@ public class Bangumi {
         public Episode() {
         }
 
-        public PlayerData toPlayerData(){
+        public PlayerData toPlayerData() {
             PlayerData data = new PlayerData(PlayerData.TYPE_BANGUMI);
             data.aid = aid;
             data.cid = cid;
             data.title = title;
-            data.mid = SharedPreferencesUtil.getLong("mid",0);
+            data.mid = SharedPreferencesUtil.getLong("mid", 0);
             return data;
         }
     }

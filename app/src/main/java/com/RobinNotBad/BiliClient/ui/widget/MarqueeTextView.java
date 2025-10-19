@@ -34,8 +34,7 @@ public class MarqueeTextView extends TextView {
                 setMarqueeRepeatLimit(-1);
                 setFocusable(true);
                 setFocusableInTouchMode(true);
-            }
-            else {
+            } else {
                 setEllipsize(TextUtils.TruncateAt.END);
                 setSingleLine();
             }

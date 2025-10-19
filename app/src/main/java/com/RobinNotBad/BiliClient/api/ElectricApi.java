@@ -25,24 +25,24 @@ public class ElectricApi {
      */
     public static ElectricPanel getElectricPanel(long up_mid) throws IOException, JSONException {
         String url = "https://api.bilibili.com/x/ugcpay-rank/elec/month/up?up_mid=" + up_mid;
-        
+
         JSONObject result = NetWorkUtil.getJson(url, NetWorkUtil.webHeaders);
-        
+
         int code = result.optInt("code", -1);
-        
+
         // code为0表示成功
         // code为-400表示请求错误
         // code为88214表示up主未开通充电
         if (code != 0) {
             return null;
         }
-        
+
         if (!result.has("data") || result.isNull("data")) {
             return null;
         }
-        
+
         JSONObject data = result.getJSONObject("data");
-        
+
         ElectricPanel panel = new ElectricPanel();
         panel.count = data.optInt("count", 0);
         panel.total_count = data.optInt("total_count", 0);
@@ -59,7 +59,7 @@ public class ElectricApi {
                 }
             }
         }
-        
+
         return panel;
     }
 
@@ -72,7 +72,7 @@ public class ElectricApi {
      */
     private static ElectricUser parseElectricUser(JSONObject json) throws JSONException {
         ElectricUser user = new ElectricUser();
-        
+
         user.uname = json.optString("uname", "");
         user.avatar = json.optString("avatar", "");
         user.mid = json.optLong("mid", 0);
@@ -90,7 +90,7 @@ public class ElectricApi {
             vipInfo.vipType = vipJson.optInt("vipType", 0);
             user.vip_info = vipInfo;
         }
-        
+
         return user;
     }
 }

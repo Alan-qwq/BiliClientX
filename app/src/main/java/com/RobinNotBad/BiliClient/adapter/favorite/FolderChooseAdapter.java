@@ -38,7 +38,7 @@ public class FolderChooseAdapter extends RecyclerView.Adapter<FolderChooseAdapte
     public boolean changed;
 
     public FolderChooseAdapter(Context context, ArrayList<String> folderList, ArrayList<Long> fidList,
-            ArrayList<Boolean> chooseState, long aid) {
+                               ArrayList<Boolean> chooseState, long aid) {
         this.context = context;
         this.folderList = folderList;
         this.fidList = fidList;

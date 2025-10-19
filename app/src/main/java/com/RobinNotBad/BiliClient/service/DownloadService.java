@@ -30,7 +30,6 @@ import com.RobinNotBad.BiliClient.util.GlideUtil;
 import com.RobinNotBad.BiliClient.util.Logu;
 import com.RobinNotBad.BiliClient.util.MsgUtil;
 import com.RobinNotBad.BiliClient.util.NetWorkUtil;
-import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 
 import org.json.JSONException;
 
@@ -40,7 +39,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -574,9 +572,9 @@ public class DownloadService extends Service {
 
             if (firstDown >= 0)
                 cursor = database.rawQuery("select * from download where id=? limit 1",
-                        new String[] { String.valueOf(firstDown) });
+                        new String[]{String.valueOf(firstDown)});
             if (cursor == null)
-                cursor = database.rawQuery("select * from download where state!=? limit 1", new String[] { "error" });
+                cursor = database.rawQuery("select * from download where state!=? limit 1", new String[]{"error"});
 
             firstDown = -1;
 
@@ -627,7 +625,7 @@ public class DownloadService extends Service {
         try {
             DownloadSqlHelper helper = new DownloadSqlHelper(BiliTerminal.context);
             database = helper.getWritableDatabase();
-            database.execSQL("delete from download where id=?", new Object[] { id });
+            database.execSQL("delete from download where id=?", new Object[]{id});
             database.close();
         } catch (Exception e) {
             MsgUtil.err(e);
@@ -642,7 +640,7 @@ public class DownloadService extends Service {
         try {
             DownloadSqlHelper helper = new DownloadSqlHelper(BiliTerminal.context);
             database = helper.getWritableDatabase();
-            database.execSQL("delete from download", new Object[] {});
+            database.execSQL("delete from download", new Object[]{});
             database.close();
         } catch (Exception e) {
             MsgUtil.err(e);
@@ -657,7 +655,7 @@ public class DownloadService extends Service {
         try {
             DownloadSqlHelper helper = new DownloadSqlHelper(BiliTerminal.context);
             database = helper.getWritableDatabase();
-            database.execSQL("update download set state=? where id=?", new Object[] { state, id });
+            database.execSQL("update download set state=? where id=?", new Object[]{state, id});
             database.close();
         } catch (Exception e) {
             MsgUtil.err(e);
@@ -668,7 +666,7 @@ public class DownloadService extends Service {
     }
 
     public static void startDownload(String title, long aid, long cid, String cover, int qn, String downloadType,
-            String audioUrl) {
+                                     String audioUrl) {
         CenterThreadPool.run(() -> {
             SQLiteDatabase database = null;
             Cursor cursor = null;
@@ -677,7 +675,7 @@ public class DownloadService extends Service {
                 database = helper.getWritableDatabase();
 
                 cursor = database.rawQuery("select * from download where aid=? and cid=?",
-                        new String[] { String.valueOf(aid), String.valueOf(cid) });
+                        new String[]{String.valueOf(aid), String.valueOf(cid)});
                 if (cursor != null && cursor.getCount() > 0) {
                     MsgUtil.showMsg("该视频已在下载队列中");
                     return;
@@ -687,8 +685,8 @@ public class DownloadService extends Service {
 
                 database.execSQL(
                         "insert into download(type,state,aid,cid,qn,title,child,cover,download_type,audio_url) values(?,?,?,?,?,?,?,?,?,?)",
-                        new Object[] { "video_single", "none", aid, cid, qn, title, "", GlideUtil.url(cover),
-                                downloadType, audioUrl });
+                        new Object[]{"video_single", "none", aid, cid, qn, title, "", GlideUtil.url(cover),
+                                downloadType, audioUrl});
 
                 File path_single = FileUtil.getVideoDownloadPath(title, null);
                 path_single.mkdirs();
@@ -713,7 +711,7 @@ public class DownloadService extends Service {
     }
 
     public static void startDownload(String parent, String child, long aid, long cid, String cover, int qn,
-            String downloadType, String audioUrl) {
+                                     String downloadType, String audioUrl) {
         CenterThreadPool.run(() -> {
             SQLiteDatabase database = null;
             Cursor cursor = null;
@@ -722,7 +720,7 @@ public class DownloadService extends Service {
                 database = helper.getWritableDatabase();
 
                 cursor = database.rawQuery("select * from download where aid=? and cid=?",
-                        new String[] { String.valueOf(aid), String.valueOf(cid) });
+                        new String[]{String.valueOf(aid), String.valueOf(cid)});
                 if (cursor != null && cursor.getCount() > 0) {
                     MsgUtil.showMsg("该视频已在下载队列中");
                     return;
@@ -732,8 +730,8 @@ public class DownloadService extends Service {
 
                 database.execSQL(
                         "insert into download(type,state,aid,cid,qn,title,child,cover,download_type,audio_url) values(?,?,?,?,?,?,?,?,?,?)",
-                        new Object[] { "video_multi", "none", aid, cid, qn, parent, child, GlideUtil.url(cover),
-                                downloadType, audioUrl });
+                        new Object[]{"video_multi", "none", aid, cid, qn, parent, child, GlideUtil.url(cover),
+                                downloadType, audioUrl});
 
                 File path_page = FileUtil.getVideoDownloadPath(parent, child);
                 path_page.mkdirs();

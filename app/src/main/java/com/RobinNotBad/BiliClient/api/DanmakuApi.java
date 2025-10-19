@@ -1,7 +1,5 @@
 package com.RobinNotBad.BiliClient.api;
 
-import android.util.Log;
-
 import com.RobinNotBad.BiliClient.model.DmSegMobileReply;
 import com.RobinNotBad.BiliClient.util.Logu;
 import com.RobinNotBad.BiliClient.util.NetWorkUtil;
@@ -72,7 +70,7 @@ public class DanmakuApi {
     /**
      * 获取视频弹幕（新版 API，返回 protobuf 格式）
      * 使用分段获取方式，每段 6 分钟
-     * 
+     *
      * @param aid          稿件 avid
      * @param cid          视频 cid
      * @param segmentIndex 分包索引（6min 一包，从 0 开始）
@@ -109,7 +107,7 @@ public class DanmakuApi {
     /**
      * 获取视频所有弹幕（新版 API）
      * 自动分段获取所有弹幕
-     * 
+     *
      * @param aid         稿件 avid
      * @param cid         视频 cid
      * @param maxDuration 视频最大时长（秒），用于计算需要获取的分段数

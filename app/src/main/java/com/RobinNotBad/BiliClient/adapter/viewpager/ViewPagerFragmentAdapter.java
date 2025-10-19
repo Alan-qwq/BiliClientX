@@ -36,14 +36,14 @@ public class ViewPagerFragmentAdapter extends FragmentStatePagerAdapter {
 
     /*
      * @NonNull
-     * 
+     *
      * @Override
      * public Object instantiateItem(@NonNull ViewGroup container, int position) {
      * Fragment fragment = (Fragment) super.instantiateItem(container, position);
      * this.fm.beginTransaction().show(fragment).commit();
      * return fragment;
      * }
-     * 
+     *
      * @Override
      * public void destroyItem(@NonNull ViewGroup container, int position, @NonNull
      * Object object) {

@@ -41,15 +41,16 @@ public class JumpToPlayerActivity extends BaseActivity {
             int code = o.getResultCode();
             Intent result = o.getData();
             Logu.d("进度回调", "onActivityResult");
-            if(code == RESULT_OK && result != null){
-                int progress = result.getIntExtra("progress",0);
+            if (code == RESULT_OK && result != null) {
+                int progress = result.getIntExtra("progress", 0);
                 Logu.d("进度回调", String.valueOf(progress));
 
                 CenterThreadPool.run(() -> {
                     if (playerData.mid != 0 && playerData.aid != 0) try {
                         HistoryApi.reportHistory(playerData.aid, playerData.cid, progress / 1000);
+                    } catch (Exception e) {
+                        MsgUtil.err("进度上报：", e);
                     }
-                    catch (Exception e) {MsgUtil.err("进度上报：", e);}
                     finish();
                 });
             }
@@ -82,7 +83,7 @@ public class JumpToPlayerActivity extends BaseActivity {
         CenterThreadPool.run(() -> {
 
             try {
-                if(playerData.isBangumi()) PlayerApi.getBangumi(playerData);
+                if (playerData.isBangumi()) PlayerApi.getBangumi(playerData);
                 else PlayerApi.getVideo(playerData, download != 0);
 
                 Logu.d("history", String.valueOf(playerData.progress));
@@ -99,14 +100,13 @@ public class JumpToPlayerActivity extends BaseActivity {
         });
     }
 
-    private void jump(){
-        if(isDestroyed()) return;
+    private void jump() {
+        if (isDestroyed()) return;
         if (download == 0) {
             Intent intent = PlayerApi.jumpToPlayer(playerData);
             launcher.launch(intent);
             setClickExit("等待退出播放后上报进度\n（点击跳过）");
-        }
-        else {
+        } else {
             Intent intent = new Intent();
             intent.setClass(this, DownloadActivity.class);
             intent.putExtra("type", download);
@@ -127,7 +127,7 @@ public class JumpToPlayerActivity extends BaseActivity {
     }
 
     private void setClickExit(String reason) {
-        runOnUiThread(()->{
+        runOnUiThread(() -> {
             textView.setText(reason);
             textView.setOnClickListener((view) -> finish());
         });

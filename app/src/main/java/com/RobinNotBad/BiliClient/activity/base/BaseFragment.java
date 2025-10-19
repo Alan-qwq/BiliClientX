@@ -7,11 +7,11 @@ import androidx.fragment.app.Fragment;
 import com.RobinNotBad.BiliClient.BiliTerminal;
 
 public class BaseFragment extends Fragment {
-    public void runOnUiThread(Runnable runnable){
-        if(isAdded()) requireActivity().runOnUiThread(runnable);
+    public void runOnUiThread(Runnable runnable) {
+        if (isAdded()) requireActivity().runOnUiThread(runnable);
     }
 
-    public Context getAppContext(){
+    public Context getAppContext() {
         return BiliTerminal.context;
     }
 }

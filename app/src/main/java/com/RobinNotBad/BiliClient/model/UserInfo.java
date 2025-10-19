@@ -2,7 +2,9 @@ package com.RobinNotBad.BiliClient.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

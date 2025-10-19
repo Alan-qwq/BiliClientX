@@ -50,10 +50,9 @@ public class MultiPageActivity extends BaseActivity {
                     File rootPath = new File(FileUtil.getVideoDownloadPath(), FileUtil.stringToFile(videoInfo.title));
                     File downPath = new File(rootPath, FileUtil.stringToFile(videoInfo.pagenames.get(position)));
                     if (downPath.exists()) {
-                        File file_sign = new File(downPath,".DOWNLOADING");
+                        File file_sign = new File(downPath, ".DOWNLOADING");
                         MsgUtil.showMsg(file_sign.exists() ? "已在下载队列" : "已下载完成");
-                    }
-                    else {
+                    } else {
                         startActivity(
                                 new Intent()
                                         .putExtra("page", position)
@@ -66,7 +65,7 @@ public class MultiPageActivity extends BaseActivity {
             } else {        //普通播放模式
                 adapter.setOnItemClickListener(position -> {
                     long cid_curr = videoInfo.cids.get(position);
-                    if(cid_curr != playerData.cidHistory) {
+                    if (cid_curr != playerData.cidHistory) {
                         playerData = videoInfo.toPlayerData(position);
                         playerData.cidHistory = cid_curr;
                         playerData.timeStamp = 0;

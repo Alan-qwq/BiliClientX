@@ -56,7 +56,7 @@ public class LikeCoinFavApi {
 
     public static ApiResult getVideoStats(VideoInfo videoInfo) {
         ApiResult apiResult = new ApiResult();
-        if(SharedPreferencesUtil.getLong("mid",0) == 0) return apiResult;
+        if (SharedPreferencesUtil.getLong("mid", 0) == 0) return apiResult;
         try {
             String url = "https://api.bilibili.com/x/web-interface/archive/relation?aid=" + videoInfo.aid;
             JSONObject result = NetWorkUtil.getJson(url);
@@ -67,7 +67,7 @@ public class LikeCoinFavApi {
             videoInfo.stats.disliked = data.optBoolean("dislik");
             videoInfo.stats.favoured = data.optBoolean("favorite");
             videoInfo.stats.coined = data.optInt("coin");
-        } catch (Exception e){
+        } catch (Exception e) {
             MsgUtil.err(apiResult.message, e);
         }
         return apiResult;

@@ -55,7 +55,7 @@ public class ToolsUtil {
         return BuildConfig.BETA;
     }
 
-    public static int getRgb888(int color){
+    public static int getRgb888(int color) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append((color >> 16) & 0xff);
         stringBuilder.append((color >> 8) & 0xff);

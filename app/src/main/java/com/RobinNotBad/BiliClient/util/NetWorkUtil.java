@@ -52,7 +52,7 @@ public class NetWorkUtil {
         public List<InetAddress> lookup(@NonNull String hostname) throws UnknownHostException {
             List<InetAddress> hosts = Dns.SYSTEM.lookup(hostname);
             List<InetAddress> inet4Hosts = new ArrayList<>();
-            for (InetAddress host: hosts) {
+            for (InetAddress host : hosts) {
                 if (host.getAddress().length == 4) inet4Hosts.add(host);
             }
             return inet4Hosts;    //筛选IPV4地址，IPV6请求有异常
@@ -71,14 +71,13 @@ public class NetWorkUtil {
                         boolean isSslRedirect = false;
                         try {
                             isSslRedirect = location != null && !request.isHttps() && new URI(location).getScheme().equalsIgnoreCase("https") && request.url().host().equalsIgnoreCase(new URI(location).getHost());
+                        } catch (URISyntaxException ignored) {
                         }
-                        catch (URISyntaxException ignored) {}
 
                         if (response.isRedirect() && location != null) {
                             if (request.url().host().equals("b23.tv") && !isSslRedirect && (handler = request.tag(RedirectHandler.class)) != null) {
                                 handler.handleRedirect(location);
-                            }
-                            else {
+                            } else {
                                 Request newRequest = request.newBuilder()
                                         .url(location)
                                         .build();

@@ -25,7 +25,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -38,7 +37,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class CookiesApi {
 
-    public static  ArrayList<String> genWebHeaders(){
+    public static ArrayList<String> genWebHeaders() {
         return new ArrayList<>() {{
             addAll(NetWorkUtil.webHeaders);
 
@@ -67,7 +66,7 @@ public class CookiesApi {
 
     /*
      * from https://s1.hdslb.com/bfs/seed/log/report/log-reporter.js
-    */
+     */
     public static String genCookiePayload() throws JSONException {
         Pair<Integer, Integer> resolution = gen_browser_resolution();
         JSONArray resolutionArray = new JSONArray();
@@ -78,7 +77,7 @@ public class CookiesApi {
 
         return payload.replaceAll("TIME_HERE", String.valueOf(System.currentTimeMillis()))
                 .replaceAll("RESOLUTION_HERE", resolution.first + "x" + resolution.second)
-                .replaceAll("UUID_HERE", NetWorkUtil.getCookies().getOrDefault("_uuid",""))
+                .replaceAll("UUID_HERE", NetWorkUtil.getCookies().getOrDefault("_uuid", ""))
                 .replaceAll("UA_HERE", NetWorkUtil.USER_AGENT_WEB)
                 .replaceAll("PAIR_HERE", resolutionArray.toString());
     }
@@ -91,7 +90,7 @@ public class CookiesApi {
     public static String getBuvid3Only() throws JSONException, IOException {
         String url = "https://api.bilibili.com/x/web-frontend/getbuvid";
         JSONObject data = NetWorkUtil.getJson(url, genWebHeaders());
-        return data.optString("buvid","");
+        return data.optString("buvid", "");
     }
 
     /**
@@ -123,7 +122,7 @@ public class CookiesApi {
                         .put("key_id", "ec02")
                         .put("hexsign", o)
                         .put("context[ts]", String.valueOf(ts))
-                        .put("csrf", SharedPreferencesUtil.getString("csrf","")),
+                        .put("csrf", SharedPreferencesUtil.getString("csrf", "")),
                 "", genWebHeaders()).body()).string());
         if (result.has("data") && !result.isNull("data")) {
             JSONObject data = result.getJSONObject("data");
@@ -176,7 +175,7 @@ public class CookiesApi {
         }
 
         // buvid3 根据浏览器端的网络请求顺序，B站自己是先获取单个buvid3的，虽然我并不知道为什么要这样做…？
-        if(!cookies.containsKey("buvid3")){
+        if (!cookies.containsKey("buvid3")) {
             String buvid3 = getBuvid3Only();
             NetWorkUtil.putCookie("buvid3", buvid3);
         }
@@ -276,7 +275,7 @@ public class CookiesApi {
         return String.valueOf(timestampInSeconds);
     }
 
-    private static Pair<Integer, Integer> gen_browser_resolution(){
+    private static Pair<Integer, Integer> gen_browser_resolution() {
         WindowManager windowManager = (WindowManager) BiliTerminal.context.getSystemService(Context.WINDOW_SERVICE);
         DisplayMetrics metrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(metrics);

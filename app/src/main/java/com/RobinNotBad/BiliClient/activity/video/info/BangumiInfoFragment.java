@@ -73,8 +73,8 @@ public class BangumiInfoFragment extends Fragment {
         CenterThreadPool
                 .supplyAsyncWithLiveData(() -> BangumiApi.getBangumi(mediaId))
                 .observe(getViewLifecycleOwner(), (result) -> result.onSuccess((bangumi) -> {
-                        this.bangumi = bangumi;
-                        initView();
+                    this.bangumi = bangumi;
+                    initView();
                 }).onFailure((error) -> MsgUtil.err("番剧详情：", error)));
     }
 
@@ -213,6 +213,7 @@ public class BangumiInfoFragment extends Fragment {
             if (activity instanceof VideoInfoActivity) {
                 ((VideoInfoActivity) activity).crossFade(getView());
             }
-        } catch (Exception ignored){}
+        } catch (Exception ignored) {
+        }
     }
 }

@@ -13,8 +13,6 @@ import androidx.core.content.ContextCompat;
 
 import com.RobinNotBad.BiliClient.BiliTerminal;
 
-import org.json.JSONObject;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,9 +32,9 @@ public class FileUtil {
     }
 
     public static void deleteFolder(File folder) {
-        if(!folder.exists()) return;
+        if (!folder.exists()) return;
 
-        if(folder.isFile()) {
+        if (folder.isFile()) {
             folder.delete();
             return;
         }
@@ -56,34 +54,34 @@ public class FileUtil {
     }
 
     public static String readString(File file) {
-        if(file==null || !file.exists() || !file.canRead() || !file.isFile()) return null;
+        if (file == null || !file.exists() || !file.canRead() || !file.isFile()) return null;
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             FileInputStream inputStream = new FileInputStream(file);
             FileChannel channel = inputStream.getChannel();
-            ByteBuffer buffer = ByteBuffer.allocate(1<<13);
+            ByteBuffer buffer = ByteBuffer.allocate(1 << 13);
             int i;
-            while ((i = channel.read(buffer)) != -1){
+            while ((i = channel.read(buffer)) != -1) {
                 buffer.flip();
-                outputStream.write(buffer.array(),0,i);
+                outputStream.write(buffer.array(), 0, i);
                 buffer.clear();
             }
             return outputStream.toString();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static boolean checkStoragePermission(){
+    public static boolean checkStoragePermission() {
         int sdk = Build.VERSION.SDK_INT;
-        if(sdk < 17) return true;
+        if (sdk < 17) return true;
         Context context = BiliTerminal.context;
         return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static void requestStoragePermission(Activity activity){
+    public static void requestStoragePermission(Activity activity) {
         ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 100);
     }
 
@@ -96,13 +94,14 @@ public class FileUtil {
             if (SharedPreferencesUtil.getBoolean("save_ban_gallery", true) && !nomedia.exists())
                 nomedia.createNewFile();
             else if (nomedia.exists()) nomedia.delete();
-        } catch (Exception ignored){}
+        } catch (Exception ignored) {
+        }
         return path;
     }
 
-    public static File getVideoDownloadPath(String title, String child){
+    public static File getVideoDownloadPath(String title, String child) {
         File parentFolder = new File(getVideoDownloadPath(), stringToFile(title));
-        if(child==null || child.isEmpty()) return parentFolder;
+        if (child == null || child.isEmpty()) return parentFolder;
         return new File(parentFolder, stringToFile(child));
     }
 
@@ -114,12 +113,12 @@ public class FileUtil {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
     }
 
-    public static void requireTFCardPermission(){
+    public static void requireTFCardPermission() {
 
     }
 
     public static String stringToFile(String str) {
-        return str.substring(0,Math.min(85,str.length()))    //防止长度溢出
+        return str.substring(0, Math.min(85, str.length()))    //防止长度溢出
                 .replace("|", "｜")
                 .replace(":", "：")
                 .replace("*", "﹡")

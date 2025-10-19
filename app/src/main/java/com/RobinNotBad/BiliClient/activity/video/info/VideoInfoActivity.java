@@ -112,7 +112,7 @@ public class VideoInfoActivity extends BaseActivity {
         }).onFailure((error) -> {
             loading.setImageResource(R.mipmap.loading_2233_error);
             MsgUtil.showMsg("获取信息失败！\n可能是视频不存在？");
-            CenterThreadPool.runOnUIThreadAfter(5L, TimeUnit.SECONDS, ()->
+            CenterThreadPool.runOnUIThreadAfter(5L, TimeUnit.SECONDS, () ->
                     MsgUtil.err(error));
         }));
     }
@@ -121,7 +121,7 @@ public class VideoInfoActivity extends BaseActivity {
         if (replyFragment != null) runOnUiThread(() -> replyFragment.refresh(aid));
     }
 
-    public void crossFade(View fragmentView){
+    public void crossFade(View fragmentView) {
         AnimationUtils.crossFade(loading, fragmentView);
     }
 
