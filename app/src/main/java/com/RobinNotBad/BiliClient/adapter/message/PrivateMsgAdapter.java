@@ -36,6 +36,7 @@ import com.google.android.material.card.MaterialCardView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,6 +121,11 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
                     holder.videoCard.setVisibility(View.GONE);
                     holder.textContentCard.setVisibility(View.VISIBLE);
 
+                    if (msg.msg_source >= 8 && msg.msg_source <= 11) {
+                        holder.tipTv.setText("此条消息为自动回复");
+                        holder.tipTv.setVisibility(View.VISIBLE);
+                    }
+
                     try {
                         String textContent = msg.content.getString("content");
                         holder.textContentTv.setText(textContent);
@@ -139,6 +145,7 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
                         Log.e("PrivateMsgAdapter", e.toString());
                     }
                     break;
+                case PrivateMessage.TYPE_FACE: // 结构同图片消息
                 case PrivateMessage.TYPE_PIC:
                     holder.picMsg.setVisibility(View.VISIBLE);
                     holder.tipTv.setVisibility(View.GONE);
@@ -200,6 +207,14 @@ public class PrivateMsgAdapter extends RecyclerView.Adapter<PrivateMsgAdapter.Vi
                             Log.e("", err.toString());
                         }
                     }));
+                    break;
+                case PrivateMessage.TYPE_SYSTEM:
+                    holder.tipTv.setVisibility(View.VISIBLE);
+                    holder.nameTv.setVisibility(View.GONE);
+                    holder.picMsg.setVisibility(View.GONE);
+                    holder.videoCard.setVisibility(View.GONE);
+                    holder.textContentCard.setVisibility(View.GONE);
+                    holder.tipTv.setText(((JSONObject) msg.content_array.get(0)).getString("text"));
                     break;
                 default:
                     holder.textContentCard.setVisibility(View.VISIBLE);

@@ -71,10 +71,17 @@ public class PrivateMsgApi {
                 msgObject.content = new JSONObject("{\"content\":\" .\"}"); // 防止内容不为json时解析错误
                 if (msgJson.getString("content").endsWith("}")
                         && msgJson.getString("content").startsWith("{")) {
-                    msgObject.content =
-                            new JSONObject(msgJson.getString("content") /*.replace("\\","")*/);
+                    try{
+                        msgObject.content =
+                                new JSONObject(msgJson.getString("content") /*.replace("\\","")*/);
+                    }catch (Exception ignore){}
+                    try{
+                    msgObject.content_array =
+                            new JSONArray(msgJson.getString("content") /*.replace("\\","")*/);
+                    }catch (Exception ignore){}
                 }
                 msgObject.timestamp = msgJson.getLong("timestamp");
+                msgObject.msg_source = msgJson.getInt("msg_source");
                 msgObject.msgId = msgJson.getLong("msg_key");
                 msgObject.msgSeqno = msgJson.getLong("msg_seqno");
                 list.add(msgObject);
