@@ -4,7 +4,7 @@ import com.RobinNotBad.BiliClient.util.NetWorkUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import org.json.JSONArray;
 import java.io.IOException;
 
 /*
@@ -16,5 +16,17 @@ public class CreativeCenterApi {
         String url = "https://member.bilibili.com/x/web/index/stat";
         JSONObject result = NetWorkUtil.getJson(url);
         return result.optJSONObject("data");
+    }
+
+    public static JSONObject getBeUPTime() throws IOException, JSONException {
+        String url = "https://member.bilibili.com/x/web/index/scrolls";
+        JSONObject response = NetWorkUtil.getJson(url);
+
+        JSONObject dataObject = response.getJSONObject("data");
+
+        // 获取scrolls数组
+        JSONArray scrollsArray = dataObject.getJSONArray("scrolls");
+        JSONObject scroll = scrollsArray.getJSONObject(0);
+        return scroll;
     }
 }
