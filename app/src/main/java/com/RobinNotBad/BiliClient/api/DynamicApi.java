@@ -303,12 +303,14 @@ public class DynamicApi {
 
     public static long getDynamicList(List<Dynamic> dynamicList, long offset, long mid, String type) throws IOException, JSONException {
         String url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/"
-                + (mid == 0 ? "all?type=" + type : "space?web_location=333.999&host_mid=" + mid)
+                + (mid == 0 ? "all?type=" + type : "space?platform=web&web_location=333.1387&timezone_offset=-480&host_mid=" + mid)
                 + (offset == 0 ? "" : "&offset=" + offset)
-                + "&features=itemOpusStyle,listOnlyfans,opusBigCover,onlyfansVote,forwardListHidden,decorationCard,commentsNewVersion,onlyfansAssetsV2,ugcDelete,onlyfansQaCard";
+                + "&features=itemOpusStyle,listOnlyfans,opusBigCover,onlyfansVote,forwardListHidden,decorationCard,commentsNewVersion,onlyfansAssetsV2,ugcDelete,onlyfansQaCard,avatarAutoTheme,sunflowerStyle,eva3CardOpus,eva3CardVideo,eva3CardComment";
+
 
         JSONObject all = NetWorkUtil.getJson(ConfInfoApi.signWBI(DmImgParamUtil.getDmImgParamsUrl(url)));
         if (all.getInt("code") != 0) throw new JSONException(all.getString("message"));
+
 
         JSONObject data = all.getJSONObject("data");
 
