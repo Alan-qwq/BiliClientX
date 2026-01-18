@@ -40,10 +40,12 @@ public class AppInfoApi {
             SharedPreferencesUtil.putBoolean("disclaimer_shown", true);
         }
 
-        Calendar calendar = Calendar.getInstance();
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        if (hour >= 23 || hour <= 3) {
-            MsgUtil.showDialog("温馨提醒", "夜深了，要注意休息呐~", 3);    //早茶光提供的彩蛋（实际上并不能算作彩蛋，太容易触发了？
+        if (SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.NIGHT_REMINDER_ENABLE, true)) {
+            Calendar calendar = Calendar.getInstance();
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            if (hour >= 23 || hour <= 3) {
+                MsgUtil.showDialog("温馨提醒", "夜深了，要注意休息呐~", 3);
+            }
         }
 
         try {
