@@ -20,6 +20,7 @@ public class SharedPreferencesUtil {
     public static final String NEW_DANMAKU_API = "new_danmaku_api";
     public static final String DYNAMIC_UPDATE_CHECK_ENABLE = "dynamic_update_check_enable";
     public static final String DYNAMIC_UPDATE_NUM = "dynamic_update_num";
+    public static final String FOLLOW_GROUP_MODE = "follow_group_mode";
 
     public static String cookies = "cookies";
     public static String mid = "mid";

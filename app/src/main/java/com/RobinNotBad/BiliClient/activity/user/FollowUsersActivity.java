@@ -5,11 +5,14 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.RobinNotBad.BiliClient.activity.base.RefreshListActivity;
+import com.RobinNotBad.BiliClient.adapter.user.FollowGroupAdapter;
 import com.RobinNotBad.BiliClient.adapter.user.UserListAdapter;
 import com.RobinNotBad.BiliClient.api.FollowApi;
+import com.RobinNotBad.BiliClient.model.FollowTag;
 import com.RobinNotBad.BiliClient.model.UserInfo;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.MsgUtil;
+import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +26,9 @@ public class FollowUsersActivity extends RefreshListActivity {
     private long mid;
     private ArrayList<UserInfo> userList;
     private UserListAdapter adapter;
+    private FollowGroupAdapter groupAdapter;
     private int mode;
+    private boolean groupMode;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -38,12 +43,23 @@ public class FollowUsersActivity extends RefreshListActivity {
             return;
         }
 
+        long currentUserMid = SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0);
+        groupMode = mode == 0 && mid == currentUserMid && SharedPreferencesUtil.getBoolean("follow_group_mode", false);
+
         setPageName(mode == 0 ? "关注列表" : "粉丝列表");
 
         recyclerView.setHasFixedSize(true);
 
         userList = new ArrayList<>();
 
+        if (groupMode) {
+            loadGroupMode();
+        } else {
+            loadNormalMode();
+        }
+    }
+
+    private void loadNormalMode() {
         CenterThreadPool.run(() -> {
             try {
                 int result = mode == 0 ? FollowApi.getFollowingList(mid, page, userList) : FollowApi.getFollowerList(mid, page, userList);
@@ -67,7 +83,73 @@ public class FollowUsersActivity extends RefreshListActivity {
         });
     }
 
+    private void loadGroupMode() {
+        CenterThreadPool.run(() -> {
+            try {
+                List<FollowTag> tagList = FollowApi.getFollowTags();
+                runOnUiThread(() -> {
+                    groupAdapter = new FollowGroupAdapter(this);
+                    groupAdapter.setOnGroupExpandListener(tagid -> loadGroupUsers(tagid));
+                    setAdapter(groupAdapter);
+                    for (FollowTag tag : tagList) {
+                        if (tag.count > 0) {
+                            groupAdapter.addGroup(tag, new ArrayList<>());
+                        }
+                    }
+                    groupAdapter.notifyDataSetChanged();
+                    setRefreshing(false);
+                });
+            } catch (Exception e) {
+                if (e.getMessage() != null && (e.getMessage().startsWith("22115") || e.getMessage().startsWith("22118"))) {
+                    finish();
+                    MsgUtil.showMsg(e.getMessage());
+                } else {
+                    loadFail(e);
+                }
+            }
+        });
+    }
+
+    public void loadGroupUsers(int tagid) {
+        CenterThreadPool.run(() -> {
+            try {
+                List<UserInfo> tagUsers = new ArrayList<>();
+                int result = FollowApi.getFollowTagUsers(tagid, 1, tagUsers);
+                runOnUiThread(() -> {
+                    groupAdapter.updateGroupUsers(tagid, tagUsers);
+                });
+                if (result == 0 && tagUsers.size() == 20) {
+                    loadMoreGroupUsers(tagid, tagUsers.size());
+                }
+            } catch (Exception e) {
+                Log.e("debug", "加载分组用户失败", e);
+            }
+        });
+    }
+
+    private void loadMoreGroupUsers(int tagid, int currentCount) {
+        CenterThreadPool.run(() -> {
+            try {
+                int page = (currentCount / 20) + 1;
+                List<UserInfo> tagUsers = new ArrayList<>();
+                int result = FollowApi.getFollowTagUsers(tagid, page, tagUsers);
+                runOnUiThread(() -> {
+                    groupAdapter.addGroupUsers(tagid, tagUsers);
+                });
+                if (result == 0 && tagUsers.size() == 20) {
+                    loadMoreGroupUsers(tagid, currentCount + tagUsers.size());
+                }
+            } catch (Exception e) {
+                Log.e("debug", "加载分组用户失败", e);
+            }
+        });
+    }
+
     private void continueLoading(int page) {
+        if (groupMode) {
+            setRefreshing(false);
+            return;
+        }
         CenterThreadPool.run(() -> {
             try {
                 List<UserInfo> list = new ArrayList<>();
