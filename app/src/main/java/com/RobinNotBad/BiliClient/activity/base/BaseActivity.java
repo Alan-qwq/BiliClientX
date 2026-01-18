@@ -12,23 +12,17 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Display;
-import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.ViewConfigurationCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -255,63 +249,6 @@ public class BaseActivity extends AppCompatActivity {
 
     public void setForceSingleColumn() {
         force_single_column = true;
-    }
-
-    @Override
-    public void onContentChanged() {
-        super.onContentChanged();
-        //自动适配表冠
-        if (SharedPreferencesUtil.getBoolean("ui_rotatory_enable", false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {    //既然不支持，那低版本直接跳过
-            ViewGroup rootView = (ViewGroup) this.getWindow().getDecorView();
-            setRotaryScroll(rootView);
-        }
-    }
-
-    private void setRotaryScroll(View view) {
-        if (view instanceof ViewGroup) {
-            ViewGroup vp = (ViewGroup) view;
-            try {
-                for (int i = 0; i < vp.getChildCount(); i++) {
-                    View viewChild = vp.getChildAt(i);
-
-                    float multiple = -114;
-                    if (viewChild instanceof ScrollView || viewChild instanceof NestedScrollView)
-                        multiple = SharedPreferencesUtil.getFloat("ui_rotatory_scroll", 0);
-                    if (viewChild instanceof RecyclerView)
-                        multiple = SharedPreferencesUtil.getFloat("ui_rotatory_recycler", 0);
-                    if (viewChild instanceof ListView)
-                        multiple = SharedPreferencesUtil.getFloat("ui_rotatory_list", 0);
-
-                    if (multiple == -114) setRotaryScroll(viewChild);  //不符合上面的情况说明不是可滑动列表
-                    if (multiple <= 0) return;    //负值和0都不执行
-
-                    float finalMultiple = multiple;
-                    viewChild.setOnGenericMotionListener((v, ev) -> {
-                        if (ev.getAction() == MotionEvent.ACTION_SCROLL && ev.getSource() == InputDevice.SOURCE_ROTARY_ENCODER) {
-                            float delta = -ev.getAxisValue(MotionEvent.AXIS_SCROLL) * ViewConfigurationCompat.getScaledVerticalScrollFactor(ViewConfiguration.get(this),
-                                    this) * 2;
-
-                            if (viewChild instanceof ScrollView)
-                                ((ScrollView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
-                            else if (viewChild instanceof NestedScrollView)
-                                ((NestedScrollView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
-                            else if (viewChild instanceof RecyclerView)
-                                ((RecyclerView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
-                            else
-                                ((ListView) viewChild).smoothScrollBy(0, Math.round(delta * finalMultiple));
-
-                            viewChild.requestFocus();
-
-                            return true;
-                        }
-
-                        return false;
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override

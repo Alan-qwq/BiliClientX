@@ -38,7 +38,7 @@
 
     </RelativeLayout>
 
-    <androidx.core.widget.NestedScrollView
+    <com.RobinNotBad.BiliClient.ui.widget.RotaryNestedScrollView
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:layout_below="@id/top"
@@ -76,7 +76,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/img_cover" />
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                 android:id="@+id/up_recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <androidx.recyclerview.widget.RecyclerView
+                    <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                         android:id="@+id/quality_list"
                         app:layout_constraintTop_toBottomOf="@+id/quality_title"
                         app:layout_constraintStart_toStartOf="parent"
@@ -165,7 +165,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <androidx.recyclerview.widget.RecyclerView
+                    <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                         android:id="@+id/host_list"
                         app:layout_constraintTop_toBottomOf="@+id/host_title"
                         app:layout_constraintStart_toStartOf="parent"
@@ -287,7 +287,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.core.widget.NestedScrollView>
+    </com.RobinNotBad.BiliClient.ui.widget.RotaryNestedScrollView>
 
     <ImageView
         android:id="@+id/loading"

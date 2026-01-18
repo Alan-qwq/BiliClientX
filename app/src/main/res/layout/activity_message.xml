@@ -42,7 +42,8 @@
         android:layout_height="match_parent"
         android:layout_below="@id/top">
 
-        <androidx.core.widget.NestedScrollView
+        <com.RobinNotBad.BiliClient.ui.widget.RotaryNestedScrollView
+            android:id="@+id/scrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -332,14 +333,14 @@
                         android:text="私信列表" />
                 </LinearLayout>
 
-                <androidx.recyclerview.widget.RecyclerView
+                <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                     android:id="@+id/sessions_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
             </LinearLayout>
 
-        </androidx.core.widget.NestedScrollView>
+        </com.RobinNotBad.BiliClient.ui.widget.RotaryNestedScrollView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

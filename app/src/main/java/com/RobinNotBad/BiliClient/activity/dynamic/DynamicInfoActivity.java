@@ -66,6 +66,12 @@ public class DynamicInfoActivity extends BaseActivity {
                     if (seek_reply != -1) viewPager.setCurrentItem(1);
 
                     AnimationUtils.crossFade(findViewById(R.id.loading), diFragment.getView());
+                    diFragment.getView().post(() -> {
+                        View scrollView = diFragment.getView().findViewById(R.id.scrollView);
+                        scrollView.setFocusable(true);
+                        scrollView.setFocusableInTouchMode(true);
+                        scrollView.requestFocus();
+                    });
                     TutorialHelper.showPagerTutorial(this, 2);
                 }).onFailure((e) -> {
                     MsgUtil.err(e);

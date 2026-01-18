@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
+    <com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -112,6 +112,6 @@
             </com.google.android.material.card.MaterialCardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </ScrollView>
+    </com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

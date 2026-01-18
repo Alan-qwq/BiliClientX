@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -113,4 +113,4 @@
             android:text="“哔哩终端坏掉了，这不是终端的错，绝对不是”"
             android:gravity="center" />
     </LinearLayout>
-</ScrollView>
+</com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView>

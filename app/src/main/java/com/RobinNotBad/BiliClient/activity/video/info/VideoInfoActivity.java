@@ -123,6 +123,14 @@ public class VideoInfoActivity extends BaseActivity {
 
     public void crossFade(View fragmentView) {
         AnimationUtils.crossFade(loading, fragmentView);
+        fragmentView.post(() -> {
+            View scrollView = fragmentView.findViewById(R.id.scrollView);
+            if (scrollView != null) {
+                scrollView.setFocusable(true);
+                scrollView.setFocusableInTouchMode(true);
+                scrollView.requestFocus();
+            }
+        });
     }
 
     @Override

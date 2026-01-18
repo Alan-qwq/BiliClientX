@@ -38,7 +38,7 @@
 
     </RelativeLayout>
 
-    <ScrollView
+    <com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/top">
@@ -49,7 +49,7 @@
             android:id="@+id/menu_layout"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/activity_padding_horizontal" />
-    </ScrollView>
+    </com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView>
 
 
 </RelativeLayout>

@@ -82,6 +82,10 @@ public class OpusInfoFragment extends Fragment {
                     requireActivity().runOnUiThread(() -> {
                         recyclerView.setLayoutManager(new CustomLinearManager(requireContext()));
                         recyclerView.setAdapter(adapter);
+
+                        recyclerView.setFocusable(true);
+                        recyclerView.setFocusableInTouchMode(true);
+                        recyclerView.requestFocus();
                     });
                 }).onFailure(MsgUtil::err));
 

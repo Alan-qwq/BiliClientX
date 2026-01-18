@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.widget.EditText;
 
 import com.RobinNotBad.BiliClient.BiliTerminal;
@@ -74,6 +75,11 @@ public class SettingUIActivity extends BaseActivity {
                 round.setChecked(false);
                 MsgUtil.showMsg("恢复完成");
             });
+
+            View scrollView = findViewById(R.id.scrollView);
+            scrollView.setFocusable(true);
+            scrollView.setFocusableInTouchMode(true);
+            scrollView.requestFocus();
         });
     }
 

@@ -38,7 +38,7 @@
 
     </RelativeLayout>
 
-    <ScrollView
+    <com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/top">
@@ -122,7 +122,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <androidx.recyclerview.widget.RecyclerView
+                    <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                         android:id="@+id/install_way_list"
                         app:layout_constraintTop_toBottomOf="@+id/text_title"
                         app:layout_constraintStart_toStartOf="parent"
@@ -153,6 +153,6 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </ScrollView>
+    </com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView>
 
 </RelativeLayout>

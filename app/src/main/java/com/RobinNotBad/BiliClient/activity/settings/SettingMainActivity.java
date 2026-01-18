@@ -176,6 +176,8 @@ public class SettingMainActivity extends InstanceActivity {
                 Intent intent = new Intent(this, TestActivity.class);
                 startActivity(intent);
             });
+
+            findViewById(R.id.scrollView).requestFocus();
         }));
     }
 }

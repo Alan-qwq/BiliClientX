@@ -38,7 +38,7 @@
 
     </RelativeLayout>
 
-    <ScrollView
+    <com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/top">
@@ -266,6 +266,6 @@
                 android:text="@string/btn_confirm_settings" />
 
         </LinearLayout>
-    </ScrollView>
+    </com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView>
 
 </RelativeLayout>

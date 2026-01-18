@@ -139,6 +139,11 @@ public class MySpaceActivity extends InstanceActivity {
                             } else MsgUtil.showMsg("再点一次退出登录！");
                             confirmLogout = !confirmLogout;
                         });
+
+                        View scrollView = findViewById(R.id.scrollView);
+                        scrollView.setFocusable(true);
+                        scrollView.setFocusableInTouchMode(true);
+                        scrollView.requestFocus();
                     });
                 } catch (Exception e) {
                     report(e);

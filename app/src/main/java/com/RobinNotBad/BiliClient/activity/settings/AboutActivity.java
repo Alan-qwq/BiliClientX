@@ -161,6 +161,10 @@ public class AboutActivity extends BaseActivity {
                 }
             });
 
+            View scrollView = findViewById(R.id.scrollView);
+            scrollView.setFocusable(true);
+            scrollView.setFocusableInTouchMode(true);
+            scrollView.requestFocus();
         });
 
     }

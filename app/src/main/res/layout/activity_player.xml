@@ -533,7 +533,7 @@
                 android:text="选择字幕"
                 android:textSize="14sp" />
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                 android:id="@+id/subtitle_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -609,7 +609,7 @@
                 android:text="选择分P"
                 android:textSize="14sp" />
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                 android:id="@+id/page_selector_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -640,7 +640,7 @@
                 android:text="选择清晰度"
                 android:textSize="14sp" />
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.RobinNotBad.BiliClient.ui.widget.RotaryRecyclerView
                 android:id="@+id/quality_selector_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

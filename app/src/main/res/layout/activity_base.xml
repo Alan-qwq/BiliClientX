@@ -36,7 +36,7 @@
 
     </RelativeLayout>
 
-    <ScrollView
+    <com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/top">
@@ -45,6 +45,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
-    </ScrollView>
+    </com.RobinNotBad.BiliClient.ui.widget.RotaryScrollView>
 
 </RelativeLayout>

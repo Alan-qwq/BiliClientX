@@ -2,6 +2,7 @@ package com.RobinNotBad.BiliClient.activity.user;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 
 import com.RobinNotBad.BiliClient.R;
@@ -44,6 +45,11 @@ public class CreativeCenterActivity extends BaseActivity {
                     } catch (Exception e) {
                         runOnUiThread(() -> MsgUtil.err(e));
                     }
+
+                    View scrollView = findViewById(R.id.scrollView);
+                    scrollView.setFocusable(true);
+                    scrollView.setFocusableInTouchMode(true);
+                    scrollView.requestFocus();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> MsgUtil.err(e));
