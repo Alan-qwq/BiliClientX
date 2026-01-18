@@ -131,6 +131,7 @@
     <string name="desc_no_medal">开启此选项后，将不会在评论区显示用户的粉丝铭牌</string>
     <string name="desc_reply_marquee_name">开启此选项后，评论区的用户名称将会以跑马灯的形式展现，而不是换行</string>
     <string name="desc_live_by_guest">开启此选项后，进入直播间时将会使用游客身份\n\n注意：开启后的漏弹幕情况将会更加严重</string>
+    <string name="desc_dynamic_update_check_enable">启动应用时检查是否有新动态并显示在菜单中</string>
     <string name="section_ui_size">界面大小</string>
     <string name="desc_setup_ui_size">有效范围：0.25倍-5.00倍，建议少量多次调节</string>
     <string name="text_ui_padding_horizontal">横向</string>
@@ -232,6 +233,7 @@
         <item>增加了仅缓存音频功能</item>
         <item>增加了搜索建议</item>
         <item>增加了消息设置</item>
+        <item>增加了打开应用时检查新动态数量功能</item>
         <item>增加了私信部分信息的显示</item>
         <item>修复了一键三连存在错别字的问题</item>
         <item>优化了常年bug的缓存页面的下载管理</item>

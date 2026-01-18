@@ -31,6 +31,8 @@ public class SettingPrefActivity extends RefreshListActivity {
                 add(new SettingSection("switch", "搜索建议", "search_suggestions_enable",
                         getString(R.string.desc_search_suggestions_enable), "true"));
                 add(new SettingSection("switch", "识别链接", "link_enable", getString(R.string.desc_link_enable), "true"));
+                add(new SettingSection("switch", "新动态数量检查", SharedPreferencesUtil.DYNAMIC_UPDATE_CHECK_ENABLE,
+                        getString(R.string.desc_dynamic_update_check_enable), "true"));
 
 
                 add(new SettingSection("title", "优化", "", "", ""));

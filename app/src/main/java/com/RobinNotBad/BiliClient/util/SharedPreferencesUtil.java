@@ -18,6 +18,8 @@ public class SharedPreferencesUtil {
     public static final String NO_MEDAL = "no_medal";
     public static final String REPLY_MARQUEE_NAME = "reply_marquee_name";
     public static final String NEW_DANMAKU_API = "new_danmaku_api";
+    public static final String DYNAMIC_UPDATE_CHECK_ENABLE = "dynamic_update_check_enable";
+    public static final String DYNAMIC_UPDATE_NUM = "dynamic_update_num";
 
     public static String cookies = "cookies";
     public static String mid = "mid";

@@ -44,6 +44,7 @@ import java.util.Objects;
 public class MenuActivity extends BaseActivity {
 
     private String from;
+    private MaterialButton dynamicButton;
 
     /**
      * 在排序设置和Splash中使用到的，
@@ -134,6 +135,17 @@ public class MenuActivity extends BaseActivity {
                 case "login":
                     materialButton.setText("登录");
                     break;
+                case "dynamic":
+                    String btnText = Objects.requireNonNull(btnNames.get(btn)).first;
+                    if (btn.equals("dynamic")) {
+                        dynamicButton = materialButton;
+                        int updateNum = SharedPreferencesUtil.getInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, 0);
+                        if (updateNum > 0) {
+                            btnText = btnText + " (" + updateNum + ")";
+                        }
+                    }
+                    materialButton.setText(btnText);
+                    break;
                 default:
                     materialButton.setText(Objects.requireNonNull(btnNames.get(btn)).first);
                     break;
@@ -155,6 +167,14 @@ public class MenuActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         Log.e("debug", "MenuActivity onResume in: " + (System.currentTimeMillis() - time));
+        if (dynamicButton != null) {
+            String btnText = Objects.requireNonNull(btnNames.get("dynamic")).first;
+            int updateNum = SharedPreferencesUtil.getInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, 0);
+            if (updateNum > 0) {
+                btnText = btnText + " (" + updateNum + ")";
+            }
+            dynamicButton.setText(btnText);
+        }
     }
 
     private void killAndJump(String name) {

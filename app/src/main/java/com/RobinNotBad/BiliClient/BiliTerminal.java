@@ -14,10 +14,15 @@ import androidx.multidex.MultiDex;
 
 import com.RobinNotBad.BiliClient.activity.base.InstanceActivity;
 import com.RobinNotBad.BiliClient.activity.user.info.UserInfoActivity;
+import com.RobinNotBad.BiliClient.api.DynamicApi;
+import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.Logu;
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.RobinNotBad.BiliClient.util.TerminalContext;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 public class BiliTerminal extends Application {
@@ -48,6 +53,18 @@ public class BiliTerminal extends Application {
             Logu.LOGV_ENABLED = SharedPreferencesUtil.getBoolean("dev_logv", debugBuild);
             Logu.LOGD_ENABLED = SharedPreferencesUtil.getBoolean("dev_logd", debugBuild);
             Logu.LOGI_ENABLED = SharedPreferencesUtil.getBoolean("dev_logi", debugBuild);
+
+            if (SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.DYNAMIC_UPDATE_CHECK_ENABLE, true) && SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) != 0) {
+                CenterThreadPool.run(() -> {
+                    try {
+                        long updateBaseline = SharedPreferencesUtil.getLong("dynamic_update_baseline", 0);
+                        int updateNum = DynamicApi.checkDynamicUpdate("all", updateBaseline);
+                        SharedPreferencesUtil.putInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, updateNum);
+                    } catch (IOException | JSONException e) {
+                        SharedPreferencesUtil.putInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, 0);
+                    }
+                });
+            }
         }
     }
 

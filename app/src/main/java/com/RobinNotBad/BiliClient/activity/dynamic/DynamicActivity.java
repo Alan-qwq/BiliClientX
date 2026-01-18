@@ -20,6 +20,7 @@ import com.RobinNotBad.BiliClient.helper.TutorialHelper;
 import com.RobinNotBad.BiliClient.model.Dynamic;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.MsgUtil;
+import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -211,6 +212,9 @@ public class DynamicActivity extends RefreshMainActivity {
                         } else {
                             dynamicAdapter.notifyItemRangeInserted(dynamicList.size() - list.size() + 1, list.size());
                         }
+                    }
+                    if (refresh) {
+                        SharedPreferencesUtil.putInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, 0);
                     }
                 });
 

@@ -317,6 +317,12 @@ public class DynamicApi {
         boolean has_more = data.getBoolean("has_more");
         long offset_new = (has_more ? Long.parseLong(data.getString("offset")) : -1);
 
+        if (data.has("update_baseline") && !data.isNull("update_baseline")) {
+            SharedPreferencesUtil.putLong("dynamic_update_baseline", data.getLong("update_baseline"));
+        } else if (offset_new != -1) {
+            SharedPreferencesUtil.putLong("dynamic_update_baseline", offset_new);
+        }
+
         JSONArray items = data.getJSONArray("items");
         for (int i = 0; i < items.length(); i++) {
             dynamicList.add(analyzeDynamic(items.getJSONObject(i)));
@@ -334,6 +340,17 @@ public class DynamicApi {
         JSONObject data = all.getJSONObject("data");
         JSONObject item = data.getJSONObject("item");
         return analyzeDynamic(item);
+    }
+
+    public static int checkDynamicUpdate(String type, long updateBaseline) throws IOException, JSONException {
+        String url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/all/update?type=" + type + "&update_baseline=" + updateBaseline + "&web_location=333.1365";
+        JSONObject result = NetWorkUtil.getJson(url, NetWorkUtil.webHeaders);
+        if (result.getInt("code") != 0) throw new JSONException(result.getString("message"));
+        if (result.has("data") && !result.isNull("data")) {
+            JSONObject data = result.getJSONObject("data");
+            return data.optInt("update_num", 0);
+        }
+        return 0;
     }
 
     public static Dynamic analyzeDynamic(JSONObject dynamic_json) throws JSONException {
