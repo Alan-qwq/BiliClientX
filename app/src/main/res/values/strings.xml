@@ -221,7 +221,7 @@
     <string name="gt"><![CDATA[>]]></string>
     <string name="percent">%</string>
 
-    <string name="update_tip">如果你是跨版本更新到这个版本的，可以前往官网biliterminal.cn查看过往的更新日志。\n由于Robin即将高三，此版本正式发布后一年内更新速度将会极慢，除非有api变动和大量崩溃之类的严重问题。</string>
+    <string name="update_tip">如果你是跨版本更新到这个版本的，可以前往官网biliterminal.cn查看过往的更新日志。\n\n此版本由moye主要负责开发，由于部分原因未完全进行安卓4上的功能测试，遇到严重问题请尝试降级。\n这个版本的问题就不要去烦Robin了，Robin高三啦~要专注学业了。\n\n由于Robin即将高三，此版本正式发布后一年内更新速度将会极慢，除非有api变动和大量崩溃之类的严重问题。</string>
 
     #新增功能放到上面，修复问题放下面，方便用户看见
     <string-array name="update_log_items">

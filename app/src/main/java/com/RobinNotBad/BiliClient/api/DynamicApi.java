@@ -317,10 +317,12 @@ public class DynamicApi {
         boolean has_more = data.getBoolean("has_more");
         long offset_new = (has_more ? Long.parseLong(data.getString("offset")) : -1);
 
-        if (data.has("update_baseline") && !data.isNull("update_baseline")) {
-            SharedPreferencesUtil.putLong("dynamic_update_baseline", data.getLong("update_baseline"));
-        } else if (offset_new != -1) {
-            SharedPreferencesUtil.putLong("dynamic_update_baseline", offset_new);
+        if (mid == 0) {
+            if (data.has("update_baseline") && !data.isNull("update_baseline")) {
+                SharedPreferencesUtil.putLong("dynamic_update_baseline", data.getLong("update_baseline"));
+            } else if (offset_new != -1) {
+                SharedPreferencesUtil.putLong("dynamic_update_baseline", offset_new);
+            }
         }
 
         JSONArray items = data.getJSONArray("items");
