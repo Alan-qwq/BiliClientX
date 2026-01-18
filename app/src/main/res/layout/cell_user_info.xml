@@ -287,6 +287,21 @@
         app:layout_constraintStart_toEndOf="@id/followBtn"
         app:layout_constraintTop_toTopOf="@id/followBtn" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/contractBtn"
+        android:layout_width="0dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="4dp"
+        app:strokeWidth="0dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:backgroundTint="#dd262626"
+        android:text="加入老粉计划"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/userDesc"
+        app:layout_constraintStart_toStartOf="@+id/userDesc"
+        app:layout_constraintTop_toBottomOf="@id/followBtn" />
+
     <View
         android:id="@+id/divider"
         android:layout_width="match_parent"
@@ -294,7 +309,6 @@
         android:layout_marginHorizontal="10dp"
         android:layout_marginVertical="4dp"
         android:background="#318C8C8C"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/followBtn" />

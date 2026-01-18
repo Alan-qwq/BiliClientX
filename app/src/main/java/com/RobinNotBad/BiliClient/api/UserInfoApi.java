@@ -48,6 +48,7 @@ public class UserInfoApi {
 
             String sys_notice = "";
             LiveRoom liveroom = null;
+            boolean is_follow_display = false;
             try {
                 JSONObject spaceInfo = getUserSpaceInfo(mid);
                 if (spaceInfo != null) {
@@ -65,6 +66,10 @@ public class UserInfoApi {
                             liveroom.roomid = live_room.getLong("roomid");
                         }
                     }
+                    if (!spaceInfo.isNull("contract")) {
+                        JSONObject contract = spaceInfo.getJSONObject("contract");
+                        is_follow_display = contract.optBoolean("is_follow_display", false);
+                    }
                 }
             } catch (Exception ignore) {
             }
@@ -73,9 +78,13 @@ public class UserInfoApi {
             if (vip.getInt("status") == 1) {
                 UserInfo result = new UserInfo(mid, name, avatar, sign, fans, attention, level, followed, notice, official, officialDesc, vip.getInt("role"), sys_notice, liveroom, card.getInt("is_senior_member"));
                 result.vip_nickname_color = vip.optString("nickname_color", "");
+                result.is_follow_display = is_follow_display;
                 return result;
-            } else
-                return new UserInfo(mid, name, avatar, sign, fans, attention, level, followed, notice, official, officialDesc, sys_notice, liveroom, card.getInt("is_senior_member"));
+            } else {
+                UserInfo result = new UserInfo(mid, name, avatar, sign, fans, attention, level, followed, notice, official, officialDesc, sys_notice, liveroom, card.getInt("is_senior_member"));
+                result.is_follow_display = is_follow_display;
+                return result;
+            }
         } else return null;
     }
 
@@ -203,5 +212,13 @@ public class UserInfoApi {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static int addContract(long upMid) throws IOException, JSONException {
+        String url = "https://api.bilibili.com/x/v1/contract/add_contract";
+        String csrf = NetWorkUtil.getInfoFromCookie("bili_jct", SharedPreferencesUtil.getString(SharedPreferencesUtil.cookies, ""));
+        String arg = "aid=&up_mid=" + upMid + "&source=4&scene=105&platform=web&mobi_app=pc&csrf=" + csrf;
+        JSONObject all = new JSONObject(Objects.requireNonNull(NetWorkUtil.post(url, arg, NetWorkUtil.webHeaders).body()).string());
+        return all.getInt("code");
     }
 }

@@ -40,6 +40,8 @@ public class UserInfo implements Parcelable, Serializable {
 
     public int is_senior_member = 0;
 
+    public boolean is_follow_display = false;
+
     public UserInfo(long mid, String name, String avatar, String sign, int fans, int following, int level, boolean followed, String notice, int official, String officialDesc, int is_senior_member) {
         this.mid = mid;
         this.name = name;
@@ -164,6 +166,7 @@ public class UserInfo implements Parcelable, Serializable {
         sys_notice = in.readString();
         live_room = in.readParcelable(LiveRoom.class.getClassLoader());
         is_senior_member = in.readInt();
+        is_follow_display = in.readByte() != 0;
     }
 
     @Override
@@ -189,6 +192,7 @@ public class UserInfo implements Parcelable, Serializable {
         dest.writeString(sys_notice);
         dest.writeParcelable(live_room, flags);
         dest.writeInt(is_senior_member);
+        dest.writeByte((byte) (is_follow_display ? 1 : 0));
     }
 
     @Override

@@ -18,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -133,9 +135,9 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         final MaterialCardView exclusiveTip, liveRoom, electricPanel;
         final ImageView userAvatar, officialIcon;
         final TextView uidTv;
-        final MaterialButton followBtn, msgBtn;
+        final MaterialButton followBtn, msgBtn, contractBtn;
         final RecyclerView electricUserList;
-        final View electricPanelDivider;
+        final View electricPanelDivider, divider;
 
         boolean notice_expand, desc_expand, electric_expand;
 
@@ -156,11 +158,13 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             userAvatar = itemView.findViewById(R.id.userAvatar);
             followBtn = itemView.findViewById(R.id.followBtn);
             msgBtn = itemView.findViewById(R.id.msgBtn);
+            contractBtn = itemView.findViewById(R.id.contractBtn);
             uidTv = itemView.findViewById(R.id.uidText);
             electricPanel = itemView.findViewById(R.id.electricPanel);
             electricPanelHeader = itemView.findViewById(R.id.electricPanelHeader);
             electricUserList = itemView.findViewById(R.id.electricUserList);
             electricPanelDivider = itemView.findViewById(R.id.electricPanelDivider);
+            divider = itemView.findViewById(R.id.divider);
             StringUtil.setCopy(userDesc, userNotice);
         }
 
@@ -295,6 +299,43 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 intent.putExtra("uid", userInfo.mid);
                 context.startActivity(intent);
             });
+
+            long currentMid = SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0);
+            if (userInfo.mid != currentMid && currentMid != 0 && userInfo.mid != 0 && userInfo.is_follow_display) {
+                this.contractBtn.setVisibility(View.VISIBLE);
+                ConstraintLayout layout = (ConstraintLayout) itemView;
+                ConstraintSet constraintSet = new ConstraintSet();
+                constraintSet.clone(layout);
+                constraintSet.connect(R.id.divider, ConstraintSet.TOP, R.id.contractBtn, ConstraintSet.BOTTOM);
+                constraintSet.applyTo(layout);
+                this.contractBtn.setOnClickListener(view -> {
+                    contractBtn.setEnabled(false);
+                    CenterThreadPool.run(() -> {
+                        try {
+                            int result = UserInfoApi.addContract(userInfo.mid);
+                            String msg;
+                            if (result == 0) {
+                                msg = "加入成功";
+                            } else if (result == 158001) {
+                                msg = "不满足条件";
+                            } else {
+                                msg = "操作失败：" + result;
+                            }
+                            MsgUtil.showMsg(msg);
+                        } catch (Exception e) {
+                            MsgUtil.err(e);
+                        }
+                        CenterThreadPool.runOnUiThread(() -> contractBtn.setEnabled(true));
+                    });
+                });
+            } else {
+                this.contractBtn.setVisibility(View.GONE);
+                ConstraintLayout layout = (ConstraintLayout) itemView;
+                ConstraintSet constraintSet = new ConstraintSet();
+                constraintSet.clone(layout);
+                constraintSet.connect(R.id.divider, ConstraintSet.TOP, R.id.followBtn, ConstraintSet.BOTTOM);
+                constraintSet.applyTo(layout);
+            }
 
             this.userDesc.setOnClickListener(view1 -> {
                 if (desc_expand)
