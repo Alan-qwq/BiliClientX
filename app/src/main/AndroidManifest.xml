@@ -366,6 +366,11 @@
             android:label="界面设置"
             android:screenOrientation="locked" />
         <activity
+            android:name=".activity.user.VipActivity"
+            android:exported="false"
+            android:label="我的大会员"
+            android:screenOrientation="locked" />
+        <activity
             android:name=".activity.settings.AboutActivity"
             android:exported="true"
             android:label="关于"

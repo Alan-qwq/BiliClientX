@@ -29,7 +29,7 @@ public class MySpaceActivity extends InstanceActivity {
 
     private ImageView userAvatar;
     private TextView userName, userFans, userExp;
-    private MaterialCardView myInfo, follow, watchLater, favorite, bangumi, history, creative, loginRecord, logout;
+    private MaterialCardView myInfo, follow, watchLater, favorite, bangumi, history, creative, vip, loginRecord, logout;
 
     private boolean confirmLogout = false;
 
@@ -53,6 +53,7 @@ public class MySpaceActivity extends InstanceActivity {
             bangumi = findViewById(R.id.bangumi);
             history = findViewById(R.id.history);
             creative = findViewById(R.id.creative);
+            vip = findViewById(R.id.vip);
             loginRecord = findViewById(R.id.login_record);
             logout = findViewById(R.id.logout);
 
@@ -117,6 +118,12 @@ public class MySpaceActivity extends InstanceActivity {
                         });
                         if (!SharedPreferencesUtil.getBoolean("creative_enable", true))
                             creative.setVisibility(View.GONE);
+
+                        vip.setOnClickListener(view -> {
+                            Intent intent = new Intent();
+                            intent.setClass(MySpaceActivity.this, VipActivity.class);
+                            startActivity(intent);
+                        });
 
                         loginRecord.setOnClickListener(view -> {
                             Intent intent = new Intent();
