@@ -235,8 +235,10 @@
         <item>增加了私信部分信息的显示</item>
         <item>修复了一键三连存在错别字的问题</item>
         <item>优化了常年bug的缓存页面的下载管理</item>
-        <item>进行了不知道有没有用的性能优化</item>
+        <item>优化了表冠适配</item>
         <item>优化了少量屎山代码</item>
+        <item>优化了性能但不知道有没有用</item>
+        <item>整理了设置项</item>
         <item>新增了一些bug和屎山代码</item>
     </string-array>
 
