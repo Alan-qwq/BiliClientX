@@ -58,6 +58,8 @@ public class SearchActivity extends InstanceActivity {
     ArrayList<String> searchSuggestions;
     private Runnable suggestionRunnable;
     private boolean suggestionsEnabled;
+    private String defaultSearchContent;
+    private boolean defaultSearchContentEnabled;
 
     boolean tutorial_show;
     String classname;
@@ -79,8 +81,21 @@ public class SearchActivity extends InstanceActivity {
 
             handler = new Handler();
 
-            // 检查是否启用搜索建议
             suggestionsEnabled = SharedPreferencesUtil.getBoolean("search_suggestions_enable", true);
+            defaultSearchContentEnabled = SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.SEARCH_DEFAULT_CONTENT_ENABLE, false);
+            
+            if (defaultSearchContentEnabled) {
+                new Thread(() -> {
+                    try {
+                        defaultSearchContent = SearchApi.getDefaultSearchContent();
+                        if (defaultSearchContent != null && !defaultSearchContent.isEmpty()) {
+                            runOnUiThread(() -> keywordInput.setHint(defaultSearchContent));
+                        }
+                    } catch (Exception e) {
+                        Log.e("SearchActivity", "获取默认搜索内容失败", e);
+                    }
+                }).start();
+            }
 
             viewPager = findViewById(R.id.viewPager);
 
@@ -295,8 +310,15 @@ public class SearchActivity extends InstanceActivity {
             }
 
             if (str.isEmpty()) {
-                runOnUiThread(() -> MsgUtil.showMsg("还没输入内容喵~"));
-            } else if (Objects.equals(lastKeyword, str)) {
+                if (defaultSearchContentEnabled && defaultSearchContent != null && !defaultSearchContent.isEmpty()) {
+                    str = defaultSearchContent;
+                } else {
+                    runOnUiThread(() -> MsgUtil.showMsg("还没输入内容喵~"));
+                    return;
+                }
+            }
+            
+            if (Objects.equals(lastKeyword, str)) {
                 runOnUiThread(() -> {
                     keywordInput.clearFocus();
                     historyRecyclerview.setVisibility(View.GONE);

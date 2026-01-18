@@ -186,4 +186,16 @@ public class SearchApi {
 
         return suggestions;
     }
+
+    public static String getDefaultSearchContent() throws IOException, JSONException {
+        String url = "https://api.bilibili.com/x/web-interface/wbi/search/default";
+        JSONObject response = NetWorkUtil.getJson(ConfInfoApi.signWBI(url));
+        if (response.getInt("code") == 0 && response.has("data")) {
+            JSONObject data = response.getJSONObject("data");
+            if (data.has("show_name") && !data.isNull("show_name")) {
+                return data.getString("show_name");
+            }
+        }
+        return null;
+    }
 }

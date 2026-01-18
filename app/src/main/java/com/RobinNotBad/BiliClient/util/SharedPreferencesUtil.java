@@ -22,6 +22,7 @@ public class SharedPreferencesUtil {
     public static final String DYNAMIC_UPDATE_NUM = "dynamic_update_num";
     public static final String FOLLOW_GROUP_MODE = "follow_group_mode";
     public static final String NIGHT_REMINDER_ENABLE = "night_reminder_enable";
+    public static final String SEARCH_DEFAULT_CONTENT_ENABLE = "search_default_content_enable";
 
     public static String cookies = "cookies";
     public static String mid = "mid";
