@@ -34,6 +34,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private static final Map<String, Integer> typeMap = new HashMap<>() {
         {
             put("divider", -1);
+            put("title", -2);
             put("switch", 0);
             put("choose", 1);
             put("input_int", 2);
@@ -68,6 +69,9 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case -1:
                 return new DividerHolder(
                         LayoutInflater.from(this.context).inflate(R.layout.cell_divider, parent, false));
+            case -2:
+                return new TitleHolder(
+                        LayoutInflater.from(this.context).inflate(R.layout.cell_setting_title, parent, false));
             default:
                 return new SwitchHolder(
                         LayoutInflater.from(this.context).inflate(R.layout.cell_setting_switch, parent, false));
@@ -85,6 +89,10 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         switch (holder.getItemViewType()) {
             case -1:
+                break;
+            case -2:
+                TitleHolder titleHolder = (TitleHolder) holder;
+                titleHolder.bind(settingSection);
                 break;
             case 1:
                 ChooseHolder chooseHolder = (ChooseHolder) holder;
@@ -263,6 +271,19 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public DividerHolder(@NonNull View itemView) {
             super(itemView);
+        }
+    }
+
+    public static class TitleHolder extends RecyclerView.ViewHolder {
+        final TextView titleText;
+
+        public TitleHolder(@NonNull View itemView) {
+            super(itemView);
+            titleText = itemView.findViewById(R.id.setting_title_text);
+        }
+
+        public void bind(SettingSection settingSection) {
+            titleText.setText(settingSection.name);
         }
     }
 }

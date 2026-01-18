@@ -24,26 +24,39 @@ public class SettingPrefActivity extends RefreshListActivity {
 
         final List<SettingSection> sectionList = new ArrayList<>() {
             {
-                add(new SettingSection("switch", "禁用返回键", "back_disable", getString(R.string.desc_back_disable),
-                        "false"));
+                add(new SettingSection("title", "功能", "", "", ""));
+                add(new SettingSection("switch", "长按复制", "copy_enable", getString(R.string.desc_copy_enable), "true"));
                 add(new SettingSection("switch", "创作中心", "creative_enable", getString(R.string.desc_creative_enable),
                         "true"));
-                add(new SettingSection("switch", "长按复制", "copy_enable", getString(R.string.desc_copy_enable), "true"));
-                add(new SettingSection("switch", "加载渐入渐出动画", SharedPreferencesUtil.LOAD_TRANSITION,
-                        getString(R.string.desc_load_transition), "true"));
+                add(new SettingSection("switch", "搜索建议", "search_suggestions_enable",
+                        getString(R.string.desc_search_suggestions_enable), "true"));
+                add(new SettingSection("switch", "识别链接", "link_enable", getString(R.string.desc_link_enable), "true"));
+
+
+                add(new SettingSection("title", "优化", "", "", ""));
+                add(new SettingSection("switch", "禁用返回键", "back_disable", getString(R.string.desc_back_disable),
+                        "false"));
                 add(new SettingSection("switch", "禁止视频在相册中显示", "save_ban_gallery", getString(R.string.desc_ban_gallery),
                         "true"));
-                add(new SettingSection("switch", "翻动时不加载图片", "image_no_load_onscroll",
-                        getString(R.string.desc_img_no_load_onscroll), "false"));
                 add(new SettingSection("switch", "请求JPG格式图片", "image_request_jpg",
                         getString(R.string.desc_img_request_jpg), "false"));
-                add(new SettingSection("switch", "识别链接", "link_enable", getString(R.string.desc_link_enable), "true"));
+
+                add(new SettingSection("title", "视觉", "", "", ""));
+                add(new SettingSection("switch", "加载渐入渐出动画", SharedPreferencesUtil.LOAD_TRANSITION,
+                        getString(R.string.desc_load_transition), "true"));
+                add(new SettingSection("switch", "翻动时不加载图片", "image_no_load_onscroll",
+                        getString(R.string.desc_img_no_load_onscroll), "false"));
                 add(new SettingSection("switch", "异步加载布局", SharedPreferencesUtil.ASYNC_INFLATE_ENABLE,
                         getString(R.string.desc_async_inflate_enable), "true"));
                 add(new SettingSection("switch", "新提示信息显示方式", SharedPreferencesUtil.SNACKBAR_ENABLE,
                         "打开此选项，会启用新提示信息显示方式", "true"));
-                add(new SettingSection("switch", "搜索建议", "search_suggestions_enable",
-                        getString(R.string.desc_search_suggestions_enable), "true"));
+
+                add(new SettingSection("title", "表冠", "", "", ""));
+                add(new SettingSection("switch", "启用表冠适配", "ui_rotatory_enable",
+                        getString(R.string.setting_lab_ui_rotatory), "false"));
+                add(new SettingSection("input_float", "表冠适配灵敏度（Recycler）", "ui_rotatory_recycler", "", "0"));
+                add(new SettingSection("input_float", "表冠适配灵敏度（Scroll）", "ui_rotatory_scroll", "", "0"));
+
             }
         };
 
