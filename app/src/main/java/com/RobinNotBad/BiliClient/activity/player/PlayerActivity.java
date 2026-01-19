@@ -17,6 +17,7 @@ import android.media.AudioManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -43,6 +44,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.RobinNotBad.BiliClient.BiliTerminal;
 import com.RobinNotBad.BiliClient.R;
+import com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter;
+import com.RobinNotBad.BiliClient.adapter.ViewPointAdapter;
 import com.RobinNotBad.BiliClient.api.ConfInfoApi;
 import com.RobinNotBad.BiliClient.api.DanmakuApi;
 import com.RobinNotBad.BiliClient.api.PlayerApi;
@@ -53,6 +56,7 @@ import com.RobinNotBad.BiliClient.model.HighEnergyData;
 import com.RobinNotBad.BiliClient.model.PlayerData;
 import com.RobinNotBad.BiliClient.model.Subtitle;
 import com.RobinNotBad.BiliClient.model.SubtitleLink;
+import com.RobinNotBad.BiliClient.model.ViewPoint;
 import com.RobinNotBad.BiliClient.ui.widget.BatteryView;
 import com.RobinNotBad.BiliClient.ui.widget.HighEnergyProgressBar;
 import com.RobinNotBad.BiliClient.ui.widget.recycler.CustomLinearManager;
@@ -75,6 +79,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -125,19 +130,19 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private LinearLayout layout_speed, right_control, loading_info;
     private RelativeLayout bottom_buttons;
     private HorizontalScrollView right_second;
-    private LinearLayout card_subtitle, card_danmaku_send, card_page_selector, card_quality_selector;
+    private LinearLayout card_subtitle, card_danmaku_send, card_page_selector, card_quality_selector, card_viewpoint_selector;
 
     private ImageView img_loading;
     private AnimationDrawable anim_loading;
     private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send,
-            btn_audio_only, btn_page_selector, btn_auto_next, btn_quality;
+            btn_audio_only, btn_page_selector, btn_auto_next, btn_quality, btn_viewpoint;
     private HighEnergyProgressBar seekbar_progress;
     private SeekBar seekbar_speed;
     private TextView text_progress, text_online, text_volume, loading_text0, loading_text1, text_speed, text_newspeed;
     public TextView text_title, text_subtitle, text_audio_title, text_audio_subtitle;
 
     private Timer progressTimer, speedTimer, loadingTimer, onlineTimer, surfaceTimer;
-    private android.os.Handler mainHandler;
+    private Handler mainHandler;
     private Runnable danmakuSyncRunnable;
     private String video_url, danmaku_url;
 
@@ -157,7 +162,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
     private AudioManager audioManager;
 
-    private com.RobinNotBad.BiliClient.activity.player.ScaleGestureDetector scaleGestureDetector;
+    private ScaleGestureDetector scaleGestureDetector;
     private ViewScaleGestureListener scaleGestureListener;
     private float previousX, previousY;
     private boolean gesture_moved, gesture_scaled, gesture_click_disabled;
@@ -306,7 +311,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             cachepath.mkdirs();
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        mainHandler = new android.os.Handler(Looper.getMainLooper());
+        mainHandler = new Handler(Looper.getMainLooper());
 
         setVideoGestures();
         autohideReset();
@@ -353,6 +358,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 loadHighEnergyData();
             }
 
+            if (!destroyed && isOnlineVideo && aid > 0 && cid > 0 && SharedPreferencesUtil.getBoolean("player_show_viewpoints", false)) {
+                loadViewPoints();
+            }
+
             if (!destroyed)
                 setDisplay();
         }), 60);
@@ -368,6 +377,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         card_danmaku_send = findViewById(R.id.danmaku_send_card);
         card_page_selector = findViewById(R.id.page_selector_card);
         card_quality_selector = findViewById(R.id.quality_selector_card);
+        card_viewpoint_selector = findViewById(R.id.viewpoint_selector_card);
         layout_audio_only = findViewById(R.id.audio_only_layout);
 
         loading_info = findViewById(R.id.loading_info);
@@ -386,6 +396,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         btn_page_selector = findViewById(R.id.button_page_selector);
         btn_auto_next = findViewById(R.id.auto_next_btn);
         btn_quality = findViewById(R.id.button_quality);
+        btn_viewpoint = findViewById(R.id.viewpoint_btn);
         seekbar_progress = findViewById(R.id.videoprogress);
         loading_text0 = findViewById(R.id.loading_text0);
         loading_text1 = findViewById(R.id.loading_text1);
@@ -1016,6 +1027,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                             showSubtitle(curr_sec + subtitle_delta);
                         else
                             runOnUiThread(() -> text_subtitle.setVisibility(View.GONE));
+                        
+                        if (viewPointAdapter != null && viewPoints != null && !viewPoints.isEmpty()) {
+                            viewPointAdapter.updateCurrentPosition((int) curr_sec);
+                        }
                     }
                 }
             }
@@ -1782,6 +1797,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             card_danmaku_send.setVisibility(View.GONE);
             card_page_selector.setVisibility(View.GONE);
             card_quality_selector.setVisibility(View.GONE);
+            card_viewpoint_selector.setVisibility(View.GONE);
         });
         btn_danmaku_send.setOnClickListener(view -> {
             layout_card_bg.setVisibility(View.VISIBLE);
@@ -2178,6 +2194,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     subtitles = null;
                     subtitleLinks = null;
                     subtitle_selected = -1;
+                    viewPoints = null;
+                    viewPointAdapter = null;
+                    if (btn_viewpoint != null) {
+                        btn_viewpoint.setVisibility(View.GONE);
+                    }
 
                     ijkPlayer = new IjkMediaPlayer();
                     mDanmakuView = findViewById(R.id.sv_danmaku);
@@ -2207,6 +2228,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
                         if (!destroyed && isOnlineVideo && aid > 0 && cid > 0) {
                             loadHighEnergyData();
+                        }
+
+                        if (!destroyed && isOnlineVideo && aid > 0 && cid > 0 && SharedPreferencesUtil.getBoolean("player_show_viewpoints", false)) {
+                            loadViewPoints();
                         }
                     }), 60);
                 });
@@ -2240,7 +2265,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
         runOnUiThread(() -> {
             RecyclerView qualitySelectorRecycler = findViewById(R.id.quality_selector_list);
-            com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter adapter = new com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter();
+            QualitySelectorAdapter adapter = new QualitySelectorAdapter();
             adapter.setData(qnStrList, qnValueList, currentQuality);
             adapter.setOnItemClickListener(index -> {
                 layout_card_bg.setVisibility(View.GONE);
@@ -2315,6 +2340,63 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     MsgUtil.showMsg("清晰度切换失败");
                 });
             }
+        });
+    }
+
+    private List<ViewPoint> viewPoints;
+    private ViewPointAdapter viewPointAdapter;
+
+    private void loadViewPoints() {
+        CenterThreadPool.run(() -> {
+            try {
+                Logu.d("视频分段", "开始加载分段数据 aid=" + aid + " cid=" + cid);
+                viewPoints = PlayerApi.getViewPoints(aid, cid);
+
+                if (viewPoints != null && !viewPoints.isEmpty()) {
+                    runOnUiThread(() -> {
+                        if (!destroyed && btn_viewpoint != null) {
+                            btn_viewpoint.setVisibility(View.VISIBLE);
+                            btn_viewpoint.setOnClickListener(view -> showViewPointSelectorCard());
+                            Logu.d("视频分段", "成功加载 " + viewPoints.size() + " 个分段");
+                        }
+                    });
+                } else {
+                    Logu.d("视频分段", "未获取到分段数据");
+                }
+            } catch (Exception e) {
+                Logu.e("视频分段", "加载失败: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void showViewPointSelectorCard() {
+        if (viewPoints == null || viewPoints.isEmpty())
+            return;
+
+        runOnUiThread(() -> {
+            RecyclerView viewPointRecycler = findViewById(R.id.viewpoint_selector_list);
+            if (viewPointAdapter == null) {
+                viewPointAdapter = new ViewPointAdapter();
+                viewPointAdapter.setData(viewPoints);
+                viewPointAdapter.setOnItemClickListener(index -> {
+                    layout_card_bg.setVisibility(View.GONE);
+                    card_viewpoint_selector.setVisibility(View.GONE);
+                    if (index >= 0 && index < viewPoints.size()) {
+                        ViewPoint vp = viewPoints.get(index);
+                        seekToPosition(vp.from * 1000L);
+                        MsgUtil.showMsg("跳转到: " + vp.content);
+                    }
+                });
+                viewPointRecycler.setLayoutManager(new CustomLinearManager(this, LinearLayoutManager.HORIZONTAL, false));
+                viewPointRecycler.setAdapter(viewPointAdapter);
+            }
+            if (ijkPlayer != null && isPrepared) {
+                int currentPos = (int) (ijkPlayer.getCurrentPosition() / 1000);
+                viewPointAdapter.updateCurrentPosition(currentPos);
+            }
+            layout_card_bg.setVisibility(View.VISIBLE);
+            card_viewpoint_selector.setVisibility(View.VISIBLE);
         });
     }
 

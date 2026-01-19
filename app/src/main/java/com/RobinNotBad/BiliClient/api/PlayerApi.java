@@ -427,6 +427,32 @@ public class PlayerApi {
         return links;
     }
 
+    public static java.util.List<com.RobinNotBad.BiliClient.model.ViewPoint> getViewPoints(long aid, long cid) throws JSONException, IOException {
+        String url = "https://api.bilibili.com/x/player/wbi/v2?aid=" + aid
+                + "&cid=" + cid;
+        url = ConfInfoApi.signWBI(url);
+        JSONObject data = NetWorkUtil.getJson(url).getJSONObject("data");
+
+        java.util.List<com.RobinNotBad.BiliClient.model.ViewPoint> viewPoints = new java.util.ArrayList<>();
+        
+        if (data.has("view_points")) {
+            JSONArray viewPointsArray = data.getJSONArray("view_points");
+            for (int i = 0; i < viewPointsArray.length(); i++) {
+                JSONObject vp = viewPointsArray.getJSONObject(i);
+                String content = vp.optString("content", "");
+                int from = vp.optInt("from", 0);
+                int to = vp.optInt("to", 0);
+                int type = vp.optInt("type", 0);
+                String imgUrl = vp.optString("imgUrl", "");
+                String logoUrl = vp.optString("logoUrl", "");
+                
+                viewPoints.add(new com.RobinNotBad.BiliClient.model.ViewPoint(content, from, to, type, imgUrl, logoUrl));
+            }
+        }
+        
+        return viewPoints;
+    }
+
     /**
      * 通过链接获取字幕
      *
