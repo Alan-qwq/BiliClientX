@@ -879,6 +879,8 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             if (SharedPreferencesUtil.getBoolean("player_ui_showQualityBtn", true) && isOnlineVideo) {
                 btn_quality.setVisibility(View.VISIBLE);
                 btn_quality.setOnClickListener(view -> showQualitySelectorCard());
+            } else {
+                btn_quality.setVisibility(View.GONE);
             }
 
             if (!SharedPreferencesUtil.getBoolean("player_ui_showPageBtn", true))

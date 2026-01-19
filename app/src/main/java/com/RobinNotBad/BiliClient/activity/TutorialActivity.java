@@ -70,6 +70,11 @@ public class TutorialActivity extends BaseActivity {
                 SharedPreferencesUtil.putInt("tutorial_ver_" + intent.getStringExtra("tag"), intent.getIntExtra("version", -1));
                 finish();
             });
+
+            View scrollView = findViewById(R.id.scrollView);
+            scrollView.setFocusable(true);
+            scrollView.setFocusableInTouchMode(true);
+            scrollView.requestFocus();
         });
     }
 
