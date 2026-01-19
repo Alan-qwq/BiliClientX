@@ -199,6 +199,9 @@ public class SearchActivity extends InstanceActivity {
             });
             historyRecyclerview.setLayoutManager(new CustomLinearManager(this));
             historyRecyclerview.setAdapter(searchHistoryAdapter);
+            historyRecyclerview.setFocusable(true);
+            historyRecyclerview.setFocusableInTouchMode(true);
+            historyRecyclerview.requestFocus();
 
             // 初始化搜索建议
             searchSuggestions = new ArrayList<>();
@@ -373,6 +376,7 @@ public class SearchActivity extends InstanceActivity {
                             .findFragmentByTag("f" + viewPager.getCurrentItem());
                     if (fragmentCurr != null) {
                         ((SearchFragment) fragmentCurr).refresh();
+                        requestFragmentFocus();
                     }
                 } catch (Exception e) {
                     report(e);
@@ -411,6 +415,21 @@ public class SearchActivity extends InstanceActivity {
                 animator.start();
             }
         }
+
+        requestFragmentFocus();
     }
 
+    private void requestFragmentFocus(){
+        Fragment fragmentCurr = getSupportFragmentManager()
+                .findFragmentByTag("f" + viewPager.getCurrentItem());
+        if (fragmentCurr != null) {
+            ((SearchFragment) fragmentCurr).refresh();
+            if (fragmentCurr.getView() != null) {
+                View recyclerView = fragmentCurr.getView().findViewById(R.id.recyclerView);
+                recyclerView.setFocusable(true);
+                recyclerView.setFocusableInTouchMode(true);
+                recyclerView.requestFocus();
+            }
+        }
+    }
 }
