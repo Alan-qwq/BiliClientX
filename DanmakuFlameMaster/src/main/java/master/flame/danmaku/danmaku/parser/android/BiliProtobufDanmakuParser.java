@@ -81,8 +81,7 @@ public class BiliProtobufDanmakuParser extends BaseDanmakuParser {
         try {
             Class<?> elemClass = elemObj.getClass();
 
-            // 获取弹幕属性
-            int progress = elemClass.getField("progress").getInt(elemObj); // 毫秒
+            int progress = elemClass.getField("progress").getInt(elemObj);
             int mode = elemClass.getField("mode").getInt(elemObj);
             int fontsize = elemClass.getField("fontsize").getInt(elemObj);
             int color = elemClass.getField("color").getInt(elemObj);
@@ -92,30 +91,27 @@ public class BiliProtobufDanmakuParser extends BaseDanmakuParser {
                 return null;
             }
 
-            // 转换弹幕类型（如果需要强制右到左）
+            if (mode == 7 || mode == 8) {
+                return null;
+            }
+
             if (sharedPreferences != null && mode != 7 && mode != 8
                     && sharedPreferences.getBoolean("player_danmaku_forceR2L", false)) {
                 mode = 1;
             }
 
-            // 创建弹幕对象
             BaseDanmaku item = mContext.mDanmakuFactory.createDanmaku(mode, mContext);
             if (item != null) {
-                // 设置时间（protobuf 中是毫秒）
                 item.time = progress;
 
-                // 设置文本
                 DanmakuUtils.fillText(item, content);
                 item.index = index;
 
-                // 设置字号
                 item.textSize = fontsize * (mDispDensity - 0.6f);
 
-                // 设置颜色（确保 alpha 通道为 FF）
                 item.textColor = color | 0xFF000000;
                 item.textShadowColor = (color | 0xFF000000) <= Color.BLACK ? Color.WHITE : Color.BLACK;
 
-                // 设置定时器
                 item.setTimer(mTimer);
             }
 
