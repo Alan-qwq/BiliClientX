@@ -228,6 +228,7 @@
 
     #新增功能放到上面，修复问题放下面，方便用户看见
     <string-array name="update_log_items">
+        <item>增加了番剧和影视详情页中更多的信息展示</item>
         <item>增加了“我的大会员”页面的签到和领取每日经验按钮</item>
         <item>增加了用户粉丝勋章列表</item>
         <item>增加了私信的标记已读功能</item>

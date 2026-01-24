@@ -72,15 +72,16 @@ public class BangumiApi {
     }
 
     public static Bangumi.Info getInfo(long mediaId) throws IOException, JSONException {
-        String url = "https://api.bilibili.com/pgc/review/user?media_id=" + mediaId;
-        JSONObject all = NetWorkUtil.getJson(url);
+        // 先获取基本信息
+        String url1 = "https://api.bilibili.com/pgc/review/user?media_id=" + mediaId;
+        JSONObject all1 = NetWorkUtil.getJson(url1);
 
-        int code = all.getInt("code");
-        if (code != 0) {
-            throw new JSONException("错误码：" + code);
+        int code1 = all1.getInt("code");
+        if (code1 != 0) {
+            throw new JSONException("错误码：" + code1);
         }
 
-        JSONObject media = all.getJSONObject("result").getJSONObject("media");
+        JSONObject media = all1.getJSONObject("result").getJSONObject("media");
 
         Bangumi.Info info = new Bangumi.Info();
         info.media_id = media.getLong("media_id");
@@ -99,17 +100,94 @@ public class BangumiApi {
         JSONObject rating = media.optJSONObject("rating");
         if (rating != null) {
             info.count = rating.optInt("count");
-            info.score = (float) rating.optInt("score");
+            info.score = (float) rating.optDouble("score", 0);
         }
 
         JSONArray areas = media.getJSONArray("areas");
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < areas.length(); i++) {
             stringBuilder.append(areas.getJSONObject(i).getString("name"));
-            stringBuilder.append("|");
+            if (i < areas.length() - 1) {
+                stringBuilder.append(" | ");
+            }
         }
-        stringBuilder.substring(0, stringBuilder.length() - 1);
         info.area_name = stringBuilder.toString();
+
+        // 获取详细信息
+        String url2 = "https://api.bilibili.com/pgc/view/web/season?season_id=" + info.season_id;
+        JSONObject all2 = NetWorkUtil.getJson(url2);
+
+        int code2 = all2.getInt("code");
+        if (code2 == 0) {
+            JSONObject result = all2.getJSONObject("result");
+
+            info.evaluate = result.optString("evaluate", "");
+            info.staff = result.optString("staff", "");
+            info.record = result.optString("record", "");
+            info.subtitle = result.optString("subtitle", "");
+
+            // 发布时间信息
+            JSONObject publish = result.optJSONObject("publish");
+            if (publish != null) {
+                info.publish = new Bangumi.Publish();
+                info.publish.is_finish = publish.optInt("is_finish", 0);
+                info.publish.is_started = publish.optInt("is_started", 0);
+                info.publish.pub_time = publish.optString("pub_time", "");
+                info.publish.pub_time_show = publish.optString("pub_time_show", "");
+            }
+
+            // 标签
+            JSONArray styles = result.optJSONArray("styles");
+            if (styles != null) {
+                info.styles = new ArrayList<>();
+                for (int i = 0; i < styles.length(); i++) {
+                    info.styles.add(styles.getString(i));
+                }
+            }
+
+            // 状态数
+            JSONObject stat = result.optJSONObject("stat");
+            if (stat != null) {
+                info.stat = new Bangumi.Stat();
+                info.stat.favorites = stat.optInt("favorites", 0);
+                info.stat.series_follow = stat.optInt("series_follow", 0);
+                info.stat.views = stat.optInt("views", 0);
+                info.stat.vt = stat.optInt("vt", 0);
+            }
+
+            // UP主信息
+            JSONObject upInfo = result.optJSONObject("up_info");
+            if (upInfo != null) {
+                info.up_info = new Bangumi.UpInfo();
+                info.up_info.mid = upInfo.optLong("mid", 0);
+                info.up_info.name = upInfo.optString("name", "");
+                info.up_info.avatar = upInfo.optString("avatar", "");
+            }
+
+            // 系列信息
+            JSONObject series = result.optJSONObject("series");
+            if (series != null) {
+                info.series = new Bangumi.Series();
+                info.series.series_id = series.optLong("series_id", 0);
+                info.series.series_title = series.optString("series_title", "");
+            }
+
+            // 同系列所有季信息
+            JSONArray seasons = result.optJSONArray("seasons");
+            if (seasons != null) {
+                info.seasons = new ArrayList<>();
+                for (int i = 0; i < seasons.length(); i++) {
+                    JSONObject seasonObj = seasons.getJSONObject(i);
+                    Bangumi.Season season = new Bangumi.Season();
+                    season.media_id = seasonObj.optLong("media_id", 0);
+                    season.season_id = seasonObj.optLong("season_id", 0);
+                    season.season_title = seasonObj.optString("season_title", "");
+                    season.cover = seasonObj.optString("cover", "");
+                    season.badge = seasonObj.optString("badge", "");
+                    info.seasons.add(season);
+                }
+            }
+        }
 
         return info;
     }

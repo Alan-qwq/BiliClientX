@@ -84,6 +84,19 @@ public class BangumiInfoFragment extends Fragment {
         ImageView imageMediaCover = rootView.findViewById(R.id.image_media_cover);
         Button playButton = rootView.findViewById(R.id.btn_play);
         TextView title = rootView.findViewById(R.id.text_title);
+        TextView subtitle = rootView.findViewById(R.id.text_subtitle);
+        TextView areaType = rootView.findViewById(R.id.text_area_type);
+        TextView rating = rootView.findViewById(R.id.text_rating);
+        TextView pubTime = rootView.findViewById(R.id.text_pub_time);
+        TextView stats = rootView.findViewById(R.id.text_stats);
+        TextView styles = rootView.findViewById(R.id.text_styles);
+        View evaluateHeader = rootView.findViewById(R.id.layout_evaluate_header);
+        ImageView evaluateArrow = rootView.findViewById(R.id.icon_evaluate_arrow);
+        TextView evaluate = rootView.findViewById(R.id.text_evaluate);
+        View staffHeader = rootView.findViewById(R.id.layout_staff_header);
+        ImageView staffArrow = rootView.findViewById(R.id.icon_staff_arrow);
+        TextView staff = rootView.findViewById(R.id.text_staff);
+        TextView record = rootView.findViewById(R.id.text_record);
         section_choose = rootView.findViewById(R.id.section_choose);
         episode_choose = rootView.findViewById(R.id.episode_choose);
         selectedSection = 0;
@@ -98,6 +111,112 @@ public class BangumiInfoFragment extends Fragment {
                 .into(imageMediaCover);
         imageMediaCover.setOnClickListener((view) -> startActivity(new Intent(view.getContext(), ImageViewerActivity.class).putExtra("imageList", new ArrayList<>(List.of(bangumi.info.cover_horizontal)))));
         title.setText(bangumi.info.title);
+
+        // 副标题
+        if (bangumi.info.subtitle != null && !bangumi.info.subtitle.isEmpty()) {
+            subtitle.setText(bangumi.info.subtitle);
+            subtitle.setVisibility(View.VISIBLE);
+        } else {
+            subtitle.setVisibility(View.GONE);
+        }
+
+        // 地区和类型
+        String areaTypeText = (bangumi.info.area_name != null ? bangumi.info.area_name : "") +
+                             (bangumi.info.type_name != null ? " | " + bangumi.info.type_name : "");
+        if (!areaTypeText.trim().isEmpty()) {
+            areaType.setText(areaTypeText.trim());
+            areaType.setVisibility(View.VISIBLE);
+        } else {
+            areaType.setVisibility(View.GONE);
+        }
+
+        // 评分
+        if (bangumi.info.score > 0) {
+            rating.setText(String.format("评分：%.1f (%d人)", bangumi.info.score, bangumi.info.count));
+            rating.setVisibility(View.VISIBLE);
+        } else {
+            rating.setVisibility(View.GONE);
+        }
+
+        // 发布时间
+        if (bangumi.info.publish != null && bangumi.info.publish.pub_time_show != null && !bangumi.info.publish.pub_time_show.isEmpty()) {
+            String status = bangumi.info.publish.is_finish == 1 ? "已完结" : "连载中";
+            pubTime.setText(bangumi.info.publish.pub_time_show + " " + status);
+            pubTime.setVisibility(View.VISIBLE);
+        } else {
+            pubTime.setVisibility(View.GONE);
+        }
+
+        // 状态数
+        if (bangumi.info.stat != null) {
+            StringBuilder statBuilder = new StringBuilder();
+            if (bangumi.info.stat.views > 0) {
+                statBuilder.append("播放：").append(formatNumber(bangumi.info.stat.views));
+            }
+            if (bangumi.info.stat.favorites > 0) {
+                if (statBuilder.length() > 0) statBuilder.append(" ");
+                statBuilder.append("收藏：").append(formatNumber(bangumi.info.stat.favorites));
+            }
+            if (bangumi.info.stat.series_follow > 0) {
+                if (statBuilder.length() > 0) statBuilder.append(" ");
+                statBuilder.append("追番：").append(formatNumber(bangumi.info.stat.series_follow));
+            }
+            if (statBuilder.length() > 0) {
+                stats.setText(statBuilder.toString());
+                stats.setVisibility(View.VISIBLE);
+            } else {
+                stats.setVisibility(View.GONE);
+            }
+        } else {
+            stats.setVisibility(View.GONE);
+        }
+
+        // 标签
+        if (bangumi.info.styles != null && !bangumi.info.styles.isEmpty()) {
+            String styleText = "标签：" + String.join(" ", bangumi.info.styles);
+            styles.setText(styleText);
+            styles.setVisibility(View.VISIBLE);
+        } else {
+            styles.setVisibility(View.GONE);
+        }
+
+        // 简介
+        if (bangumi.info.evaluate != null && !bangumi.info.evaluate.trim().isEmpty()) {
+            evaluate.setText(bangumi.info.evaluate.trim());
+            evaluateHeader.setVisibility(View.VISIBLE);
+            evaluate.setVisibility(View.GONE); // 默认折叠
+            evaluateHeader.setOnClickListener(v -> {
+                boolean isExpanded = evaluate.getVisibility() == View.VISIBLE;
+                evaluate.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
+                evaluateArrow.animate().rotation(isExpanded ? 0 : 180).setDuration(200).start();
+            });
+        } else {
+            evaluateHeader.setVisibility(View.GONE);
+            evaluate.setVisibility(View.GONE);
+        }
+
+        // 制作人员
+        if (bangumi.info.staff != null && !bangumi.info.staff.trim().isEmpty()) {
+            staff.setText(bangumi.info.staff.trim());
+            staffHeader.setVisibility(View.VISIBLE);
+            staff.setVisibility(View.GONE); // 默认折叠
+            staffHeader.setOnClickListener(v -> {
+                boolean isExpanded = staff.getVisibility() == View.VISIBLE;
+                staff.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
+                staffArrow.animate().rotation(isExpanded ? 0 : 180).setDuration(200).start();
+            });
+        } else {
+            staffHeader.setVisibility(View.GONE);
+            staff.setVisibility(View.GONE);
+        }
+
+        // 备案号
+        if (bangumi.info.record != null && !bangumi.info.record.trim().isEmpty()) {
+            record.setText("备案号：" + bangumi.info.record.trim());
+            record.setVisibility(View.VISIBLE);
+        } else {
+            record.setVisibility(View.GONE);
+        }
         //section selector setting.
         MediaEpisodeAdapter adapter = new MediaEpisodeAdapter();
 
@@ -214,6 +333,16 @@ public class BangumiInfoFragment extends Fragment {
                 ((VideoInfoActivity) activity).crossFade(getView());
             }
         } catch (Exception ignored) {
+        }
+    }
+
+    private String formatNumber(int num) {
+        if (num >= 100000000) { // 亿
+            return String.format("%.1f亿", num / 100000000.0);
+        } else if (num >= 10000) { // 万
+            return String.format("%.1f万", num / 10000.0);
+        } else {
+            return String.valueOf(num);
         }
     }
 }

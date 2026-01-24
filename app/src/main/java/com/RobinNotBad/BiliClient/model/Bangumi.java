@@ -20,6 +20,51 @@ public class Bangumi {
         public String type_name;
         public String area_name;
         public String indexShow;
+
+        // 新增字段
+        public String evaluate; // 简介
+        public String staff; // 制作人员信息
+        public String record; // 备案号
+        public String subtitle; // 副标题
+        public Publish publish; // 发布时间信息
+        public ArrayList<String> styles; // 标签
+        public Stat stat; // 状态数
+        public UpInfo up_info; // UP主信息
+        public Series series; // 系列信息
+        public ArrayList<Season> seasons; // 同系列所有季信息
+    }
+
+    public static class Publish {
+        public int is_finish; // 完结状态 0：未完结 1：已完结
+        public int is_started; // 是否发布 0：未发布 1：已发布
+        public String pub_time; // 发布时间
+        public String pub_time_show; // 发布时间文字介绍
+    }
+
+    public static class Stat {
+        public int favorites; // 收藏数
+        public int series_follow; // 系列追番数
+        public int views; // 播放数
+        public int vt; // 虚拟观看数
+    }
+
+    public static class UpInfo {
+        public long mid;
+        public String name;
+        public String avatar;
+    }
+
+    public static class Series {
+        public long series_id;
+        public String series_title;
+    }
+
+    public static class Season {
+        public long media_id;
+        public long season_id;
+        public String season_title;
+        public String cover;
+        public String badge;
     }
 
     public static class Section {
