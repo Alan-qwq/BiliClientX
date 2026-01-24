@@ -244,12 +244,14 @@ public class LiveApi {
             if (liveRoom.roomid == -1) {
                 liveRoom.roomid = jsonObject.getLong("room_id");
             }
+            liveRoom.short_id = jsonObject.optLong("short_id", 0);
             liveRoom.uid = jsonObject.getLong("uid");
             liveRoom.title = jsonObject.getString("title");
             liveRoom.uname = jsonObject.optString("uname");
             liveRoom.tags = jsonObject.optString("tags");
             liveRoom.description = jsonObject.optString("description");
             liveRoom.online = jsonObject.optInt("online", -1);
+            liveRoom.attention = jsonObject.optInt("attention", -1);
             liveRoom.user_cover = jsonObject.optString("user_cover");
             liveRoom.user_cover_flag = jsonObject.optInt("user_cover_flag", -1);
             liveRoom.system_cover = jsonObject.optString("system_cover");
@@ -261,13 +263,37 @@ public class LiveApi {
             liveRoom.show_cover = jsonObject.optString("show_cover");
             liveRoom.face = jsonObject.optString("face");
             liveRoom.area_parent_id = jsonObject.optInt("area_v2_parent_id", -1);
+            if (liveRoom.area_parent_id == -1) {
+                liveRoom.area_parent_id = jsonObject.optInt("parent_area_id", -1);
+            }
             liveRoom.area_parent_name = jsonObject.optString("area_v2_parent_name");
+            if (TextUtils.isEmpty(liveRoom.area_parent_name)) {
+                liveRoom.area_parent_name = jsonObject.optString("parent_area_name");
+            }
             liveRoom.area_id = jsonObject.optInt("area_v2_id", -1);
+            if (liveRoom.area_id == -1) {
+                liveRoom.area_id = jsonObject.optInt("area_id", -1);
+            }
             liveRoom.area_name = jsonObject.optString("area_v2_name");
+            if (TextUtils.isEmpty(liveRoom.area_name)) {
+                liveRoom.area_name = jsonObject.optString("area_name");
+            }
             liveRoom.session_id = jsonObject.optString("session_id");
             liveRoom.group_id = jsonObject.optInt("group_id");
             liveRoom.show_callback = jsonObject.optString("show_callback");
             liveRoom.click_callback = jsonObject.optString("click_callback");
+            liveRoom.live_status = jsonObject.optInt("live_status", -1);
+            liveRoom.old_area_id = jsonObject.optInt("old_area_id", -1);
+            liveRoom.background = jsonObject.optString("background");
+            liveRoom.is_portrait = jsonObject.optBoolean("is_portrait", false);
+            liveRoom.room_silent_type = jsonObject.optString("room_silent_type");
+            liveRoom.room_silent_level = jsonObject.optInt("room_silent_level", -1);
+            liveRoom.room_silent_second = jsonObject.optInt("room_silent_second", -1);
+            liveRoom.pk_status = jsonObject.optInt("pk_status", -1);
+            liveRoom.pk_id = jsonObject.optLong("pk_id", -1);
+            liveRoom.battle_id = jsonObject.optLong("battle_id", -1);
+            liveRoom.allow_change_area_time = jsonObject.optInt("allow_change_area_time", -1);
+            liveRoom.allow_upload_cover_time = jsonObject.optInt("allow_upload_cover_time", -1);
             JSONObject verify = jsonObject.optJSONObject("verify");
             if (verify != null) {
                 LiveRoom.Verify verifyObj = new LiveRoom.Verify();
@@ -288,6 +314,40 @@ public class LiveApi {
                 watched.icon_web = watched_show.optString("icon_web");
                 liveRoom.watched_show = watched;
             }
+            JSONObject new_pendants = jsonObject.optJSONObject("new_pendants");
+            if (new_pendants != null) {
+                LiveRoom.NewPendants pendants = new LiveRoom.NewPendants();
+                JSONObject frame = new_pendants.optJSONObject("frame");
+                if (frame != null) {
+                    pendants.frame = parseFrameInfo(frame);
+                }
+                JSONObject mobile_frame = new_pendants.optJSONObject("mobile_frame");
+                if (mobile_frame != null) {
+                    pendants.mobile_frame = parseFrameInfo(mobile_frame);
+                }
+                JSONObject badge = new_pendants.optJSONObject("badge");
+                if (badge != null) {
+                    pendants.badge = parseBadgeInfo(badge);
+                }
+                JSONObject mobile_badge = new_pendants.optJSONObject("mobile_badge");
+                if (mobile_badge != null) {
+                    pendants.mobile_badge = parseBadgeInfo(mobile_badge);
+                }
+                liveRoom.new_pendants = pendants;
+            }
+            JSONObject studio_info = jsonObject.optJSONObject("studio_info");
+            if (studio_info != null) {
+                LiveRoom.StudioInfo studioInfoObj = new LiveRoom.StudioInfo();
+                studioInfoObj.status = studio_info.optInt("status", -1);
+                studioInfoObj.master_list = new ArrayList<>();
+                JSONArray master_list = studio_info.optJSONArray("master_list");
+                if (master_list != null) {
+                    for (int j = 0; j < master_list.length(); j++) {
+                        studioInfoObj.master_list.add(master_list.opt(j));
+                    }
+                }
+                liveRoom.studio_info = studioInfoObj;
+            }
             long live_time = jsonObject.optLong("live_time", -1);
             @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (live_time != -1) liveRoom.liveTime = sdf.format(live_time * 1000);
@@ -295,5 +355,28 @@ public class LiveApi {
             liveRooms.add(liveRoom);
         }
         return liveRooms;
+    }
+
+    private static LiveRoom.FrameInfo parseFrameInfo(JSONObject frameObj) throws JSONException {
+        LiveRoom.FrameInfo frameInfo = new LiveRoom.FrameInfo();
+        frameInfo.name = frameObj.optString("name");
+        frameInfo.value = frameObj.optString("value");
+        frameInfo.position = frameObj.optInt("position", -1);
+        frameInfo.desc = frameObj.optString("desc");
+        frameInfo.area = frameObj.optInt("area", -1);
+        frameInfo.area_old = frameObj.optInt("area_old", -1);
+        frameInfo.bg_color = frameObj.optString("bg_color");
+        frameInfo.bg_pic = frameObj.optString("bg_pic");
+        frameInfo.use_old_area = frameObj.optBoolean("use_old_area", false);
+        return frameInfo;
+    }
+
+    private static LiveRoom.BadgeInfo parseBadgeInfo(JSONObject badgeObj) throws JSONException {
+        LiveRoom.BadgeInfo badgeInfo = new LiveRoom.BadgeInfo();
+        badgeInfo.name = badgeObj.optString("name");
+        badgeInfo.position = badgeObj.optInt("position", -1);
+        badgeInfo.value = badgeObj.optString("value");
+        badgeInfo.desc = badgeObj.optString("desc");
+        return badgeInfo;
     }
 }

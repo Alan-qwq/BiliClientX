@@ -77,6 +77,9 @@ public class LiveInfoActivity extends BaseActivity {
             TextView idText = findViewById(R.id.idText);
             TextView tags = findViewById(R.id.tags);
             TextView description = findViewById(R.id.description);
+            TextView areaText = findViewById(R.id.areaText);
+            TextView attentionText = findViewById(R.id.attentionText);
+            TextView liveStatusText = findViewById(R.id.liveStatusText);
             host_list = findViewById(R.id.host_list);
             RecyclerView quality_list = findViewById(R.id.quality_list);
 
@@ -110,7 +113,7 @@ public class LiveInfoActivity extends BaseActivity {
                 viewsCount.setText(StringUtil.toWan(room.online) + "人观看");
                 durationText.setText("直播开始于" + room.liveTime);
 
-                idText.setText(String.valueOf(room_id));
+                idText.setText("房间号: " + room_id + (room.short_id > 0 ? " (短号: " + room.short_id + ")" : ""));
                 tags.setText("标签：" + room.tags);
 
                 tags.setOnClickListener(view1 -> {
@@ -118,6 +121,22 @@ public class LiveInfoActivity extends BaseActivity {
                     else tags.setMaxLines(233);
                     tags_expand = !tags_expand;
                 });
+                
+                areaText.setText("分区: " + (room.area_parent_name != null ? room.area_parent_name + " > " : "") + (room.area_name != null ? room.area_name : ""));
+                attentionText.setText("关注数: " + StringUtil.toWan(room.attention));
+                
+                String statusStr;
+                if (room.live_status == 0) {
+                    statusStr = "未开播";
+                } else if (room.live_status == 1) {
+                    statusStr = "直播中";
+                } else if (room.live_status == 2) {
+                    statusStr = "轮播中";
+                } else {
+                    statusStr = "未知";
+                }
+                liveStatusText.setText("直播状态: " + statusStr);
+                
                 StringUtil.setCopy(idText, tags, title);
 
                 description.setText(StringUtil.removeHtml(StringUtil.htmlToString(room.description)));

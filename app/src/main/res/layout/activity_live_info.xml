@@ -273,6 +273,48 @@
                 app:layout_constraintTop_toBottomOf="@id/idText" />
 
             <TextView
+                android:id="@+id/areaText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:alpha="0.5"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="分区"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tags" />
+
+            <TextView
+                android:id="@+id/attentionText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:alpha="0.5"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="关注数"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/areaText" />
+
+            <TextView
+                android:id="@+id/liveStatusText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:alpha="0.5"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="直播状态"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/attentionText" />
+
+            <TextView
                 android:id="@+id/description"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -283,7 +325,7 @@
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tags" />
+                app:layout_constraintTop_toBottomOf="@id/liveStatusText" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
