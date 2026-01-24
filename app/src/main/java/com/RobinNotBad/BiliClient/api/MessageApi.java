@@ -44,14 +44,6 @@ public class MessageApi {
         int total = 0;
         total += data.optInt("at", 0);
         total += data.optInt("reply", 0);
-        total += data.optInt("like", 0);
-        total += data.optInt("recv_like", 0);
-        total += data.optInt("recv_reply", 0);
-        total += data.optInt("coin", 0);
-        total += data.optInt("danmu", 0);
-        total += data.optInt("favorite", 0);
-        total += data.optInt("sys_msg", 0);
-        total += data.optInt("up", 0);
         return total;
     }
 

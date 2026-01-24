@@ -72,8 +72,7 @@ public class BiliTerminal extends Application {
                     try {
                         int messageUnread = MessageApi.checkMessageUnread();
                         int privateMsgUnread = MessageApi.checkPrivateMsgUnread();
-                        int groupMsgUnread = MessageApi.checkGroupMsgUnread();
-                        int totalUnread = messageUnread + privateMsgUnread + groupMsgUnread;
+                        int totalUnread = messageUnread + privateMsgUnread;
                         SharedPreferencesUtil.putInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, totalUnread);
                     } catch (IOException | JSONException e) {
                         SharedPreferencesUtil.putInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, 0);

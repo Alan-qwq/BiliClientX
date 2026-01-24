@@ -133,7 +133,7 @@
     <string name="desc_reply_marquee_name">开启此选项后，评论区的用户名称将会以跑马灯的形式展现，而不是换行</string>
     <string name="desc_live_by_guest">开启此选项后，进入直播间时将会使用游客身份\n\n注意：开启后的漏弹幕情况将会更加严重</string>
     <string name="desc_dynamic_update_check_enable">启动应用时检查是否有新动态并显示在菜单中</string>
-    <string name="desc_message_update_check_enable">启动应用时检查是否有新消息并显示在菜单中</string>
+    <string name="desc_message_update_check_enable">启动应用时检查是否有新消息并显示在菜单中\n菜单中的未读消息数量只统计未读私信数和回复我的数、艾特我的数</string>
     <string name="desc_private_msg_unread_badge_enable">在私信会话列表中为未读消息显示红色"未读"标记并置顶显示\n注意：开启后打开消息页面可能会加剧卡顿问题。</string>
     <string name="desc_private_msg_auto_read_enable">打开私信会话时自动将会话标记为已读</string>
     <string name="desc_follow_group_mode">以分组形式展示关注列表</string>
