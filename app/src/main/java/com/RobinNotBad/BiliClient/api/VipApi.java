@@ -1,6 +1,7 @@
 package com.RobinNotBad.BiliClient.api;
 
 import com.RobinNotBad.BiliClient.model.VipInfo;
+import com.RobinNotBad.BiliClient.util.Cookies;
 import com.RobinNotBad.BiliClient.util.NetWorkUtil;
 
 import org.json.JSONArray;
@@ -10,6 +11,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class VipApi {
     public static VipInfo getVipInfo() throws JSONException, IOException {
@@ -60,6 +64,30 @@ public class VipApi {
         }
 
         return vipInfo;
+    }
+
+    public static JSONObject sign() throws IOException, JSONException {
+        String url = "https://api.bilibili.com/pgc/activity/score/task/sign";
+        try (Response response = NetWorkUtil.post(url, "")) {
+            try (ResponseBody body = response.body()) {
+                if (body != null) return new JSONObject(body.string());
+                else throw new JSONException("在访问" + url + "时返回数据为空");
+            }
+        }
+    }
+
+    public static JSONObject addExperience() throws IOException, JSONException {
+        String url = "https://api.bilibili.com/x/vip/experience/add";
+        Cookies cookies = NetWorkUtil.getCookies();
+        String csrf = cookies.get("bili_jct");
+        NetWorkUtil.FormData formData = new NetWorkUtil.FormData();
+        formData.put("csrf", csrf);
+        try (Response response = NetWorkUtil.post(url, formData.toString())) {
+            try (ResponseBody body = response.body()) {
+                if (body != null) return new JSONObject(body.string());
+                else throw new JSONException("在访问" + url + "时返回数据为空");
+            }
+        }
     }
 }
 

@@ -3,6 +3,7 @@ package com.RobinNotBad.BiliClient.activity.user;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.RobinNotBad.BiliClient.R;
@@ -14,6 +15,7 @@ import com.RobinNotBad.BiliClient.util.MsgUtil;
 import com.RobinNotBad.BiliClient.util.StringUtil;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -97,6 +99,46 @@ public class VipActivity extends BaseActivity {
                                 privilegeListText.setText(privilegeBuilder.toString().trim());
                             }
                         }
+
+                        Button signButton = findViewById(R.id.signButton);
+                        Button experienceButton = findViewById(R.id.experienceButton);
+
+                        signButton.setOnClickListener(v -> CenterThreadPool.run(() -> {
+                            try {
+                                JSONObject result = VipApi.sign();
+                                int code = result.getInt("code");
+                                String message = result.optString("message", "");
+                                runOnUiThread(() -> {
+                                    if (code == 0) {
+                                        MsgUtil.showMsg("签到成功");
+                                    } else {
+                                        MsgUtil.showMsg("签到失败: " + message);
+                                    }
+                                });
+                            } catch (Exception e) {
+                                runOnUiThread(() -> MsgUtil.err(e));
+                            }
+                        }));
+
+                        experienceButton.setOnClickListener(v -> CenterThreadPool.run(() -> {
+                            try {
+                                JSONObject result = VipApi.addExperience();
+                                int code = result.getInt("code");
+                                String message = result.optString("message", "");
+                                JSONObject data = result.optJSONObject("data");
+                                runOnUiThread(() -> {
+                                    if (code == 0 && data != null && data.optBoolean("is_grant", false)) {
+                                        MsgUtil.showMsg("领取成功");
+                                    } else if (code == 69198) {
+                                        MsgUtil.showMsg("今日已领取");
+                                    } else {
+                                        MsgUtil.showMsg("领取失败: " + message);
+                                    }
+                                });
+                            } catch (Exception e) {
+                                runOnUiThread(() -> MsgUtil.err(e));
+                            }
+                        }));
 
                         View scrollView = findViewById(R.id.scrollView);
                         scrollView.setFocusable(true);
