@@ -273,12 +273,39 @@ public class ArticleContentAdapter extends RecyclerView.Adapter<ArticleContentAd
                 TextView views = holder.itemView.findViewById(R.id.viewCount);
                 TextView timeText = holder.itemView.findViewById(R.id.timeText);
                 TextView cvidText = holder.itemView.findViewById(R.id.cvidText);
-                cvidText.setText("cv" + articleInfo.id + " | " + articleInfo.wordCount + "字");
-                StringUtil.setCopy(cvidText, "cv" + articleInfo.id);
-                views.setText(StringUtil.toWan(articleInfo.stats.view) + "阅读");
-                @SuppressLint("SimpleDateFormat")
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                timeText.setText(sdf.format(articleInfo.ctime * 1000));
+                ImageView viewIcon = holder.itemView.findViewById(R.id.viewIcon);
+                ImageView timeIcon = holder.itemView.findViewById(R.id.timeIcon);
+                ImageView cvidIcon = holder.itemView.findViewById(R.id.cvidIcon);
+
+                if (articleInfo.id > 0) {
+                    cvidText.setText("cv" + articleInfo.id + " | " + articleInfo.wordCount + "字");
+                    StringUtil.setCopy(cvidText, "cv" + articleInfo.id);
+                    cvidText.setVisibility(View.VISIBLE);
+                    cvidIcon.setVisibility(View.VISIBLE);
+                } else {
+                    cvidText.setVisibility(View.GONE);
+                    cvidIcon.setVisibility(View.GONE);
+                }
+
+                if (articleInfo.stats != null && articleInfo.stats.view > 0) {
+                    views.setText(StringUtil.toWan(articleInfo.stats.view) + "阅读");
+                    views.setVisibility(View.VISIBLE);
+                    viewIcon.setVisibility(View.VISIBLE);
+                } else {
+                    views.setVisibility(View.GONE);
+                    viewIcon.setVisibility(View.GONE);
+                }
+
+                if (articleInfo.ctime > 0) {
+                    @SuppressLint("SimpleDateFormat")
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    timeText.setText(sdf.format(articleInfo.ctime * 1000));
+                    timeText.setVisibility(View.VISIBLE);
+                    timeIcon.setVisibility(View.VISIBLE);
+                } else {
+                    timeText.setVisibility(View.GONE);
+                    timeIcon.setVisibility(View.GONE);
+                }
                 break;
             default:
                 if (realPosition >= 0 && realPosition < article.size()) {
