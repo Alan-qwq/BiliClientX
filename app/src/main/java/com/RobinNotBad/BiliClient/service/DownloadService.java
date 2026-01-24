@@ -199,15 +199,18 @@ public class DownloadService extends Service {
                                 continue;
                             }
 
-                            toastState("下载字幕");
-                            downSubtitles(section.aid, section.cid, path_single);
+                            // 仅音频模式不下载字幕和弹幕
+                            if (!section.isAudioOnly()) {
+                                toastState("下载字幕");
+                                downSubtitles(section.aid, section.cid, path_single);
 
-                            toastState("下载弹幕");
-                            result = downDanmaku(url_danmaku, new File(path_single, "danmaku.xml"));
-                            if (result != NORMAL) {
-                                failed = true;
-                                exitCode = result;
-                                continue;
+                                toastState("下载弹幕");
+                                result = downDanmaku(url_danmaku, new File(path_single, "danmaku.xml"));
+                                if (result != NORMAL) {
+                                    failed = true;
+                                    exitCode = result;
+                                    continue;
+                                }
                             }
 
                             // 根据下载类型选择下载内容
@@ -258,15 +261,18 @@ public class DownloadService extends Service {
                                 }
                             }
 
-                            toastState("下载字幕");
-                            downSubtitles(section.aid, section.cid, path_page);
+                            // 仅音频模式不下载字幕和弹幕
+                            if (!section.isAudioOnly()) {
+                                toastState("下载字幕");
+                                downSubtitles(section.aid, section.cid, path_page);
 
-                            toastState("下载弹幕");
-                            result = downDanmaku(url_danmaku, new File(path_page, "danmaku.xml"));
-                            if (result != NORMAL) {
-                                failed = true;
-                                exitCode = result;
-                                continue;
+                                toastState("下载弹幕");
+                                result = downDanmaku(url_danmaku, new File(path_page, "danmaku.xml"));
+                                if (result != NORMAL) {
+                                    failed = true;
+                                    exitCode = result;
+                                    continue;
+                                }
                             }
 
                             // 根据下载类型选择下载内容
