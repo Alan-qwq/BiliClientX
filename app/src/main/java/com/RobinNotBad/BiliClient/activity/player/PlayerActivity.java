@@ -48,6 +48,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.RobinNotBad.BiliClient.BiliTerminal;
 import com.RobinNotBad.BiliClient.R;
+import com.RobinNotBad.BiliClient.activity.InteractionDebugActivity;
 import com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter;
 import com.RobinNotBad.BiliClient.adapter.ViewPointAdapter;
 import com.RobinNotBad.BiliClient.api.ConfInfoApi;
@@ -141,7 +142,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private ImageView img_loading;
     private AnimationDrawable anim_loading;
     private ImageButton btn_control, btn_danmaku, btn_loop, btn_rotate, btn_menu, btn_subtitle, btn_danmaku_send,
-            btn_audio_only, btn_page_selector, btn_auto_next, btn_quality, btn_viewpoint;
+            btn_audio_only, btn_page_selector, btn_auto_next, btn_quality, btn_viewpoint, btn_debug;
     private HighEnergyProgressBar seekbar_progress;
     private SeekBar seekbar_speed;
     private TextView text_progress, text_online, text_volume, loading_text0, loading_text1, text_speed, text_newspeed;
@@ -438,6 +439,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         seekbar_speed = findViewById(R.id.seekbar_speed);
         text_newspeed = findViewById(R.id.text_newspeed);
         bottom_buttons = findViewById(R.id.bottom_buttons);
+        btn_debug = findViewById(R.id.btn_debug);
 
         text_subtitle = findViewById(R.id.text_subtitle);
         text_audio_title = findViewById(R.id.audio_title);
@@ -628,8 +630,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         seekbar_progress.setVisibility(View.VISIBLE);
         seekbar_progress.setEnabled(false);
         seekbar_progress.postDelayed(progressbarEnable, 200);
-        if (isPrepared && (!isLiveMode) && (!isAudioOnlyMode))
+        if (isPrepared && (!isLiveMode) && (!isAudioOnlyMode)) {
             text_speed.setVisibility(View.VISIBLE);
+            updateDebugButtonVisibility();
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             batteryView.setPower(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY));
         }
@@ -650,8 +654,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         layout_top.setVisibility(View.GONE);
         bottom_buttons.setVisibility(View.GONE);
         seekbar_progress.setVisibility(View.GONE);
-        if (isPrepared && (!isAudioOnlyMode))
+        if (isPrepared && (!isAudioOnlyMode)) {
             text_speed.setVisibility(View.GONE);
+            btn_debug.setVisibility(View.GONE);
+        }
         if (screen_round) {
             text_progress.setGravity(Gravity.CENTER);
             text_progress.setPadding(0, 0, 0, ToolsUtil.dp2px(8f));
@@ -966,6 +972,9 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             text_speed.setVisibility(View.GONE);
         text_speed.setOnClickListener(view -> layout_speed.setVisibility(View.VISIBLE));
         layout_speed.setOnClickListener(view -> layout_speed.setVisibility(View.GONE));
+
+        btn_debug.setOnClickListener(view -> showInteractionDebugDialog());
+        updateDebugButtonVisibility();
 
         progressChange();
         onlineChange();
@@ -2162,6 +2171,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             if (isAudioOnlyMode) {
                 // 进入听视频模式
                 text_speed.setVisibility(View.GONE);
+                btn_debug.setVisibility(View.GONE);
                 btn_danmaku.setVisibility(View.GONE);
                 layout_video.setVisibility(View.GONE);
                 layout_audio_only.setVisibility(View.VISIBLE);
@@ -2175,6 +2185,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             } else {
                 // 退出听视频模式
                 text_speed.setVisibility(View.VISIBLE);
+                updateDebugButtonVisibility();
                 btn_danmaku.setVisibility(View.VISIBLE);
                 layout_video.setVisibility(View.VISIBLE);
                 layout_audio_only.setVisibility(View.GONE);
@@ -2604,6 +2615,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     if (interactionData != null) {
                         currentEdgeId = interactionData.edgeId;
                         Logu.d("互动视频", "成功加载互动视频数据，edge_id: " + currentEdgeId);
+                        runOnUiThread(() -> updateDebugButtonVisibility());
                     }
                 } else {
                     interactionData = null;
@@ -2611,6 +2623,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     runOnUiThread(() -> {
                         questionShown = false;
                         currentQuestion = null;
+                        updateDebugButtonVisibility();
                     });
                 }
             } catch (Exception e) {
@@ -2621,9 +2634,20 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 runOnUiThread(() -> {
                     questionShown = false;
                     currentQuestion = null;
+                    updateDebugButtonVisibility();
                 });
             }
         });
+    }
+
+    private void updateDebugButtonVisibility() {
+        if (btn_debug == null) return;
+        boolean debugEnabled = SharedPreferencesUtil.getBoolean("player_interaction_debug", false);
+        if (debugEnabled && interactionData != null && interactionData.hiddenVars != null && !interactionData.hiddenVars.isEmpty() && !isLiveMode && !isAudioOnlyMode) {
+            btn_debug.setVisibility(layout_top.getVisibility());
+        } else {
+            btn_debug.setVisibility(View.GONE);
+        }
     }
 
     private void checkEndInteractionQuestions() {
@@ -3026,6 +3050,17 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             Logu.e("互动视频", "值表达式计算失败: " + expr + ", 错误: " + e.getMessage());
             return 0;
         }
+    }
+
+    private void showInteractionDebugDialog() {
+        if (interactionData == null || interactionData.hiddenVars == null || interactionData.hiddenVars.isEmpty()) {
+            MsgUtil.showMsg("当前没有互动视频变量");
+            return;
+        }
+
+        InteractionDebugActivity.setInteractionData(interactionData);
+        Intent intent = new Intent(this, InteractionDebugActivity.class);
+        startActivity(intent);
     }
 
     @Override

@@ -55,6 +55,8 @@ public class SettingLaboratoryActivity extends RefreshListActivity {
                         "显示视频的章节看点信息，可快速跳转到指定章节", "false"));
                 add(new SettingSection("switch", "系统媒体控件", SharedPreferencesUtil.PLAYER_MEDIA_SESSION_ENABLE,
                         getString(R.string.setting_lab_media_session), "false"));
+                add(new SettingSection("switch", "互动视频调试", "player_interaction_debug",
+                        "在互动视频播放时，在左侧倍速按钮上方显示调试按钮，可以查看和修改互动视频的变量", "false"));
 
                 add(new SettingSection("title", "调试", "", "", ""));
                 add(new SettingSection("switch", "允许Logu.v", "dev_logv", getString(R.string.setting_lab_logv),
