@@ -150,8 +150,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             isOnlineVideo, isLiveMode, isSeeking, isDanmakuVisible;
     private boolean menu_opened = false;
     private boolean isAudioOnlyMode = false;
-    private boolean isLocalAudioFile = false;
-    private boolean isChangingSpeed = false; // 标记是否为本地音频文件
+    private boolean isLocalAudioFile = false; // 标记是否为本地音频文件
 
     private int video_all, video_now, video_now_last;
     private long progress_history;
@@ -498,14 +497,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     case MotionEvent.ACTION_UP:
                         if (onLongClick) {
                             onLongClick = false;
-                            isChangingSpeed = true;
                             float normalSpeed = speed_values[seekbar_speed.getProgress()];
                             if (ijkPlayer != null)
                                 ijkPlayer.setSpeed(normalSpeed);
                             if (mDanmakuView != null)
                                 mDanmakuView.setSpeed(normalSpeed);
                             text_speed.setText(speed_strs[seekbar_speed.getProgress()]);
-                            mainHandler.postDelayed(() -> isChangingSpeed = false, 500);
                         }
                         if (gesture_moved)
                             gesture_moved = false;
@@ -525,14 +522,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             layout_control.setOnTouchListener((view, motionEvent) -> {
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP && onLongClick) {
                     onLongClick = false;
-                    isChangingSpeed = true;
                     float normalSpeed = speed_values[seekbar_speed.getProgress()];
                     if (ijkPlayer != null)
                         ijkPlayer.setSpeed(normalSpeed);
                     if (mDanmakuView != null)
                         mDanmakuView.setSpeed(normalSpeed);
                     text_speed.setText(speed_strs[seekbar_speed.getProgress()]);
-                    mainHandler.postDelayed(() -> isChangingSpeed = false, 500);
                 }
                 return false;
             });
@@ -551,7 +546,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     && !isLiveMode) {
                 if (!onLongClick && !gesture_click_disabled) {
                     hidecon.run();
-                    isChangingSpeed = true;
                     if (ijkPlayer != null)
                         ijkPlayer.setSpeed(3.0F);
                     if (mDanmakuView != null)
@@ -797,29 +791,25 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         if (isOnlineVideo || isLiveMode)
             ijkPlayer.setOnInfoListener((mp, what, extra) -> {
                 if (what == IMediaPlayer.MEDIA_INFO_BUFFERING_START) {
-                    if (!isChangingSpeed) {
-                        runOnUiThread(() -> {
-                            loading_info.setVisibility(View.VISIBLE);
-                            anim_loading.start();
-                            loading_text0.setText("正在缓冲");
-                            showLoadingSpeed();
-                            if (hasDanmaku && mDanmakuView != null && isPlaying) {
-                                mDanmakuView.pause();
-                            }
-                        });
-                    }
+                    runOnUiThread(() -> {
+                        loading_info.setVisibility(View.VISIBLE);
+                        anim_loading.start();
+                        loading_text0.setText("正在缓冲");
+                        showLoadingSpeed();
+                        if (hasDanmaku && mDanmakuView != null && isPlaying) {
+                            mDanmakuView.pause();
+                        }
+                    });
                 } else if (what == IMediaPlayer.MEDIA_INFO_BUFFERING_END) {
-                    if (!isChangingSpeed) {
-                        runOnUiThread(() -> {
-                            if (loadingTimer != null)
-                                loadingTimer.cancel();
-                            loading_info.setVisibility(View.GONE);
-                            anim_loading.stop();
-                            if (hasDanmaku && mDanmakuView != null && isPlaying) {
-                                mDanmakuView.resume();
-                            }
-                        });
-                    }
+                    runOnUiThread(() -> {
+                        if (loadingTimer != null)
+                            loadingTimer.cancel();
+                        loading_info.setVisibility(View.GONE);
+                        anim_loading.stop();
+                        if (hasDanmaku && mDanmakuView != null && isPlaying) {
+                            mDanmakuView.resume();
+                        }
+                    });
                 }
 
                 return false;
@@ -1871,7 +1861,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 if (fromUser) {
                     text_newspeed.setText(speed_strs[position]);
                     text_speed.setText(speed_strs[position]);
-                    isChangingSpeed = true;
                     if (ijkPlayer != null)
                         ijkPlayer.setSpeed(speed_values[position]);
                     if (mDanmakuView != null)
@@ -1883,7 +1872,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             public void onStartTrackingTouch(SeekBar seekBar) {
                 if (speedTimer != null)
                     speedTimer.cancel();
-                isChangingSpeed = true;
             }
 
             @Override
@@ -1892,13 +1880,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
-                        runOnUiThread(() -> {
-                            layout_speed.setVisibility(View.GONE);
-                            isChangingSpeed = false;
-                        });
+                        runOnUiThread(() -> layout_speed.setVisibility(View.GONE));
                     }
                 };
-                speedTimer.schedule(timerTask, 500);
+                speedTimer.schedule(timerTask, 200);
             }
         });
     }
