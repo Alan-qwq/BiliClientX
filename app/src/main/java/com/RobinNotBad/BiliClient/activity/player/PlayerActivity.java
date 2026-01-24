@@ -1066,12 +1066,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                         if (viewPointAdapter != null && viewPoints != null && !viewPoints.isEmpty()) {
                             viewPointAdapter.updateCurrentPosition((int) curr_sec);
                         }
-                        
-                        checkInteractionQuestions(video_now);
-                        
-                        if (video_now >= video_all - 100 && !questionShown) {
-                            checkEndInteractionQuestions();
-                        }
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
                             updateMediaSessionPlaybackState();
@@ -1436,7 +1430,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             if (video_now >= video_all - 250) {
                 if (interactionData != null && interactionData.edges != null && 
                     interactionData.edges.questions != null && !questionShown) {
-                    checkEndInteractionQuestions();
                     if (!questionShown) {
                         ijkPlayer.seekTo(0);
                         if (hasDanmaku && mDanmakuView != null) {
@@ -2633,27 +2626,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         });
     }
 
-    private void checkInteractionQuestions(long currentTimeMs) {
-        if (interactionData == null || interactionData.edges == null || 
-            interactionData.edges.questions == null || questionShown) {
-            return;
-        }
-
-        for (InteractionVideoData.InteractionQuestion question : interactionData.edges.questions) {
-            if (question.type == 0) continue;
-            
-            long questionStartTime = question.startTimeR;
-            if (questionStartTime == 300 || questionStartTime == video_all) {
-                continue;
-            }
-            
-            if (currentTimeMs >= questionStartTime - 500 && currentTimeMs <= questionStartTime + 2000) {
-                showInteractionQuestion(question);
-                break;
-            }
-        }
-    }
-
     private void checkEndInteractionQuestions() {
         if (interactionData == null || interactionData.edges == null || 
             interactionData.edges.questions == null || questionShown) {
@@ -2661,16 +2633,24 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         }
 
         for (InteractionVideoData.InteractionQuestion question : interactionData.edges.questions) {
-            if (question.type == 0) continue;
-            
-            long startTime = question.startTimeR;
-            boolean isEndQuestion = (startTime == 300 || startTime == video_all || 
-                (video_all > 0 && startTime >= video_all - 100));
-            
-            if (isEndQuestion) {
-                showInteractionQuestion(question);
-                break;
+            if (question.type == 0) {
+                if (question.choices != null && !question.choices.isEmpty()) {
+                    for (InteractionVideoData.InteractionChoice choice : question.choices) {
+                        if (choice.isHidden == 1) continue;
+                        
+                        if (choice.condition != null && !choice.condition.isEmpty()) {
+                            if (!evaluateCondition(choice.condition)) {
+                                continue;
+                            }
+                        }
+                        
+                        handleChoiceSelection(choice);
+                        break;
+                    }
+                }
+                continue;
             }
+            showInteractionQuestion(question);
         }
     }
 
@@ -2889,7 +2869,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     
                     loading_info.setVisibility(View.VISIBLE);
                     anim_loading.start();
-                    loading_text0.setText("加载互动视频");
+                    loading_text0.setText("加载互动分P");
                     isPrepared = false;
                     isPlaying = false;
                     finishWatching = false;
