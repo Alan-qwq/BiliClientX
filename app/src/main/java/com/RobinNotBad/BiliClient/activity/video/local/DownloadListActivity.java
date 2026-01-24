@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
@@ -38,6 +39,7 @@ public class DownloadListActivity extends RefreshListActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setPageName("下载列表");
         setRefreshing(false);
         weakRef = new WeakReference<>(this);
@@ -220,6 +222,7 @@ public class DownloadListActivity extends RefreshListActivity {
     protected void onDestroy() {
         if (timer != null)
             timer.cancel();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         weakRef = null;
         super.onDestroy();
     }
