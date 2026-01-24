@@ -364,7 +364,7 @@
                                 android:layout_marginBottom="1dp"
                                 android:ellipsize="end"
                                 android:singleLine="true"
-                                android:text="爅峫"
+                                android:text="爅峫（moye）"
                                 app:layout_constraintBottom_toTopOf="@+id/moyeDesc"
                                 app:layout_constraintStart_toEndOf="@id/moyeAvatar"
                                 app:layout_constraintTop_toTopOf="@id/moyeAvatar" />
@@ -378,7 +378,7 @@
                                 android:layout_marginBottom="2dp"
                                 android:alpha="0.7"
                                 android:singleLine="true"
-                                android:text="你就说能不能用吧（代码贡献量大，同时负责了网站运营）"
+                                android:text="你就说能不能用吧（代码贡献量大|屎山铺路人|想换个头像的说）"
                                 android:textSize="11sp"
                                 app:layout_constraintBottom_toBottomOf="@+id/moyeAvatar"
                                 app:layout_constraintEnd_toEndOf="parent"
