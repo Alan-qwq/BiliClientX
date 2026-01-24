@@ -13,6 +13,9 @@ android {
     sourceSets {
         main{
             jniLibs.srcDirs = ['libs']
+            java {
+                exclude '**/GeetestUtil.java'
+            }
         }
     }
 
@@ -34,6 +37,8 @@ android {
             //noinspection ChromeOsAbiSupport
             abiFilters 'armeabi-v7a','x86',"mips"
         }
+
+        resConfigs 'zh'
     }
 
     signingConfigs {
@@ -102,7 +107,7 @@ dependencies {
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'org.greenrobot:eventbus:3.2.0'
     // Geetest（目前没用到）
-    implementation 'com.geetest.sensebot:sensebot:4.4.2.1'
+    //implementation 'com.geetest.sensebot:sensebot:4.4.2.1'
     //danmaku
     //implementation 'com.github.ctiao:DanmakuFlameMaster:0.9.25'
     //implementation 'com.github.ctiao:ndkbitmap-armv7a:0.9.21'
