@@ -343,7 +343,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         initSeekbars();
 
         if (isLiveMode) {
-            btn_control.setVisibility(View.INVISIBLE); // 暂停的话可能会出一些bug，那就别暂停了，卡住就退出重进吧（
+            btn_control.setVisibility(View.GONE); // 直播模式隐藏暂停按钮，使用GONE而不是INVISIBLE以保持UI布局正确
             seekbar_progress.setVisibility(View.GONE);
             seekbar_progress.setEnabled(false);
             streamDanmaku(null); // 用来初始化一下弹幕层
@@ -353,7 +353,19 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
         layout_control.postDelayed(() -> CenterThreadPool.run(() -> { // 等界面加载完成
             if (isLiveMode) {
-                runOnUiThread(() -> btn_menu.setVisibility(View.GONE));
+                runOnUiThread(() -> {
+                    btn_menu.setVisibility(View.GONE);
+                    // 直播模式隐藏清晰度按钮
+                    btn_quality.setVisibility(View.GONE);
+                    // 直播模式隐藏循环按钮
+                    btn_loop.setVisibility(View.GONE);
+                    // 直播模式隐藏听视频模式按钮
+                    btn_audio_only.setVisibility(View.GONE);
+                    // 直播模式隐藏自动下一个按钮
+                    btn_auto_next.setVisibility(View.GONE);
+                    // 直播模式隐藏分P选择器按钮
+                    btn_page_selector.setVisibility(View.GONE);
+                });
                 setDisplay();
                 return;
             }
@@ -931,6 +943,9 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 btn_auto_next.setVisibility(View.VISIBLE);
                 updateAutoNextButton();
                 btn_auto_next.setOnClickListener(view -> toggleAutoNext());
+            } else {
+                btn_page_selector.setVisibility(View.GONE);
+                btn_auto_next.setVisibility(View.GONE);
             }
 
             if (SharedPreferencesUtil.getBoolean("player_ui_showQualityBtn", true) && isOnlineVideo) {
@@ -942,6 +957,13 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
             if (!SharedPreferencesUtil.getBoolean("player_ui_showPageBtn", true))
                 btn_page_selector.setVisibility(View.GONE);
+        } else {
+            // 直播模式下隐藏这些按钮
+            btn_loop.setVisibility(View.GONE);
+            btn_audio_only.setVisibility(View.GONE);
+            btn_page_selector.setVisibility(View.GONE);
+            btn_auto_next.setVisibility(View.GONE);
+            btn_quality.setVisibility(View.GONE);
         }
 
         seekbar_progress.setMax(video_all);
