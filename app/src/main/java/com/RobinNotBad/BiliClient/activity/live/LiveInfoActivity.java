@@ -204,6 +204,12 @@ public class LiveInfoActivity extends BaseActivity {
                     host_list.setLayoutManager(new CustomLinearManager(this, LinearLayoutManager.HORIZONTAL, false));
                     runOnUiThread(() -> host_list.setAdapter(hostAdapter));
                     refresh_host_list();
+
+                    runOnUiThread(() -> {
+                        scrollView.setFocusable(true);
+                        scrollView.setFocusableInTouchMode(true);
+                        scrollView.requestFocus();
+                    });
                 }
                 if (!SharedPreferencesUtil.getString("player", "null").equals("terminalPlayer"))
                     MsgUtil.showMsgLong("直播可能只有内置播放器可以正常播放");
