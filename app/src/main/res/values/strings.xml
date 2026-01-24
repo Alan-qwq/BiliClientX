@@ -225,6 +225,7 @@
 
     #新增功能放到上面，修复问题放下面，方便用户看见
     <string-array name="update_log_items">
+        <item>修复了无法正常继续加载动态的报错问题</item>
         <item>修复了播放器闪烁“缓存中”的问题</item>
         <item>新增了一些bug和屎山代码</item>
     </string-array>

@@ -318,9 +318,9 @@ public class DynamicApi {
         long offset_new = (has_more ? Long.parseLong(data.getString("offset")) : -1);
 
         if (mid == 0) {
-            if (data.has("update_baseline") && !data.isNull("update_baseline")) {
-                SharedPreferencesUtil.putLong("dynamic_update_baseline", data.getLong("update_baseline"));
-            } else if (offset_new != -1) {
+            long update_baseline = data.optLong("update_baseline", -1);
+            if (update_baseline > -1) SharedPreferencesUtil.putLong("dynamic_update_baseline", update_baseline);
+            else if (offset_new != -1) {
                 SharedPreferencesUtil.putLong("dynamic_update_baseline", offset_new);
             }
         }
