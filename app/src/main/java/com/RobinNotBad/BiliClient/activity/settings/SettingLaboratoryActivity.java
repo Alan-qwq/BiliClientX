@@ -9,6 +9,7 @@ import com.RobinNotBad.BiliClient.activity.base.RefreshListActivity;
 import com.RobinNotBad.BiliClient.adapter.SettingsAdapter;
 import com.RobinNotBad.BiliClient.model.SettingSection;
 import com.RobinNotBad.BiliClient.util.FileUtil;
+import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,8 @@ public class SettingLaboratoryActivity extends RefreshListActivity {
                 add(new SettingSection("title", "可用性", "", "", ""));
                 add(new SettingSection("switch", "新版弹幕获取方式", "new_danmaku_api",
                         getString(R.string.desc_new_danmaku_api), "true"));
+                add(new SettingSection("switch", "私信未读标记", SharedPreferencesUtil.PRIVATE_MSG_UNREAD_BADGE_ENABLE,
+                        getString(R.string.desc_private_msg_unread_badge_enable), "false"));
 
                 add(new SettingSection("title", "下载", "", "", ""));
                 add(new SettingSection("switch", "使用旧版下载器", "dev_download_old",

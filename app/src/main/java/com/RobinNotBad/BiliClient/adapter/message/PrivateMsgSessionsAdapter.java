@@ -2,6 +2,9 @@ package com.RobinNotBad.BiliClient.adapter.message;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,7 +23,9 @@ import com.RobinNotBad.BiliClient.activity.user.info.UserInfoActivity;
 import com.RobinNotBad.BiliClient.model.PrivateMessage;
 import com.RobinNotBad.BiliClient.model.PrivateMsgSession;
 import com.RobinNotBad.BiliClient.model.UserInfo;
+import com.RobinNotBad.BiliClient.ui.widget.RadiusBackgroundSpan;
 import com.RobinNotBad.BiliClient.util.GlideUtil;
+import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
@@ -36,12 +41,17 @@ public class PrivateMsgSessionsAdapter
     final Context context;
     final ArrayList<PrivateMsgSession> sessionsList;
     final HashMap<Long, UserInfo> userMap;
+    private final int cardRoundRadius;
+    private static final int BADGE_TEXT_COLOR = Color.WHITE;
+    private static final int BADGE_BG_COLOR = Color.rgb(207, 75, 95);
+    private static final String BADGE_TEXT = "  未读 ";
 
     public PrivateMsgSessionsAdapter(Context context, ArrayList<PrivateMsgSession> sessionsList,
                                      HashMap<Long, UserInfo> userMap) {
         this.context = context;
         this.sessionsList = sessionsList;
         this.userMap = userMap;
+        this.cardRoundRadius = (int) context.getResources().getDimension(R.dimen.card_round);
     }
 
     @NonNull
@@ -92,7 +102,17 @@ public class PrivateMsgSessionsAdapter
 
             UserInfo user = userMap != null ? userMap.get(msgContent.talkerUid) : null;
             if (user != null) {
-                holder.nameText.setText(user.name);
+                if (msgContent.unread > 0 && SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.PRIVATE_MSG_UNREAD_BADGE_ENABLE, false)) {
+                    SpannableStringBuilder nameStr = new SpannableStringBuilder(user.name);
+                    int nameLength = user.name.length();
+                    nameStr.append(BADGE_TEXT);
+                    nameStr.setSpan(
+                            new RadiusBackgroundSpan(1, cardRoundRadius, BADGE_TEXT_COLOR, BADGE_BG_COLOR),
+                            nameLength + 1, nameStr.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                    holder.nameText.setText(nameStr);
+                } else {
+                    holder.nameText.setText(user.name);
+                }
                 Glide.with(BiliTerminal.context).asDrawable().load(GlideUtil.url(user.avatar))
                         .diskCacheStrategy(DiskCacheStrategy.NONE)
                         .placeholder(R.mipmap.akari)

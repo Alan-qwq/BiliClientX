@@ -26,6 +26,7 @@ import com.google.android.material.card.MaterialCardView;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class MessageActivity extends InstanceActivity {
@@ -89,6 +90,16 @@ public class MessageActivity extends InstanceActivity {
                 try {
                     JSONObject stats = MessageApi.getUnread();
                     ArrayList<PrivateMsgSession> sessionsList = PrivateMsgApi.getSessionsList(20);
+                    Collections.sort(sessionsList, (o1, o2) -> {
+                        boolean o1Unread = o1.unread > 0;
+                        boolean o2Unread = o2.unread > 0;
+                        if (o1Unread && !o2Unread) {
+                            return -1;
+                        } else if (!o1Unread && o2Unread) {
+                            return 1;
+                        }
+                        return 0;
+                    });
                     ArrayList<Long> uidList = new ArrayList<>();
                     for (PrivateMsgSession item : sessionsList) {
                         uidList.add(item.talkerUid);

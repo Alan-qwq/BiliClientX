@@ -160,6 +160,51 @@ public class PrivateMsgApi {
         return sessionList;
     }
 
+    public static ArrayList<PrivateMsgSession> getNewSessionsList(long beginTs, int size, int build, String mobiApp)
+            throws IOException, JSONException {
+        StringBuilder url = new StringBuilder("https://api.vc.bilibili.com/session_svr/v1/session_svr/new_sessions?");
+        if (beginTs > 0) {
+            url.append("begin_ts=").append(beginTs).append("&");
+        }
+        if (size > 0) {
+            url.append("size=").append(size).append("&");
+        }
+        if (build > 0) {
+            url.append("build=").append(build).append("&");
+        }
+        if (mobiApp != null && !mobiApp.isEmpty()) {
+            url.append("mobi_app=").append(mobiApp).append("&");
+        }
+        if (url.charAt(url.length() - 1) == '&') {
+            url.setLength(url.length() - 1);
+        }
+        JSONObject root = NetWorkUtil.getJson(url.toString());
+        ArrayList<PrivateMsgSession> sessionList = new ArrayList<>();
+        if (root.has("data") && !root.isNull("data")) {
+            JSONObject data = root.getJSONObject("data");
+            if (data.has("session_list") && !data.isNull("session_list")) {
+                JSONArray sessions = data.getJSONArray("session_list");
+                for (int i = 0; i < sessions.length(); ++i) {
+                    PrivateMsgSession session = new PrivateMsgSession();
+                    JSONObject sessionJson = sessions.getJSONObject(i);
+                    session.talkerUid = sessionJson.getLong("talker_id");
+
+                    if (!sessionJson.isNull("last_msg")) {
+                        session.contentType = sessionJson.getJSONObject("last_msg").getInt("msg_type");
+                        String content = sessionJson.getJSONObject("last_msg").getString("content");
+
+                        if (content.endsWith("}") && content.startsWith("{"))
+                            session.content = new JSONObject(content);
+                    }
+
+                    session.unread = sessionJson.getInt("unread_count");
+                    sessionList.add(session);
+                }
+            }
+        }
+        return sessionList;
+    }
+
     public static JSONObject sendMsg(
             long senderUid, long receiverUid, int msgType, long timestamp, String content)
             throws IOException, JSONException {

@@ -133,6 +133,7 @@
     <string name="desc_live_by_guest">开启此选项后，进入直播间时将会使用游客身份\n\n注意：开启后的漏弹幕情况将会更加严重</string>
     <string name="desc_dynamic_update_check_enable">启动应用时检查是否有新动态并显示在菜单中</string>
     <string name="desc_message_update_check_enable">启动应用时检查是否有新消息并显示在菜单中</string>
+    <string name="desc_private_msg_unread_badge_enable">在私信会话列表中为未读消息显示红色"未读"标记并置顶显示\n注意：开启后打开消息页面可能会加剧卡顿问题。</string>
     <string name="desc_follow_group_mode">以分组形式展示关注列表</string>
     <string name="desc_night_reminder">在23:00-03:00期间打开应用时显示休息提醒</string>
     <string name="section_ui_size">界面大小</string>
@@ -226,6 +227,7 @@
 
     #新增功能放到上面，修复问题放下面，方便用户看见
     <string-array name="update_log_items">
+        <item>增加了未读私信的提醒badge（实验性选项）</item>
         <item>增加了菜单中的消息未读数量</item>
         <item>修复了历史搜索为空时焦点仍然默认位于历史列表上的问题</item>
         <item>修复了无法正常继续加载动态的报错问题</item>
