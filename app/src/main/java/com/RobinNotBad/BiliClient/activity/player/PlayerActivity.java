@@ -1138,6 +1138,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     }
 
     private void showSubtitle(float curr_sec) {
+        if (subtitles == null || subtitle_count == 0) {
+            runOnUiThread(() -> text_subtitle.setVisibility(View.GONE));
+            return;
+        }
+        
         Subtitle subtitle_curr = subtitles[subtitle_curr_index];
 
         boolean need_adjust = true;
