@@ -72,6 +72,15 @@ public class PrivateMsgActivity extends BaseActivity {
                 Collections.reverse(list);
                 emoteArray = PrivateMsgApi.getEmoteJsonArray(allMsg);
                 adapter = new PrivateMsgAdapter(list, emoteArray, this);
+                
+                if (SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.PRIVATE_MSG_AUTO_READ_ENABLE, true)) {
+                    try {
+                        PrivateMsgApi.updateAck(uid, 1, 0);
+                    } catch (Exception e) {
+                        Log.e("PrivateMsgActivity", "自动已读失败", e);
+                    }
+                }
+                
                 runOnUiThread(() -> {
                     CustomLinearManager manager = new CustomLinearManager(this);
                     manager.setStackFromEnd(true);

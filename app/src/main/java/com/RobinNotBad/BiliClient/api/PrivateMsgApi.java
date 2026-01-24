@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
+import okhttp3.Response;
+
 public class PrivateMsgApi {
 
     public static final int MSG_TYPE_TEXT = 1;
@@ -223,6 +225,28 @@ public class PrivateMsgApi {
         Log.e("debug-发送私信", result.toString());
         Log.e("debug-发送私信", NetWorkUtil.webHeaders.toString());
         return result;
+    }
+
+    public static JSONObject updateAck(long talkerId, int sessionType, long ackSeqno)
+            throws IOException, JSONException {
+        String url = "https://api.vc.bilibili.com/session_svr/v1/session_svr/update_ack";
+        String csrf = SharedPreferencesUtil.getString("csrf", "");
+        StringBuilder per = new StringBuilder();
+        per.append("talker_id=").append(talkerId);
+        per.append("&session_type=").append(sessionType);
+        if (ackSeqno > 0) {
+            per.append("&ack_seqno=").append(ackSeqno);
+        }
+        per.append("&csrf_token=").append(csrf);
+        per.append("&csrf=").append(csrf);
+        per.append("&build=0");
+        per.append("&mobi_app=web");
+
+        Response response = NetWorkUtil.post(url, per.toString(), NetWorkUtil.webHeaders);
+        if (response.body() != null) {
+            return new JSONObject(response.body().string());
+        }
+        return new JSONObject();
     }
 
     private static String getDevId() {

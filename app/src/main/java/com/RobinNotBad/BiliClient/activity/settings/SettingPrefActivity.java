@@ -37,6 +37,8 @@ public class SettingPrefActivity extends RefreshListActivity {
                         getString(R.string.desc_dynamic_update_check_enable), "true"));
                 add(new SettingSection("switch", "消息数量检查", SharedPreferencesUtil.MESSAGE_UPDATE_CHECK_ENABLE,
                         getString(R.string.desc_message_update_check_enable), "true"));
+                add(new SettingSection("switch", "私信自动已读", SharedPreferencesUtil.PRIVATE_MSG_AUTO_READ_ENABLE,
+                        getString(R.string.desc_private_msg_auto_read_enable), "true"));
                 add(new SettingSection("switch", "我的关注列表分组", SharedPreferencesUtil.FOLLOW_GROUP_MODE,
                         getString(R.string.desc_follow_group_mode), "false"));
                 add(new SettingSection("switch", "夜深了", SharedPreferencesUtil.NIGHT_REMINDER_ENABLE,

@@ -23,6 +23,7 @@ public class SharedPreferencesUtil {
     public static final String MESSAGE_UPDATE_CHECK_ENABLE = "message_update_check_enable";
     public static final String MESSAGE_UPDATE_NUM = "message_update_num";
     public static final String PRIVATE_MSG_UNREAD_BADGE_ENABLE = "private_msg_unread_badge_enable";
+    public static final String PRIVATE_MSG_AUTO_READ_ENABLE = "private_msg_auto_read_enable";
     public static final String FOLLOW_GROUP_MODE = "follow_group_mode";
     public static final String NIGHT_REMINDER_ENABLE = "night_reminder_enable";
     public static final String SEARCH_DEFAULT_CONTENT_ENABLE = "search_default_content_enable";
