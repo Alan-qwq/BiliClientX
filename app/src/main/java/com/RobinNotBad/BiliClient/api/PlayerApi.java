@@ -453,6 +453,22 @@ public class PlayerApi {
         return viewPoints;
     }
 
+    public static long getInteractionGraphVersion(long aid, long cid) throws JSONException, IOException {
+        String url = "https://api.bilibili.com/x/player/wbi/v2?aid=" + aid
+                + "&cid=" + cid;
+        url = ConfInfoApi.signWBI(url);
+        JSONObject data = NetWorkUtil.getJson(url).getJSONObject("data");
+        
+        if (data.has("interaction") && !data.isNull("interaction")) {
+            JSONObject interaction = data.getJSONObject("interaction");
+            if (interaction.has("graph_version")) {
+                return interaction.getLong("graph_version");
+            }
+        }
+        
+        return 0;
+    }
+
     /**
      * 通过链接获取字幕
      *

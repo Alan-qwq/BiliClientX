@@ -22,6 +22,7 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -48,11 +49,13 @@ import com.RobinNotBad.BiliClient.adapter.QualitySelectorAdapter;
 import com.RobinNotBad.BiliClient.adapter.ViewPointAdapter;
 import com.RobinNotBad.BiliClient.api.ConfInfoApi;
 import com.RobinNotBad.BiliClient.api.DanmakuApi;
+import com.RobinNotBad.BiliClient.api.InteractionVideoApi;
 import com.RobinNotBad.BiliClient.api.PlayerApi;
 import com.RobinNotBad.BiliClient.api.VideoInfoApi;
 import com.RobinNotBad.BiliClient.event.SnackEvent;
 import com.RobinNotBad.BiliClient.model.DmSegMobileReply;
 import com.RobinNotBad.BiliClient.model.HighEnergyData;
+import com.RobinNotBad.BiliClient.model.InteractionVideoData;
 import com.RobinNotBad.BiliClient.model.PlayerData;
 import com.RobinNotBad.BiliClient.model.Subtitle;
 import com.RobinNotBad.BiliClient.model.SubtitleLink;
@@ -196,6 +199,14 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private int[] qnValueList;
     private int currentQuality = 0;
 
+    private InteractionVideoData interactionData;
+    private long interactionGraphVersion = 0;
+    private long currentEdgeId = 0;
+    private long initialEdgeId = 0;
+    private InteractionVideoData.InteractionQuestion currentQuestion = null;
+    private boolean questionShown = false;
+    private LinearLayout interactionChoiceLayout;
+
     @Override
     public void onBackPressed() {
         if (!SharedPreferencesUtil.getBoolean("back_disable", false))
@@ -247,6 +258,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             }
             cids = cidList;
             currentPageIndex = intent.getIntExtra("currentPageIndex", 0);
+        }
+
+        initialEdgeId = intent.getLongExtra("edgeId", 0);
+        if (initialEdgeId > 0) {
+            currentEdgeId = initialEdgeId;
         }
 
         if (intent.hasExtra("qnStrList") && intent.hasExtra("qnValueList")) {
@@ -359,6 +375,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
             if (!destroyed && isOnlineVideo && aid > 0 && cid > 0 && SharedPreferencesUtil.getBoolean("player_show_viewpoints", false)) {
                 loadViewPoints();
+            }
+
+            if (!destroyed && isOnlineVideo && aid > 0 && cid > 0) {
+                loadInteractionVideo();
             }
 
             if (!destroyed)
@@ -756,6 +776,20 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
         ijkPlayer.setOnCompletionListener(iMediaPlayer -> {
             finishWatching = true;
+            
+            if (interactionData != null && interactionData.edges != null && 
+                interactionData.edges.questions != null && !questionShown) {
+                checkEndInteractionQuestions();
+                if (questionShown) {
+                    isPlaying = false;
+                    if (hasDanmaku && mDanmakuView != null) {
+                        mDanmakuView.pause();
+                    }
+                    btn_control.setImageResource(R.drawable.btn_player_play);
+                    return;
+                }
+            }
+            
             if (loop_enabled) {
                 ijkPlayer.seekTo(0);
                 if (hasDanmaku && mDanmakuView != null) {
@@ -1015,6 +1049,12 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                         
                         if (viewPointAdapter != null && viewPoints != null && !viewPoints.isEmpty()) {
                             viewPointAdapter.updateCurrentPosition((int) curr_sec);
+                        }
+                        
+                        checkInteractionQuestions(video_now);
+                        
+                        if (video_now >= video_all - 100 && !questionShown) {
+                            checkEndInteractionQuestions();
                         }
                     }
                 }
@@ -1374,11 +1414,23 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             playerPause();
         } else {
             if (video_now >= video_all - 250) {
-                ijkPlayer.seekTo(0);
-                if (hasDanmaku && mDanmakuView != null) {
-                    mDanmakuView.seekTo(0L);
+                if (interactionData != null && interactionData.edges != null && 
+                    interactionData.edges.questions != null && !questionShown) {
+                    checkEndInteractionQuestions();
+                    if (!questionShown) {
+                        ijkPlayer.seekTo(0);
+                        if (hasDanmaku && mDanmakuView != null) {
+                            mDanmakuView.seekTo(0L);
+                        }
+                        Logu.v("播完重播");
+                    }
+                } else {
+                    ijkPlayer.seekTo(0);
+                    if (hasDanmaku && mDanmakuView != null) {
+                        mDanmakuView.seekTo(0L);
+                    }
+                    Logu.v("播完重播");
                 }
-                Logu.v("播完重播");
             }
             playerResume();
         }
@@ -2180,6 +2232,15 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                         btn_viewpoint.setVisibility(View.GONE);
                     }
 
+                    interactionData = null;
+                    currentEdgeId = 0;
+                    currentQuestion = null;
+                    questionShown = false;
+                    if (interactionChoiceLayout != null) {
+                        interactionChoiceLayout.setVisibility(View.GONE);
+                        interactionChoiceLayout.removeAllViews();
+                    }
+
                     ijkPlayer = new IjkMediaPlayer();
                     mDanmakuView = findViewById(R.id.sv_danmaku);
 
@@ -2212,6 +2273,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
                         if (!destroyed && isOnlineVideo && aid > 0 && cid > 0 && SharedPreferencesUtil.getBoolean("player_show_viewpoints", false)) {
                             loadViewPoints();
+                        }
+
+                        if (!destroyed && isOnlineVideo && aid > 0 && cid > 0) {
+                            loadInteractionVideo();
                         }
                     }), 60);
                 });
@@ -2378,6 +2443,396 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
             layout_card_bg.setVisibility(View.VISIBLE);
             card_viewpoint_selector.setVisibility(View.VISIBLE);
         });
+    }
+
+
+
+
+
+    // 再往下就是互动视频的天下了
+
+    private void loadInteractionVideo() {
+        CenterThreadPool.run(() -> {
+            try {
+                long graphVersion = PlayerApi.getInteractionGraphVersion(aid, cid);
+                if (graphVersion > 0) {
+                    interactionGraphVersion = graphVersion;
+                    Logu.d("互动视频", "检测到互动视频，graph_version: " + interactionGraphVersion + ", cid: " + cid);
+                    
+                    runOnUiThread(() -> {
+                        MsgUtil.showMsg("此视频为互动视频，哔哩终端已初步支持互动");
+                        questionShown = false;
+                        currentQuestion = null;
+                        if (interactionChoiceLayout != null) {
+                            interactionChoiceLayout.setVisibility(View.GONE);
+                            interactionChoiceLayout.removeAllViews();
+                        }
+                    });
+                    
+                    long edgeId = 0;
+                    if (initialEdgeId > 0) {
+                        edgeId = initialEdgeId;
+                        initialEdgeId = 0;
+                    } else if (interactionData != null && currentEdgeId > 0) {
+                        edgeId = currentEdgeId;
+                    }
+                    
+                    interactionData = InteractionVideoApi.getEdgeInfo(aid, null, interactionGraphVersion, edgeId);
+                    if (interactionData != null) {
+                        currentEdgeId = interactionData.edgeId;
+                        Logu.d("互动视频", "成功加载互动视频数据，edge_id: " + currentEdgeId);
+                    }
+                } else {
+                    interactionData = null;
+                    currentEdgeId = 0;
+                    runOnUiThread(() -> {
+                        questionShown = false;
+                        currentQuestion = null;
+                    });
+                }
+            } catch (Exception e) {
+                Logu.e("互动视频", "加载失败: " + e.getMessage());
+                e.printStackTrace();
+                interactionData = null;
+                currentEdgeId = 0;
+                runOnUiThread(() -> {
+                    questionShown = false;
+                    currentQuestion = null;
+                });
+            }
+        });
+    }
+
+    private void checkInteractionQuestions(long currentTimeMs) {
+        if (interactionData == null || interactionData.edges == null || 
+            interactionData.edges.questions == null || questionShown) {
+            return;
+        }
+
+        for (InteractionVideoData.InteractionQuestion question : interactionData.edges.questions) {
+            if (question.type == 0) continue;
+            
+            long questionStartTime = question.startTimeR;
+            if (questionStartTime == 300 || questionStartTime == video_all) {
+                continue;
+            }
+            
+            if (currentTimeMs >= questionStartTime - 500 && currentTimeMs <= questionStartTime + 2000) {
+                showInteractionQuestion(question);
+                break;
+            }
+        }
+    }
+
+    private void checkEndInteractionQuestions() {
+        if (interactionData == null || interactionData.edges == null || 
+            interactionData.edges.questions == null || questionShown) {
+            return;
+        }
+
+        for (InteractionVideoData.InteractionQuestion question : interactionData.edges.questions) {
+            if (question.type == 0) continue;
+            
+            long startTime = question.startTimeR;
+            boolean isEndQuestion = (startTime == 300 || startTime == video_all || 
+                (video_all > 0 && startTime >= video_all - 100));
+            
+            if (isEndQuestion) {
+                showInteractionQuestion(question);
+                break;
+            }
+        }
+    }
+
+    private void showInteractionQuestion(InteractionVideoData.InteractionQuestion question) {
+        if (questionShown || question.choices == null || question.choices.isEmpty()) {
+            return;
+        }
+
+        runOnUiThread(() -> {
+            questionShown = true;
+            currentQuestion = question;
+
+            if (question.pauseVideo == 1 && isPlaying) {
+                ijkPlayer.pause();
+                isPlaying = false;
+                btn_control.setImageResource(R.drawable.btn_player_play);
+            }
+
+            if (interactionChoiceLayout == null) {
+                createInteractionChoiceLayout();
+            }
+
+            interactionChoiceLayout.removeAllViews();
+            
+            for (InteractionVideoData.InteractionChoice choice : question.choices) {
+                if (choice.isHidden == 1) continue;
+                
+                if (choice.condition != null && !choice.condition.isEmpty()) {
+                    if (!evaluateCondition(choice.condition)) {
+                        continue;
+                    }
+                }
+
+                TextView choiceView = createChoiceView(choice);
+                interactionChoiceLayout.addView(choiceView);
+            }
+
+            if (interactionChoiceLayout.getChildCount() > 0) {
+                interactionChoiceLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private TextView createChoiceView(InteractionVideoData.InteractionChoice choice) {
+        TextView choiceView = (TextView) LayoutInflater.from(this).inflate(R.layout.cell_interaction_choice, null);
+        choiceView.setText(choice.option);
+        choiceView.setOnClickListener(v -> handleChoiceSelection(choice));
+        return choiceView;
+    }
+
+    private void createInteractionChoiceLayout() {
+        RelativeLayout rootLayout = findViewById(R.id.root_layout);
+        interactionChoiceLayout = new LinearLayout(this);
+        interactionChoiceLayout.setOrientation(LinearLayout.VERTICAL);
+        interactionChoiceLayout.setGravity(android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL);
+        
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.MATCH_PARENT,
+            RelativeLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        params.setMargins(0, 0, 0, 100);
+        
+        interactionChoiceLayout.setLayoutParams(params);
+        interactionChoiceLayout.setVisibility(View.GONE);
+        rootLayout.addView(interactionChoiceLayout);
+    }
+
+    private boolean evaluateCondition(String condition) {
+        if (interactionData == null || interactionData.hiddenVars == null) {
+            return true;
+        }
+        
+        try {
+            for (InteractionVideoData.InteractionHiddenVar var : interactionData.hiddenVars) {
+                condition = condition.replace(var.idV2, String.valueOf(var.value));
+            }
+            
+            return evaluateExpression(condition);
+        } catch (Exception e) {
+            Logu.e("互动视频", "条件判断失败: " + e.getMessage());
+            return true;
+        }
+    }
+
+    private boolean evaluateExpression(String expr) {
+        try {
+            expr = expr.trim();
+            if (expr.contains(">=")) {
+                String[] parts = expr.split(">=");
+                long left = Long.parseLong(parts[0].trim());
+                long right = Long.parseLong(parts[1].trim());
+                return left >= right;
+            } else if (expr.contains("<=")) {
+                String[] parts = expr.split("<=");
+                long left = Long.parseLong(parts[0].trim());
+                long right = Long.parseLong(parts[1].trim());
+                return left <= right;
+            } else if (expr.contains(">")) {
+                String[] parts = expr.split(">");
+                long left = Long.parseLong(parts[0].trim());
+                long right = Long.parseLong(parts[1].trim());
+                return left > right;
+            } else if (expr.contains("<")) {
+                String[] parts = expr.split("<");
+                long left = Long.parseLong(parts[0].trim());
+                long right = Long.parseLong(parts[1].trim());
+                return left < right;
+            } else if (expr.contains("==")) {
+                String[] parts = expr.split("==");
+                long left = Long.parseLong(parts[0].trim());
+                long right = Long.parseLong(parts[1].trim());
+                return left == right;
+            } else if (expr.contains("!=")) {
+                String[] parts = expr.split("!=");
+                long left = Long.parseLong(parts[0].trim());
+                long right = Long.parseLong(parts[1].trim());
+                return left != right;
+            }
+        } catch (Exception e) {
+            Logu.e("互动视频", "表达式计算失败: " + expr);
+        }
+        return true;
+    }
+
+    private void handleChoiceSelection(InteractionVideoData.InteractionChoice choice) {
+        hideInteractionChoices();
+
+        if (choice.nativeAction != null && !choice.nativeAction.isEmpty()) {
+            executeNativeAction(choice.nativeAction);
+        }
+
+        CenterThreadPool.run(() -> {
+            try {
+                long targetEdgeId = choice.id;
+                InteractionVideoData newData = InteractionVideoApi.getEdgeInfo(aid, null, interactionGraphVersion, targetEdgeId);
+                
+                if (newData == null) {
+                    runOnUiThread(() -> MsgUtil.showMsg("获取互动视频数据失败"));
+                    return;
+                }
+
+                interactionData = newData;
+                currentEdgeId = newData.edgeId;
+                
+                long targetCid = choice.cid;
+                if (targetCid > 0 && targetCid != cid) {
+                    jumpToInteractionPage(targetCid, newData);
+                } else {
+                    resumePlaybackIfPaused();
+                }
+            } catch (Exception e) {
+                Logu.e("互动视频", "处理选择失败: " + e.getMessage());
+                runOnUiThread(() -> MsgUtil.showMsg("处理选择失败: " + e.getMessage()));
+            }
+        });
+    }
+
+    private void hideInteractionChoices() {
+        runOnUiThread(() -> {
+            if (interactionChoiceLayout != null) {
+                interactionChoiceLayout.setVisibility(View.GONE);
+            }
+            questionShown = false;
+            currentQuestion = null;
+        });
+    }
+
+    private void jumpToInteractionPage(long targetCid, InteractionVideoData newData) {
+        try {
+            PlayerData playerData = new PlayerData();
+            playerData.aid = aid;
+            playerData.cid = targetCid;
+            playerData.title = newData.title;
+            playerData.mid = mid;
+            playerData.qn = getTargetQuality();
+            
+            if (pagenames != null && cids != null) {
+                playerData.pagenames = pagenames;
+                playerData.cids = cids;
+                int newPageIndex = cids.indexOf(targetCid);
+                if (newPageIndex >= 0) {
+                    playerData.currentPageIndex = newPageIndex;
+                }
+            }
+            
+            PlayerApi.getVideoDash(playerData);
+            Intent intent = PlayerApi.jumpToPlayer(playerData);
+            intent.putExtra("edgeId", newData.edgeId);
+            runOnUiThread(() -> {
+                startActivity(intent);
+                finish();
+            });
+        } catch (Exception e) {
+            Logu.e("互动视频", "跳转失败: " + e.getMessage());
+            runOnUiThread(() -> MsgUtil.showMsg("跳转失败: " + e.getMessage()));
+        }
+    }
+
+    private void resumePlaybackIfPaused() {
+        runOnUiThread(() -> {
+            if (currentQuestion != null && currentQuestion.pauseVideo == 1 && !isPlaying) {
+                ijkPlayer.start();
+                isPlaying = true;
+                btn_control.setImageResource(R.drawable.btn_player_pause);
+            }
+        });
+    }
+
+    private int getTargetQuality() {
+        int defaultQn = SharedPreferencesUtil.getInt("play_qn", 16);
+        if (qnValueList == null || qnValueList.length == 0) {
+            return currentQuality > 0 ? currentQuality : defaultQn;
+        }
+        
+        for (int qn : qnValueList) {
+            if (qn == currentQuality) {
+                return currentQuality;
+            }
+        }
+        
+        return currentQuality > 0 ? currentQuality : defaultQn;
+    }
+
+    private void executeNativeAction(String nativeAction) {
+        if (interactionData == null || interactionData.hiddenVars == null || nativeAction == null || nativeAction.isEmpty()) {
+            return;
+        }
+
+        String[] actions = nativeAction.split(";");
+        for (String action : actions) {
+            action = action.trim();
+            if (action.isEmpty()) continue;
+
+            try {
+                if (action.contains("=")) {
+                    String[] parts = action.split("=");
+                    if (parts.length == 2) {
+                        String varId = parts[0].trim();
+                        String valueExpr = parts[1].trim();
+                        
+                        long value = evaluateValueExpression(valueExpr);
+                        
+                        for (InteractionVideoData.InteractionHiddenVar var : interactionData.hiddenVars) {
+                            if (var.idV2.equals(varId)) {
+                                var.value = value;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Logu.e("互动视频", "执行动作失败: " + action);
+            }
+        }
+    }
+
+    private long evaluateValueExpression(String expr) {
+        try {
+            expr = expr.trim();
+            if (expr.contains("+")) {
+                String[] parts = expr.split("\\+");
+                long sum = 0;
+                for (String part : parts) {
+                    sum += evaluateValueExpression(part.trim());
+                }
+                return sum;
+            } else if (expr.contains("-")) {
+                String[] parts = expr.split("-");
+                long result = evaluateValueExpression(parts[0].trim());
+                for (int i = 1; i < parts.length; i++) {
+                    result -= evaluateValueExpression(parts[i].trim());
+                }
+                return result;
+            } else {
+                if (interactionData != null && interactionData.hiddenVars != null) {
+                    for (InteractionVideoData.InteractionHiddenVar var : interactionData.hiddenVars) {
+                        if (expr.equals(var.idV2)) {
+                            return var.value;
+                        }
+                    }
+                }
+                if (expr.contains(".")) {
+                    return (long) Double.parseDouble(expr);
+                } else {
+                    return Long.parseLong(expr);
+                }
+            }
+        } catch (Exception e) {
+            Logu.e("互动视频", "值表达式计算失败: " + expr + ", 错误: " + e.getMessage());
+            return 0;
+        }
     }
 
     @Override
