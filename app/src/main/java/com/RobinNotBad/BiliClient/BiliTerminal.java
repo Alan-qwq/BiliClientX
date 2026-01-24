@@ -15,6 +15,7 @@ import androidx.multidex.MultiDex;
 import com.RobinNotBad.BiliClient.activity.base.InstanceActivity;
 import com.RobinNotBad.BiliClient.activity.user.info.UserInfoActivity;
 import com.RobinNotBad.BiliClient.api.DynamicApi;
+import com.RobinNotBad.BiliClient.api.MessageApi;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.Logu;
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
@@ -62,6 +63,20 @@ public class BiliTerminal extends Application {
                         SharedPreferencesUtil.putInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, updateNum);
                     } catch (IOException | JSONException e) {
                         SharedPreferencesUtil.putInt(SharedPreferencesUtil.DYNAMIC_UPDATE_NUM, 0);
+                    }
+                });
+            }
+
+            if (SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.MESSAGE_UPDATE_CHECK_ENABLE, true) && SharedPreferencesUtil.getLong(SharedPreferencesUtil.mid, 0) != 0) {
+                CenterThreadPool.run(() -> {
+                    try {
+                        int messageUnread = MessageApi.checkMessageUnread();
+                        int privateMsgUnread = MessageApi.checkPrivateMsgUnread();
+                        int groupMsgUnread = MessageApi.checkGroupMsgUnread();
+                        int totalUnread = messageUnread + privateMsgUnread + groupMsgUnread;
+                        SharedPreferencesUtil.putInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, totalUnread);
+                    } catch (IOException | JSONException e) {
+                        SharedPreferencesUtil.putInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, 0);
                     }
                 });
             }

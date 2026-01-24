@@ -20,6 +20,8 @@ public class SharedPreferencesUtil {
     public static final String NEW_DANMAKU_API = "new_danmaku_api";
     public static final String DYNAMIC_UPDATE_CHECK_ENABLE = "dynamic_update_check_enable";
     public static final String DYNAMIC_UPDATE_NUM = "dynamic_update_num";
+    public static final String MESSAGE_UPDATE_CHECK_ENABLE = "message_update_check_enable";
+    public static final String MESSAGE_UPDATE_NUM = "message_update_num";
     public static final String FOLLOW_GROUP_MODE = "follow_group_mode";
     public static final String NIGHT_REMINDER_ENABLE = "night_reminder_enable";
     public static final String SEARCH_DEFAULT_CONTENT_ENABLE = "search_default_content_enable";

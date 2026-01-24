@@ -45,6 +45,7 @@ public class MenuActivity extends BaseActivity {
 
     private String from;
     private MaterialButton dynamicButton;
+    private MaterialButton messageButton;
 
     /**
      * 在排序设置和Splash中使用到的，
@@ -146,6 +147,15 @@ public class MenuActivity extends BaseActivity {
                     }
                     materialButton.setText(btnText);
                     break;
+                case "message":
+                    String messageBtnText = Objects.requireNonNull(btnNames.get(btn)).first;
+                    messageButton = materialButton;
+                    int messageUpdateNum = SharedPreferencesUtil.getInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, 0);
+                    if (messageUpdateNum > 0) {
+                        messageBtnText = messageBtnText + " (" + messageUpdateNum + ")";
+                    }
+                    materialButton.setText(messageBtnText);
+                    break;
                 default:
                     materialButton.setText(Objects.requireNonNull(btnNames.get(btn)).first);
                     break;
@@ -174,6 +184,14 @@ public class MenuActivity extends BaseActivity {
                 btnText = btnText + " (" + updateNum + ")";
             }
             dynamicButton.setText(btnText);
+        }
+        if (messageButton != null) {
+            String messageBtnText = Objects.requireNonNull(btnNames.get("message")).first;
+            int messageUpdateNum = SharedPreferencesUtil.getInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, 0);
+            if (messageUpdateNum > 0) {
+                messageBtnText = messageBtnText + " (" + messageUpdateNum + ")";
+            }
+            messageButton.setText(messageBtnText);
         }
     }
 

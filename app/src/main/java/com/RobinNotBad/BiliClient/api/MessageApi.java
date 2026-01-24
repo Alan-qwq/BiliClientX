@@ -20,23 +20,67 @@ import java.util.List;
 import okhttp3.Response;
 
 public class MessageApi {
-    public static JSONObject getUnread() throws IOException, JSONException {
+    private static JSONObject getUnreadData() throws IOException, JSONException {
         String url = "https://api.bilibili.com/x/msgfeed/unread";
         JSONObject all = NetWorkUtil.getJson(url);
+        if (all.has("data") && !all.isNull("data")) {
+            return all.getJSONObject("data");
+        }
+        return new JSONObject();
+    }
+
+    public static JSONObject getUnread() throws IOException, JSONException {
+        JSONObject data = getUnreadData();
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("at", data.optInt("at", 0));
+        jsonObject.put("like", data.optInt("like", 0));
+        jsonObject.put("reply", data.optInt("reply", 0));
+        jsonObject.put("system", data.optInt("sys_msg", 0));
+        return jsonObject;
+    }
+
+    public static int checkMessageUnread() throws IOException, JSONException {
+        JSONObject data = getUnreadData();
+        int total = 0;
+        total += data.optInt("at", 0);
+        total += data.optInt("reply", 0);
+        total += data.optInt("like", 0);
+        total += data.optInt("recv_like", 0);
+        total += data.optInt("recv_reply", 0);
+        total += data.optInt("coin", 0);
+        total += data.optInt("danmu", 0);
+        total += data.optInt("favorite", 0);
+        total += data.optInt("sys_msg", 0);
+        total += data.optInt("up", 0);
+        return total;
+    }
+
+    public static int checkPrivateMsgUnread() throws IOException, JSONException {
+        String url = "https://api.vc.bilibili.com/session_svr/v1/session_svr/single_unread";
+        JSONObject all = NetWorkUtil.getJson(url);
+        int total = 0;
         if (all.has("data") && !all.isNull("data")) {
             JSONObject data = all.getJSONObject("data");
-            jsonObject.put("at", data.getInt("at"));
-            jsonObject.put("like", data.getInt("like"));
-            jsonObject.put("reply", data.getInt("reply"));
-            jsonObject.put("system", data.getInt("sys_msg"));
-        } else {
-            jsonObject.put("at", 0);
-            jsonObject.put("like", 0);
-            jsonObject.put("reply", 0);
-            jsonObject.put("system", 0);
+            total += data.optInt("unfollow_unread", 0);
+            total += data.optInt("follow_unread", 0);
+            total += data.optInt("unfollow_push_msg", 0);
+            total += data.optInt("dustbin_push_msg", 0);
+            total += data.optInt("dustbin_unread", 0);
+            total += data.optInt("biz_msg_unfollow_unread", 0);
+            total += data.optInt("biz_msg_follow_unread", 0);
+            total += data.optInt("custom_unread", 0);
         }
-        return jsonObject;
+        return total;
+    }
+
+    public static int checkGroupMsgUnread() throws IOException, JSONException {
+        String url = "https://api.vc.bilibili.com/session_svr/v1/session_svr/my_group_unread";
+        JSONObject all = NetWorkUtil.getJson(url);
+        if (all.has("data") && !all.isNull("data")) {
+            JSONObject data = all.getJSONObject("data");
+            return data.optInt("unread_count", 0);
+        }
+        return 0;
     }
 
     public static Pair<MessageCard.Cursor, List<MessageCard>> getLikeMsg(long id, long time)

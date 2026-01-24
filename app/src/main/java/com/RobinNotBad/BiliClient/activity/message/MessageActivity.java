@@ -20,6 +20,7 @@ import com.RobinNotBad.BiliClient.model.UserInfo;
 import com.RobinNotBad.BiliClient.ui.widget.recycler.CustomLinearManager;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.MsgUtil;
+import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.google.android.material.card.MaterialCardView;
 
 import org.json.JSONObject;
@@ -105,6 +106,7 @@ public class MessageActivity extends InstanceActivity {
                                     "@我" + ((stats.getInt("at") > 0) ? ("(" + stats.getInt("at") + "未读)") : ""));
                             sessionsView.setLayoutManager(new CustomLinearManager(this));
                             sessionsView.setAdapter(adapter);
+                            SharedPreferencesUtil.putInt(SharedPreferencesUtil.MESSAGE_UPDATE_NUM, 0);
                         } catch (Exception e) {
                             MsgUtil.err(e);
                         }
