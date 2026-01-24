@@ -199,9 +199,11 @@ public class SearchActivity extends InstanceActivity {
             });
             historyRecyclerview.setLayoutManager(new CustomLinearManager(this));
             historyRecyclerview.setAdapter(searchHistoryAdapter);
-            historyRecyclerview.setFocusable(true);
-            historyRecyclerview.setFocusableInTouchMode(true);
-            historyRecyclerview.requestFocus();
+            if (searchHistory.size() > 4) {
+                historyRecyclerview.setFocusable(true);
+                historyRecyclerview.setFocusableInTouchMode(true);
+                historyRecyclerview.requestFocus();
+            }
 
             // 初始化搜索建议
             searchSuggestions = new ArrayList<>();
