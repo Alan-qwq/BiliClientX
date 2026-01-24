@@ -225,31 +225,7 @@
 
     #新增功能放到上面，修复问题放下面，方便用户看见
     <string-array name="update_log_items">
-        <item>内置播放器增加了切换清晰度功能</item>
-        <item>内置播放器增加了听视频功能</item>
-        <item>内置播放器增加了新的弹幕获取方式，可以获取到更多弹幕</item>
-        <item>内置播放器增加了高能进度条</item>
-        <item>内置播放器增加了自动继播（同视频不同分P）和切换分P功能</item>
-        <item>增加了“我的”页面的登录记录</item>
-        <item>增加了用户主页的充电公示</item>
-        <item>增加了仅缓存音频功能</item>
-        <item>增加了搜索建议</item>
-        <item>增加了分组展示关注列表，设置中开启</item>
-        <item>增加了创作中心的成为UP主的时间#huang3292</item>
-        <item>增加了消息设置</item>
-        <item>增加了默认搜索的开关</item>
-        <item>增加了需要时的个人空间的加入老粉计划按钮</item>
-        <item>增加了我的大会员页面</item>
-        <item>增加了视频分段快速跳转功能</item>
-        <item>增加了夜深了提醒的开关</item>
-        <item>增加了打开应用时检查新动态数量功能</item>
-        <item>增加了私信部分信息的显示</item>
-        <item>修复了一键三连存在错别字的问题</item>
-        <item>优化了常年bug的缓存页面的下载管理</item>
-        <item>优化了表冠适配</item>
-        <item>优化了少量屎山代码</item>
-        <item>优化了性能但不知道有没有用</item>
-        <item>整理了设置项</item>
+        <item>修复了播放器闪烁“缓存中”的问题</item>
         <item>新增了一些bug和屎山代码</item>
     </string-array>
 
