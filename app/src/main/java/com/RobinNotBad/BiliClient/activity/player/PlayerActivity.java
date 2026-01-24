@@ -2591,7 +2591,6 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     Logu.d("互动视频", "检测到互动视频，graph_version: " + interactionGraphVersion + ", cid: " + cid);
                     
                     runOnUiThread(() -> {
-                        MsgUtil.showMsg("此视频为互动视频，哔哩终端已初步支持互动");
                         questionShown = false;
                         currentQuestion = null;
                         if (interactionChoiceLayout != null) {
@@ -2841,34 +2840,117 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     }
 
     private void jumpToInteractionPage(long targetCid, InteractionVideoData newData) {
-        try {
-            PlayerData playerData = new PlayerData();
-            playerData.aid = aid;
-            playerData.cid = targetCid;
-            playerData.title = newData.title;
-            playerData.mid = mid;
-            playerData.qn = getTargetQuality();
-            
-            if (pagenames != null && cids != null) {
-                playerData.pagenames = pagenames;
-                playerData.cids = cids;
-                int newPageIndex = cids.indexOf(targetCid);
-                if (newPageIndex >= 0) {
-                    playerData.currentPageIndex = newPageIndex;
+        CenterThreadPool.run(() -> {
+            try {
+                PlayerData playerData = new PlayerData();
+                playerData.aid = aid;
+                playerData.cid = targetCid;
+                playerData.title = newData.title;
+                playerData.mid = mid;
+                playerData.qn = getTargetQuality();
+                
+                if (pagenames != null && cids != null) {
+                    playerData.pagenames = pagenames;
+                    playerData.cids = cids;
+                    int newPageIndex = cids.indexOf(targetCid);
+                    if (newPageIndex >= 0) {
+                        playerData.currentPageIndex = newPageIndex;
+                        currentPageIndex = newPageIndex;
+                    }
                 }
+                
+                PlayerApi.getVideo(playerData, false);
+                
+                runOnUiThread(() -> {
+                    if (destroyed)
+                        return;
+                    
+                    if (ijkPlayer != null) {
+                        ijkPlayer.stop();
+                        ijkPlayer.release();
+                    }
+                    if (mDanmakuView != null) {
+                        mDanmakuView.release();
+                        mDanmakuView = null;
+                    }
+                    
+                    cid = targetCid;
+                    video_url = playerData.videoUrl;
+                    danmaku_url = playerData.danmakuUrl;
+                    text_title.setText(newData.title);
+                    videoTitle = newData.title;
+                    currentEdgeId = newData.edgeId;
+                    
+                    if (playerData.qnStrList != null && playerData.qnValueList != null) {
+                        qnStrList = playerData.qnStrList;
+                        qnValueList = playerData.qnValueList;
+                        currentQuality = playerData.qn;
+                    }
+                    
+                    loading_info.setVisibility(View.VISIBLE);
+                    anim_loading.start();
+                    loading_text0.setText("加载互动视频");
+                    isPrepared = false;
+                    isPlaying = false;
+                    finishWatching = false;
+                    progress_history = 0;
+                    subtitles = null;
+                    subtitleLinks = null;
+                    subtitle_selected = -1;
+                    viewPoints = null;
+                    viewPointAdapter = null;
+                    if (btn_viewpoint != null) {
+                        btn_viewpoint.setVisibility(View.GONE);
+                    }
+                    
+                    interactionData = newData;
+                    currentQuestion = null;
+                    questionShown = false;
+                    if (interactionChoiceLayout != null) {
+                        interactionChoiceLayout.setVisibility(View.GONE);
+                        interactionChoiceLayout.removeAllViews();
+                    }
+                    
+                    ijkPlayer = new IjkMediaPlayer();
+                    mDanmakuView = findViewById(R.id.sv_danmaku);
+                    
+                    setDisplay();
+                    
+                    layout_control.postDelayed(() -> CenterThreadPool.run(() -> {
+                        if (destroyed)
+                            return;
+                        
+                        runOnUiThread(() -> {
+                            loading_text0.setText("装填弹幕中");
+                            loading_text1.setText("(≧∇≦)");
+                        });
+                        
+                        if (isOnlineVideo) {
+                            danmakuFile = new File(getCacheDir(), "danmaku.xml");
+                            if (danmakuFile.exists()) {
+                                danmakuFile.delete();
+                            }
+                            downdanmu();
+                        }
+                        
+                        if (!destroyed && SharedPreferencesUtil.getBoolean("player_subtitle_autoshow", true)) {
+                            downSubtitle(false);
+                        }
+                        
+                        if (!destroyed && isOnlineVideo && aid > 0 && cid > 0) {
+                            loadHighEnergyData();
+                        }
+                        
+                        if (!destroyed && isOnlineVideo && aid > 0 && cid > 0 && SharedPreferencesUtil.getBoolean("player_show_viewpoints", false)) {
+                            loadViewPoints();
+                        }
+                    }), 60);
+                });
+            } catch (Exception e) {
+                Logu.e("互动视频", "跳转失败: " + e.getMessage());
+                runOnUiThread(() -> MsgUtil.showMsg("跳转失败: " + e.getMessage()));
             }
-            
-            PlayerApi.getVideoDash(playerData);
-            Intent intent = PlayerApi.jumpToPlayer(playerData);
-            intent.putExtra("edgeId", newData.edgeId);
-            runOnUiThread(() -> {
-                startActivity(intent);
-                finish();
-            });
-        } catch (Exception e) {
-            Logu.e("互动视频", "跳转失败: " + e.getMessage());
-            runOnUiThread(() -> MsgUtil.showMsg("跳转失败: " + e.getMessage()));
-        }
+        });
     }
 
     private void resumePlaybackIfPaused() {
