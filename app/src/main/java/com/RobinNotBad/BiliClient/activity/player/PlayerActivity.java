@@ -14,6 +14,9 @@ import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
+import android.media.MediaMetadata;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -148,6 +151,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
     private Handler mainHandler;
     private Runnable danmakuSyncRunnable;
     private String video_url, danmaku_url;
+    private MediaSession mediaSession;
 
     private boolean isPlaying, isPrepared, hasDanmaku,
             isOnlineVideo, isLiveMode, isSeeking, isDanmakuVisible;
@@ -298,6 +302,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         }
 
         initUI();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && SharedPreferencesUtil.getBoolean(SharedPreferencesUtil.PLAYER_MEDIA_SESSION_ENABLE, false)) {
+            initMediaSession();
+        }
 
         IjkMediaPlayer.loadLibrariesOnce(null);
 
@@ -804,6 +812,9 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     mDanmakuView.pause();
                 }
                 btn_control.setImageResource(R.drawable.btn_player_play);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
+                    updateMediaSessionPlaybackState();
+                }
             }
         });
 
@@ -961,6 +972,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
 
         ijkPlayer.start();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
+            updateMediaSessionMetadata();
+            updateMediaSessionPlaybackState();
+        }
+
         btn_control.setOnClickListener(view -> controlVideo());
         btn_subtitle.setOnClickListener(view -> CenterThreadPool.run(() -> downSubtitle(true)));
     }
@@ -1055,6 +1071,10 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                         
                         if (video_now >= video_all - 100 && !questionShown) {
                             checkEndInteractionQuestions();
+                        }
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
+                            updateMediaSessionPlaybackState();
                         }
                     }
                 }
@@ -1534,6 +1554,9 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         }
         if (btn_control != null)
             btn_control.setImageResource(R.drawable.btn_player_play);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
+            updateMediaSessionPlaybackState();
+        }
     }
 
     private void playerResume() {
@@ -1546,6 +1569,9 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         }
         if (btn_control != null)
             btn_control.setImageResource(R.drawable.btn_player_pause);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
+            updateMediaSessionPlaybackState();
+        }
     }
 
     @Override
@@ -1623,6 +1649,11 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
         if (liveWebSocket != null) {
             liveWebSocket.close(1000, "");
             liveWebSocket = null;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && mediaSession != null) {
+            mediaSession.release();
+            mediaSession = null;
         }
 
         setRequestedOrientation(SharedPreferencesUtil.getBoolean("ui_landscape", false)
@@ -1704,6 +1735,105 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                 e.printStackTrace();
             }
         });
+    }
+
+    @SuppressLint("WrongConstant")
+    private void initMediaSession() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+        mediaSession = new MediaSession(this, "BiliClientPlayer");
+        mediaSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setCallback(new MediaSession.Callback() {
+            @Override
+            public void onPlay() {
+                super.onPlay();
+                runOnUiThread(() -> {
+                    if (!isPlaying) {
+                        playerResume();
+                        updateMediaSessionPlaybackState();
+                    }
+                });
+            }
+
+            @Override
+            public void onPause() {
+                super.onPause();
+                runOnUiThread(() -> {
+                    if (isPlaying) {
+                        playerPause();
+                        updateMediaSessionPlaybackState();
+                    }
+                });
+            }
+
+            @Override
+            public void onSkipToNext() {
+                super.onSkipToNext();
+                runOnUiThread(() -> {
+                    if (hasMultiplePages() && currentPageIndex < pagenames.size() - 1) {
+                        switchToPage(currentPageIndex + 1);
+                    }
+                });
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                super.onSkipToPrevious();
+                runOnUiThread(() -> {
+                    if (hasMultiplePages() && currentPageIndex > 0) {
+                        switchToPage(currentPageIndex - 1);
+                    }
+                });
+            }
+
+            @Override
+            public void onSeekTo(long pos) {
+                super.onSeekTo(pos);
+                runOnUiThread(() -> {
+                    seekToPosition(pos);
+                    updateMediaSessionPlaybackState();
+                });
+            }
+        });
+        mediaSession.setActive(true);
+    }
+
+    private void updateMediaSessionMetadata() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || mediaSession == null) {
+            return;
+        }
+        MediaMetadata.Builder metadataBuilder = new MediaMetadata.Builder();
+        if (videoTitle != null) {
+            metadataBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, videoTitle);
+        }
+        if (video_all > 0) {
+            metadataBuilder.putLong(MediaMetadata.METADATA_KEY_DURATION, video_all);
+        }
+        mediaSession.setMetadata(metadataBuilder.build());
+    }
+
+    private void updateMediaSessionPlaybackState() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || mediaSession == null) {
+            return;
+        }
+        int state = isPlaying ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED;
+        long position = isPrepared && ijkPlayer != null ? ijkPlayer.getCurrentPosition() : 0;
+        long actions = PlaybackState.ACTION_PLAY
+                | PlaybackState.ACTION_PAUSE
+                | PlaybackState.ACTION_SEEK_TO
+                | PlaybackState.ACTION_SKIP_TO_NEXT
+                | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+        if (!hasMultiplePages() || currentPageIndex >= pagenames.size() - 1) {
+            actions &= ~PlaybackState.ACTION_SKIP_TO_NEXT;
+        }
+        if (!hasMultiplePages() || currentPageIndex <= 0) {
+            actions &= ~PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+        }
+        PlaybackState.Builder stateBuilder = new PlaybackState.Builder()
+                .setState(state, position, 1.0f)
+                .setActions(actions);
+        mediaSession.setPlaybackState(stateBuilder.build());
     }
 
     private void initUI() {
@@ -2209,6 +2339,7 @@ public class PlayerActivity extends Activity implements IjkMediaPlayer.OnPrepare
                     video_url = playerData.videoUrl;
                     danmaku_url = playerData.danmakuUrl;
                     text_title.setText(newTitle);
+                    videoTitle = newTitle;
 
                     if (playerData.qnStrList != null && playerData.qnValueList != null) {
                         qnStrList = playerData.qnStrList;

@@ -53,6 +53,8 @@ public class SettingLaboratoryActivity extends RefreshListActivity {
                         "在极少数手表上（如小米手表），系统旋屏存在显示不全的问题。打开此开关，播放器将会使用软件旋屏方法。", "false"));
                 add(new SettingSection("switch", "显示视频分段", "player_show_viewpoints",
                         "显示视频的章节看点信息，可快速跳转到指定章节", "false"));
+                add(new SettingSection("switch", "系统媒体控件", SharedPreferencesUtil.PLAYER_MEDIA_SESSION_ENABLE,
+                        getString(R.string.setting_lab_media_session), "false"));
 
                 add(new SettingSection("title", "调试", "", "", ""));
                 add(new SettingSection("switch", "允许Logu.v", "dev_logv", getString(R.string.setting_lab_logv),
