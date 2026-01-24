@@ -100,25 +100,7 @@ public class VipActivity extends BaseActivity {
                             }
                         }
 
-                        Button signButton = findViewById(R.id.signButton);
                         Button experienceButton = findViewById(R.id.experienceButton);
-
-                        signButton.setOnClickListener(v -> CenterThreadPool.run(() -> {
-                            try {
-                                JSONObject result = VipApi.sign();
-                                int code = result.getInt("code");
-                                String message = result.optString("message", "");
-                                runOnUiThread(() -> {
-                                    if (code == 0) {
-                                        MsgUtil.showMsg("签到成功");
-                                    } else {
-                                        MsgUtil.showMsg("签到失败: " + message);
-                                    }
-                                });
-                            } catch (Exception e) {
-                                runOnUiThread(() -> MsgUtil.err(e));
-                            }
-                        }));
 
                         experienceButton.setOnClickListener(v -> CenterThreadPool.run(() -> {
                             try {
