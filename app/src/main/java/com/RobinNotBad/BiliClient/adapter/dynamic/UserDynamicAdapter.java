@@ -29,6 +29,7 @@ import com.RobinNotBad.BiliClient.activity.ImageViewerActivity;
 import com.RobinNotBad.BiliClient.activity.base.BaseActivity;
 import com.RobinNotBad.BiliClient.activity.message.PrivateMsgActivity;
 import com.RobinNotBad.BiliClient.activity.user.FollowUsersActivity;
+import com.RobinNotBad.BiliClient.activity.user.MedalWallActivity;
 import com.RobinNotBad.BiliClient.adapter.user.ElectricUserAdapter;
 import com.RobinNotBad.BiliClient.api.ElectricApi;
 import com.RobinNotBad.BiliClient.api.UserInfoApi;
@@ -38,6 +39,8 @@ import com.RobinNotBad.BiliClient.model.UserInfo;
 import com.RobinNotBad.BiliClient.ui.widget.RadiusBackgroundSpan;
 import com.RobinNotBad.BiliClient.util.CenterThreadPool;
 import com.RobinNotBad.BiliClient.util.GlideUtil;
+
+import org.json.JSONObject;
 import com.RobinNotBad.BiliClient.util.MsgUtil;
 import com.RobinNotBad.BiliClient.util.SharedPreferencesUtil;
 import com.RobinNotBad.BiliClient.util.StringUtil;
@@ -130,7 +133,7 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     public static class UserInfoHolder extends RecyclerView.ViewHolder {
-        final TextView userName, userFollowings, userLevel, userFans, userDesc, userNotice, userOfficial,
+        final TextView userName, userFollowings, userLevel, userFans, userMedal, userDesc, userNotice, userOfficial,
                 exclusiveTipLabel, liveRoomLabel, electricPanelHeader;
         final MaterialCardView exclusiveTip, liveRoom, electricPanel;
         final ImageView userAvatar, officialIcon;
@@ -148,6 +151,7 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             userNotice = itemView.findViewById(R.id.userNotice);
             userLevel = itemView.findViewById(R.id.userLevel);
             userFans = itemView.findViewById(R.id.userFollowers);
+            userMedal = itemView.findViewById(R.id.userMedal);
             userFollowings = itemView.findViewById(R.id.userFollowings);
             userOfficial = itemView.findViewById(R.id.userOfficial);
             exclusiveTip = itemView.findViewById(R.id.exclusiveTip);
@@ -211,6 +215,11 @@ public class UserDynamicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             this.userFans.setOnClickListener(
                     (view) -> view.getContext().startActivity(new Intent(view.getContext(), FollowUsersActivity.class)
                             .putExtra("mode", 1).putExtra("mid", userInfo.mid)));
+
+            this.userMedal.setOnClickListener(
+                    (view) -> view.getContext().startActivity(new Intent(view.getContext(), MedalWallActivity.class)
+                            .putExtra("mid", userInfo.mid)));
+
             this.userFollowings.setText(StringUtil.toWan(userInfo.following) + "关注");
             this.userFollowings.setOnClickListener(
                     (view) -> view.getContext().startActivity(new Intent(view.getContext(), FollowUsersActivity.class)

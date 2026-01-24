@@ -221,4 +221,13 @@ public class UserInfoApi {
         JSONObject all = new JSONObject(Objects.requireNonNull(NetWorkUtil.post(url, arg, NetWorkUtil.webHeaders).body()).string());
         return all.getInt("code");
     }
+
+    public static JSONObject getMedalWall(long targetId) throws IOException, JSONException {
+        String url = "https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id=" + targetId;
+        JSONObject all = NetWorkUtil.getJson(url, NetWorkUtil.webHeaders);
+        if (all.has("data") && !all.isNull("data")) {
+            return all.getJSONObject("data");
+        }
+        return null;
+    }
 }

@@ -361,6 +361,11 @@
             android:label="我的"
             android:screenOrientation="locked" />
         <activity
+            android:name=".activity.user.MedalWallActivity"
+            android:exported="false"
+            android:label="粉丝勋章"
+            android:screenOrientation="locked" />
+        <activity
             android:name=".activity.settings.SettingUIActivity"
             android:exported="true"
             android:label="界面设置"

@@ -57,14 +57,30 @@
         app:layout_constraintStart_toStartOf="@id/userDesc"
         app:layout_constraintTop_toBottomOf="@+id/userAvatar" />
 
+    <TextView
+        android:id="@+id/userMedal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:alpha="0.7"
+        android:text="查看粉丝勋章"
+        android:textSize="12sp"
+        android:textColor="@color/link"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground"
+        app:layout_constraintBottom_toBottomOf="@+id/userFollowers"
+        app:layout_constraintStart_toEndOf="@id/userFollowers"
+        app:layout_constraintTop_toTopOf="@+id/userFollowers" />
+
     <View
-        android:id="@+id/followDivider"
+        android:id="@+id/medalDivider"
         android:layout_width="1dp"
         android:layout_height="0dp"
         android:layout_marginStart="5dp"
         android:background="#818C8C8C"
         app:layout_constraintBottom_toBottomOf="@id/userFollowers"
-        app:layout_constraintStart_toEndOf="@id/userFollowers"
+        app:layout_constraintStart_toEndOf="@id/userMedal"
         app:layout_constraintTop_toTopOf="@id/userFollowers" />
 
     <TextView
@@ -77,7 +93,7 @@
         android:textSize="12sp"
         android:textColor="@color/link"
         app:layout_constraintBottom_toBottomOf="@+id/userFollowers"
-        app:layout_constraintStart_toEndOf="@id/followDivider"
+        app:layout_constraintStart_toEndOf="@id/medalDivider"
         app:layout_constraintTop_toTopOf="@+id/userFollowers" />
 
     <TextView
