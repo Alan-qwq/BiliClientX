@@ -124,17 +124,145 @@ public class NetWorkUtil {
     }
 
     public static JSONObject getJson(String url) throws IOException, JSONException {
-        try (ResponseBody body = get(url).body()) {
-            if (body != null) return new JSONObject(body.string());
-            else throw new JSONException("在访问" + url + "时返回数据为空");
-        }
+        return getJson(url, webHeaders);
     }
 
     public static JSONObject getJson(String url, ArrayList<String> headers) throws IOException, JSONException {
-        try (ResponseBody body = get(url, headers).body()) {
-            if (body != null) return new JSONObject(body.string());
-            else throw new JSONException("在访问" + url + "时返回数据为空");
+        // 添加重试机制
+        int retryCount = 0;
+        final int maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            try (ResponseBody body = get(url, headers).body()) {
+                if (body != null) {
+                    String responseText = body.string();
+                    
+                    // 检查是否是HTML页面
+                    if (responseText.trim().startsWith("<!DOCTYPE") || responseText.trim().startsWith("<html")) {
+                        Logu.e("收到HTML页面而不是JSON数据，重试 " + (retryCount + 1) + "/" + maxRetries + ": " + url);
+                        retryCount++;
+                        if (retryCount < maxRetries) {
+                            Thread.sleep(1000); // 等待1秒后重试
+                            continue;
+                        } else {
+                            // 所有重试都失败，返回一个包含错误信息的JSONObject
+                            // 而不是抛出异常，这样上层可以统一处理
+                            JSONObject errorJson = new JSONObject();
+                            errorJson.put("code", -1000); // 自定义错误码
+                            errorJson.put("message", "网络请求失败，请检查网络连接后重试");
+                            errorJson.put("data", new JSONObject());
+                            errorJson.put("retry_failed", true);
+                            errorJson.put("original_url", url);
+                            return errorJson;
+                        }
+                    }
+                    
+                    // 检查响应是否为空或太短（可能是错误页面）
+                    if (responseText.trim().isEmpty() || responseText.length() < 10) {
+                        Logu.e("响应数据过短，重试 " + (retryCount + 1) + "/" + maxRetries + ": " + url);
+                        retryCount++;
+                        if (retryCount < maxRetries) {
+                            Thread.sleep(1000);
+                            continue;
+                        } else {
+                            // 所有重试都失败，返回错误JSON
+                            JSONObject errorJson = new JSONObject();
+                            errorJson.put("code", -1001);
+                            errorJson.put("message", "服务器响应异常，请稍后重试");
+                            errorJson.put("data", new JSONObject());
+                            errorJson.put("retry_failed", true);
+                            errorJson.put("original_url", url);
+                            return errorJson;
+                        }
+                    }
+                    
+                    // 尝试解析JSON
+                    JSONObject json = new JSONObject(responseText);
+                    
+                    // 检查是否是B站API的标准响应格式
+                    if (json.has("code")) {
+                        int code = json.optInt("code", -1);
+                        if (code == 0) {
+                            // 成功响应
+                            return json;
+                        } else {
+                            // B站API返回了错误码，直接返回这个JSON
+                            // 上层应该检查code字段
+                            return json;
+                        }
+                    }
+                    
+                    // 如果不是标准格式，直接返回
+                    return json;
+                } else {
+                    // 响应体为空
+                    JSONObject errorJson = new JSONObject();
+                    errorJson.put("code", -1002);
+                    errorJson.put("message", "服务器无响应，请检查网络连接");
+                    errorJson.put("data", new JSONObject());
+                    errorJson.put("retry_failed", true);
+                    errorJson.put("original_url", url);
+                    return errorJson;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("线程被中断", e);
+            } catch (JSONException e) {
+                // JSON解析异常，检查是否需要重试
+                if (retryCount < maxRetries - 1) {
+                    Logu.e("JSON解析失败，重试 " + (retryCount + 1) + "/" + maxRetries + ": " + e.getMessage() + " - " + url);
+                    retryCount++;
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("线程被中断", ie);
+                    }
+                    continue;
+                } else {
+                    // 所有重试都失败，返回错误JSON
+                    JSONObject errorJson = new JSONObject();
+                    errorJson.put("code", -1003);
+                    errorJson.put("message", "数据解析失败，请稍后重试");
+                    errorJson.put("data", new JSONObject());
+                    errorJson.put("retry_failed", true);
+                    errorJson.put("original_url", url);
+                    errorJson.put("json_error", e.getMessage());
+                    return errorJson;
+                }
+            } catch (Exception e) {
+                // 其他异常，检查是否需要重试
+                if (retryCount < maxRetries - 1) {
+                    Logu.e("网络请求失败，重试 " + (retryCount + 1) + "/" + maxRetries + ": " + e.getMessage() + " - " + url);
+                    retryCount++;
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("线程被中断", ie);
+                    }
+                    continue;
+                } else {
+                    // 所有重试都失败，返回错误JSON
+                    JSONObject errorJson = new JSONObject();
+                    errorJson.put("code", -1004);
+                    errorJson.put("message", "网络请求异常: " + e.getMessage());
+                    errorJson.put("data", new JSONObject());
+                    errorJson.put("retry_failed", true);
+                    errorJson.put("original_url", url);
+                    return errorJson;
+                }
+            }
         }
+        
+        // 理论上不会执行到这里，因为所有路径都有返回
+        JSONObject errorJson = new JSONObject();
+        errorJson.put("code", -9999);
+        errorJson.put("message", "未知错误");
+        errorJson.put("data", new JSONObject());
+        errorJson.put("retry_failed", true);
+        errorJson.put("original_url", url);
+        return errorJson;
     }
 
     public static Response get(String url) throws IOException {

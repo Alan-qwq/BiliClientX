@@ -25,40 +25,67 @@ public class ArticleApi {
         String url = "https://api.bilibili.com/x/article/view?";
         url += "id=" + id + "&gaia_source=main_web&web_location=333.976";
         JSONObject result = NetWorkUtil.getJson(ConfInfoApi.signWBI(url));
-        if (!result.has("data")) return null;
+        
+        if (result == null) {
+            throw new IOException("API响应为空");
+        }
+        
+        // 检查是否是重试失败的错误响应
+        if (result.optBoolean("retry_failed", false)) {
+            String message = result.optString("message", "网络请求失败");
+            throw new IOException(message);
+        }
+        
+        int code = result.optInt("code", -1);
+        if (code != 0) {
+            String message = result.optString("message", "未知错误");
+            throw new IOException("API错误: " + code + " - " + message);
+        }
+        
+        if (!result.has("data")) {
+            throw new IOException("API响应数据格式错误");
+        }
+        
         JSONObject data = result.getJSONObject("data");
 
         ArticleInfo articleInfo = new ArticleInfo();
         articleInfo.id = id;
-        articleInfo.title = data.getString("title");
-        articleInfo.summary = data.getString("summary");
-        articleInfo.banner = data.getString("banner_url");
-        articleInfo.ctime = data.getLong("ctime");
+        articleInfo.title = data.optString("title", "");
+        articleInfo.summary = data.optString("summary", "");
+        articleInfo.banner = data.optString("banner_url", "");
+        articleInfo.ctime = data.optLong("ctime", 0);
 
-        JSONObject author = data.getJSONObject("author");
-        UserInfo upInfo = new UserInfo();
-        upInfo.mid = author.getLong("mid");
-        upInfo.name = author.getString("name");
-        upInfo.avatar = author.getString("face");
-        upInfo.fans = author.getInt("fans");
-        upInfo.level = author.getInt("level");
-        articleInfo.upInfo = upInfo;
+        if (data.has("author") && !data.isNull("author")) {
+            JSONObject author = data.getJSONObject("author");
+            UserInfo upInfo = new UserInfo();
+            upInfo.mid = author.optLong("mid", 0);
+            upInfo.name = author.optString("name", "");
+            upInfo.avatar = author.optString("face", "");
+            upInfo.fans = author.optInt("fans", 0);
+            upInfo.level = author.optInt("level", 0);
+            articleInfo.upInfo = upInfo;
+        } else {
+            articleInfo.upInfo = new UserInfo();
+        }
 
-        JSONObject jsonStats = data.getJSONObject("stats");
-        Stats stats = new Stats();
-        stats.view = jsonStats.getInt("view");
-        stats.favorite = jsonStats.getInt("favorite");
-        stats.like = jsonStats.getInt("like");
-        stats.reply = jsonStats.getInt("reply");
-        stats.share = jsonStats.getInt("share");
-        stats.coin = jsonStats.getInt("coin");
-        stats.liked = data.getBoolean("is_like");
+        if (data.has("stats") && !data.isNull("stats")) {
+            JSONObject jsonStats = data.getJSONObject("stats");
+            Stats stats = new Stats();
+            stats.view = jsonStats.optInt("view", 0);
+            stats.favorite = jsonStats.optInt("favorite", 0);
+            stats.like = jsonStats.optInt("like", 0);
+            stats.reply = jsonStats.optInt("reply", 0);
+            stats.share = jsonStats.optInt("share", 0);
+            stats.coin = jsonStats.optInt("coin", 0);
+            stats.liked = data.optBoolean("is_like", false);
+            articleInfo.stats = stats;
+        } else {
+            articleInfo.stats = new Stats();
+        }
 
-        articleInfo.stats = stats;
-
-        articleInfo.wordCount = data.getInt("words");
-        articleInfo.content = data.getString("content");
-        articleInfo.keywords = data.getString("keywords");
+        articleInfo.wordCount = data.optInt("words", 0);
+        articleInfo.content = data.optString("content", "");
+        articleInfo.keywords = data.optString("keywords", "");
         return articleInfo;
     }
 
