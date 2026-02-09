@@ -1,5 +1,6 @@
 package com.RobinNotBad.BiliClient.api;
 
+import com.RobinNotBad.BiliClient.model.ArticleInfo;
 import com.RobinNotBad.BiliClient.model.Opus;
 import com.RobinNotBad.BiliClient.model.OpusParagraph;
 import com.RobinNotBad.BiliClient.model.Stats;
@@ -23,29 +24,95 @@ public class OpusApi {
 
     public static Opus getOpus(long id) throws IOException, JSONException {
         Opus opus = new Opus();
-        opus.type = Opus.TYPE_DYNAMIC;
         opus.id = id;
-
+        
+        // 首先尝试判断是专栏还是动态
+        if (isArticleId(id)) {
+            // 专栏ID，使用ArticleApi获取数据
+            opus.type = Opus.TYPE_ARTICLE;
+            try {
+                ArticleInfo articleInfo = ArticleApi.getArticle(id);
+                if (articleInfo != null) {
+                    // 将ArticleInfo转换为Opus格式
+                    convertArticleInfoToOpus(opus, articleInfo);
+                    return opus;
+                } else {
+                    // ArticleApi.getArticle返回null，使用HTML解析作为备用
+                    return getOpusByHtmlParsing(id, true);
+                }
+            } catch (Exception e) {
+                Logu.e("通过ArticleApi获取专栏失败，尝试备用方法: " + e.getMessage());
+                // 备用方法：使用HTML解析
+                return getOpusByHtmlParsing(id, true);
+            }
+        } else {
+            // 动态ID，使用HTML解析
+            opus.type = Opus.TYPE_DYNAMIC;
+            return getOpusByHtmlParsing(id, false);
+        }
+    }
+    
+    private static boolean isArticleId(long id) {
+        // 专栏ID通常小于100000000，且不以0开头
+        return id > 0 && id < 100000000;
+    }
+    
+    private static Opus getOpusByHtmlParsing(long id, boolean isArticle) throws IOException, JSONException {
+        Opus opus = new Opus();
+        opus.id = id;
+        opus.type = isArticle ? Opus.TYPE_ARTICLE : Opus.TYPE_DYNAMIC;
+        
         String url;
-        if (id > 100000000)
-            url = "https://www.bilibili.com/opus/" + id; // 别问，问就是动态和专栏都被统一了，判断不了类型，只能判断id长度了。能用。
-        else url = "https://www.bilibili.com/read/cv" + id;
+        if (isArticle) {
+            url = "https://www.bilibili.com/read/cv" + id;
+        } else {
+            url = "https://www.bilibili.com/opus/" + id;
+        }
+        
         try {
             Response response = NetWorkUtil.get(url);
-            if (id <= 100000000)
-                response = NetWorkUtil.get(response.headers().get("location")); // 访问/read/cv[id]的话会重定向到/opus/，这里要手动“重定向”，因为OkHTTP不认。
+            
+            // 处理专栏的重定向
+            if (isArticle) {
+                String location = response.headers().get("location");
+                if (location != null && !location.isEmpty()) {
+                    // 确保重定向URL是完整的
+                    if (location.startsWith("//")) {
+                        location = "https:" + location;
+                    } else if (location.startsWith("/")) {
+                        location = "https://www.bilibili.com" + location;
+                    }
+                    response = NetWorkUtil.get(location);
+                }
+            }
+            
             ResponseBody responseBody = response.body();
-            if (responseBody == null) return opus;
+            if (responseBody == null) {
+                throw new IOException("响应体为空");
+            }
 
             String html = responseBody.string();
+            
+            // 检查是否包含错误页面
+            if (html.contains("页面不存在") || html.contains("404")) {
+                throw new IOException("页面不存在");
+            }
 
-            JSONObject detail = new JSONObject(JsonUtil.search(html, "detail", ""));  //效率不高 能用就行 死去的jsonUtil居然还能发光发热
+            String detailJson = JsonUtil.search(html, "detail", "");
+            if (detailJson == null || detailJson.isEmpty()) {
+                throw new JSONException("未找到detail数据");
+            }
+            
+            JSONObject detail = new JSONObject(detailJson);
 
             JSONObject basic = detail.getJSONObject("basic");
-            opus.commentId = Integer.parseInt(basic.optString("comment_id_str", "0"));
+            opus.commentId = Long.parseLong(basic.optString("comment_id_str", "0"));
             opus.commentType = basic.optInt("comment_type");
 
-            if (detail.isNull("modules")) return opus;    //isNull其实涵盖了!has的情况，之前都是咋想的判断两次，我简直是sb
+            if (detail.isNull("modules")) {
+                throw new JSONException("modules数据为空");
+            }
+            
             JSONArray modules = detail.getJSONArray("modules");
 
             for (int i = 0; i < modules.length(); i++) {
@@ -67,10 +134,9 @@ public class OpusApi {
                             }
                         }
                         opus.topImages = topImages;
-                        Logu.d("yes");
                         break;
                     case "MODULE_TYPE_AUTHOR":
-                        JSONObject module_author = module.getJSONObject("module_author");    //我感觉b站也是一个巨大的草台班子，用户信息格式都好几种，头像有avatar有face有head的，他们自己的程序员不累吗……
+                        JSONObject module_author = module.getJSONObject("module_author");
                         UserInfo author = new UserInfo();
                         author.mid = module_author.getLong("mid");
                         author.name = module_author.getString("name");
@@ -94,31 +160,181 @@ public class OpusApi {
 
             if (opus.upInfo == null) opus.upInfo = new UserInfo();
             if (opus.stats == null) opus.stats = new Stats();
-        } catch (IllegalArgumentException e) { // 取不出来的时候，会重定向，但重定向的域名是//开头的，会报错
-            //这里给opus设置一个参数，让OpusInfoActivity跳转到旧版的DynamicInfoActivity，从而无需重写解析
-            //判断方式很简单粗暴，看报错信息里有没有URL这个关键字，有就是跳转错误
+            
+        } catch (IllegalArgumentException e) {
             String errMsg = e.getMessage();
-            if (errMsg != null && errMsg.contains("URL")) opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
-            else MsgUtil.err(e);
-            return opus;
-
-            /*
-            url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?";
-            url += "timezone_offset=-480&platform=web&gaia_source=main_web&id=" + id + "&features=itemOpusStyle,opusBigCover,onlyfansVote,endFooterHidden,decorationCard,onlyfansAssetsV2,ugcDelete,onlyfansQaCard,editable,opusPrivateVisible,avatarAutoTheme&web_location=333.1368&x-bili-device-req-json=%7B%22platform%22:%22web%22,%22device%22:%22pc%22%7D&x-bili-web-req-json=%7B%22spm_id%22:%22333.1368%22%7D";
-            Response response = NetWorkUtil.get(ConfInfoApi.signWBI(url));
-            ResponseBody responseBody = response.body();
-            if(responseBody == null) return opus;
-
-            JSONObject json = new JSONObject(responseBody.string());
-            JSONObject item = json.getJSONObject("data").getJSONObject("item");
-
-            analyzeOldStyleDynamic(opus, item);
-             */
+            if (errMsg != null && errMsg.contains("URL")) {
+                opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
+            } else {
+                throw new IOException("URL格式错误: " + errMsg, e);
+            }
+        } catch (Exception e) {
+            throw new IOException("解析HTML失败: " + e.getMessage(), e);
         }
-        // B站是会做图文的
-
+        
         opus.cover = "";
         return opus;
+    }
+    
+    private static void convertArticleInfoToOpus(Opus opus, ArticleInfo articleInfo) {
+        opus.title = articleInfo.title;
+        opus.cover = articleInfo.banner;
+        opus.content = articleInfo.content;
+        opus.pubTime = String.valueOf(articleInfo.ctime);
+        opus.upInfo = articleInfo.upInfo;
+        opus.stats = articleInfo.stats;
+        
+        // 将HTML内容转换为段落（包含图片）
+        if (articleInfo.content != null && !articleInfo.content.isEmpty()) {
+            opus.paragraphs = convertHtmlToParagraphs(articleInfo.content);
+        }
+        
+        // 设置评论信息
+        opus.commentId = articleInfo.id;
+        opus.commentType = 12; // 专栏的评论类型通常是12
+    }
+    
+    private static OpusParagraph[] convertHtmlToParagraphs(String content) {
+        // 首先尝试解析为JSON格式（新版动态/专栏）
+        try {
+            return parseJsonContent(content);
+        } catch (Exception e) {
+            // JSON解析失败，回退到HTML解析
+            Logu.e("JSON解析失败，尝试HTML解析: " + e.getMessage());
+            return parseHtmlContent(content);
+        }
+    }
+    
+    private static OpusParagraph[] parseJsonContent(String jsonContent) {
+        ArrayList<OpusParagraph> paragraphs = new ArrayList<>();
+        
+        try {
+            JSONObject json = new JSONObject(jsonContent);
+            
+            // 检查是否是ops格式（你提供的示例格式）
+            if (json.has("ops")) {
+                JSONArray ops = json.getJSONArray("ops");
+                for (int i = 0; i < ops.length(); i++) {
+                    JSONObject op = ops.getJSONObject(i);
+                    
+                    // 处理文本
+                    if (op.has("insert") && op.get("insert") instanceof String) {
+                        String text = op.getString("insert");
+                        if (!text.trim().isEmpty() && !text.equals("\n")) {
+                            OpusParagraph textParagraph = new OpusParagraph();
+                            textParagraph.type = OpusParagraph.TYPE_TEXT;
+                            textParagraph.content = text.trim();
+                            paragraphs.add(textParagraph);
+                        }
+                    }
+                    
+                    // 处理图片
+                    if (op.has("insert") && op.get("insert") instanceof JSONObject) {
+                        JSONObject insertObj = op.getJSONObject("insert");
+                        if (insertObj.has("native-image")) {
+                            JSONObject nativeImage = insertObj.getJSONObject("native-image");
+                            if (nativeImage.has("url")) {
+                                String imgUrl = fixImageUrl(nativeImage.getString("url"));
+                                if (imgUrl != null && !imgUrl.isEmpty()) {
+                                    OpusParagraph imgParagraph = new OpusParagraph();
+                                    imgParagraph.type = OpusParagraph.TYPE_PIC;
+                                    imgParagraph.content = new String[]{imgUrl};
+                                    paragraphs.add(imgParagraph);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON解析异常", e);
+        }
+        
+        return paragraphs.toArray(new OpusParagraph[0]);
+    }
+    
+    private static OpusParagraph[] parseHtmlContent(String html) {
+        // 改进的HTML到段落转换，支持图片
+        ArrayList<OpusParagraph> paragraphs = new ArrayList<>();
+        
+        // 使用更智能的HTML解析
+        // 首先处理图片
+        java.util.regex.Pattern imgPattern = java.util.regex.Pattern.compile("<img[^>]+src=\"([^\"]+)\"[^>]*>", java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Matcher imgMatcher = imgPattern.matcher(html);
+        
+        int lastIndex = 0;
+        while (imgMatcher.find()) {
+            // 添加图片前的文本
+            String textBefore = html.substring(lastIndex, imgMatcher.start()).trim();
+            if (!textBefore.isEmpty()) {
+                addTextParagraphs(paragraphs, textBefore);
+            }
+            
+            // 添加图片
+            String imgUrl = imgMatcher.group(1);
+            if (imgUrl != null && !imgUrl.isEmpty()) {
+                // 修复图片URL格式
+                imgUrl = fixImageUrl(imgUrl);
+                
+                OpusParagraph imgParagraph = new OpusParagraph();
+                imgParagraph.type = OpusParagraph.TYPE_PIC;
+                imgParagraph.content = new String[]{imgUrl};
+                paragraphs.add(imgParagraph);
+            }
+            
+            lastIndex = imgMatcher.end();
+        }
+        
+        // 添加剩余的文本
+        String remainingText = html.substring(lastIndex).trim();
+        if (!remainingText.isEmpty()) {
+            addTextParagraphs(paragraphs, remainingText);
+        }
+        
+        return paragraphs.toArray(new OpusParagraph[0]);
+    }
+    
+    private static String fixImageUrl(String imgUrl) {
+        if (imgUrl == null || imgUrl.isEmpty()) {
+            return imgUrl;
+        }
+        
+        // 如果URL以//开头，添加https:
+        if (imgUrl.startsWith("//")) {
+            return "https:" + imgUrl;
+        }
+        
+        // 如果URL以/开头，添加B站域名
+        if (imgUrl.startsWith("/")) {
+            return "https://www.bilibili.com" + imgUrl;
+        }
+        
+        // 如果URL没有协议，添加https://
+        if (!imgUrl.startsWith("http://") && !imgUrl.startsWith("https://")) {
+            return "https://" + imgUrl;
+        }
+        
+        return imgUrl;
+    }
+    
+    private static void addTextParagraphs(ArrayList<OpusParagraph> paragraphs, String htmlText) {
+        // 移除HTML标签，保留纯文本
+        String cleanText = htmlText.replaceAll("<[^>]+>", "").trim();
+        if (cleanText.isEmpty()) {
+            return;
+        }
+        
+        // 按换行分割文本
+        String[] lines = cleanText.split("\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (!line.isEmpty()) {
+                OpusParagraph paragraph = new OpusParagraph();
+                paragraph.type = OpusParagraph.TYPE_TEXT;
+                paragraph.content = line;
+                paragraphs.add(paragraph);
+            }
+        }
     }
 
     public static OpusParagraph[] analyzeParagraphs(JSONArray jsonArray) throws JSONException {
