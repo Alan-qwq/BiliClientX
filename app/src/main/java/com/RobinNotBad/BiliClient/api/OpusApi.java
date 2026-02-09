@@ -69,111 +69,162 @@ public class OpusApi {
             url = "https://www.bilibili.com/opus/" + id;
         }
         
-        try {
-            Response response = NetWorkUtil.get(url);
-            
-            // 处理专栏的重定向
-            if (isArticle) {
-                String location = response.headers().get("location");
-                if (location != null && !location.isEmpty()) {
-                    // 确保重定向URL是完整的
-                    if (location.startsWith("//")) {
-                        location = "https:" + location;
-                    } else if (location.startsWith("/")) {
-                        location = "https://www.bilibili.com" + location;
-                    }
-                    response = NetWorkUtil.get(location);
-                }
-            }
-            
-            ResponseBody responseBody = response.body();
-            if (responseBody == null) {
-                throw new IOException("响应体为空");
-            }
-
-            String html = responseBody.string();
-            
-            // 检查是否包含错误页面
-            if (html.contains("页面不存在") || html.contains("404")) {
-                throw new IOException("页面不存在");
-            }
-
-            String detailJson = JsonUtil.search(html, "detail", "");
-            if (detailJson == null || detailJson.isEmpty()) {
-                throw new JSONException("未找到detail数据");
-            }
-            
-            JSONObject detail = new JSONObject(detailJson);
-
-            JSONObject basic = detail.getJSONObject("basic");
-            opus.commentId = Long.parseLong(basic.optString("comment_id_str", "0"));
-            opus.commentType = basic.optInt("comment_type");
-
-            if (detail.isNull("modules")) {
-                throw new JSONException("modules数据为空");
-            }
-            
-            JSONArray modules = detail.getJSONArray("modules");
-
-            for (int i = 0; i < modules.length(); i++) {
-                JSONObject module = modules.getJSONObject(i);
-                switch (module.optString("module_type")) {
-                    case "MODULE_TYPE_TITLE":
-                        opus.title = module.getJSONObject("module_title").getString("text");
-                        break;
-                    case "MODULE_TYPE_TOP":
-                        ArrayList<String> topImages = new ArrayList<>();
-                        JSONObject module_top = module.getJSONObject("module_top");
-                        JSONObject display = module_top.getJSONObject("display");
-                        int displayType = display.optInt("type");
-                        if (displayType == 1) {
-                            JSONObject album = display.getJSONObject("album");
-                            JSONArray pics = album.getJSONArray("pics");
-                            for (int j = 0; j < pics.length(); j++) {
-                                topImages.add(pics.getJSONObject(j).getString("url"));
-                            }
+        // 添加重试机制
+        int retryCount = 0;
+        final int maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            try {
+                Response response = NetWorkUtil.get(url);
+                
+                // 处理专栏的重定向
+                if (isArticle) {
+                    String location = response.headers().get("location");
+                    if (location != null && !location.isEmpty()) {
+                        // 确保重定向URL是完整的
+                        if (location.startsWith("//")) {
+                            location = "https:" + location;
+                        } else if (location.startsWith("/")) {
+                            location = "https://www.bilibili.com" + location;
                         }
-                        opus.topImages = topImages;
-                        break;
-                    case "MODULE_TYPE_AUTHOR":
-                        JSONObject module_author = module.getJSONObject("module_author");
-                        UserInfo author = new UserInfo();
-                        author.mid = module_author.getLong("mid");
-                        author.name = module_author.getString("name");
-                        author.followed = module_author.optBoolean("following", false);
-                        author.avatar = module_author.getString("face");
-                        if (!module_author.isNull("vip"))
-                            author.vip_nickname_color = module_author.getJSONObject("vip").optString("nickname_color", "");
+                        response = NetWorkUtil.get(location);
+                    }
+                }
+                
+                ResponseBody responseBody = response.body();
+                if (responseBody == null) {
+                    throw new IOException("响应体为空");
+                }
 
-                        opus.pubTime = module_author.getString("pub_time");
-                        opus.upInfo = author;
-                        break;
-                    case "MODULE_TYPE_CONTENT":
-                        JSONArray paragraphs = module.getJSONObject("module_content").getJSONArray("paragraphs");
-                        opus.paragraphs = analyzeParagraphs(paragraphs);
-                        break;
-                    case "MODULE_TYPE_STAT":
-                        opus.stats = Stats.fromOpus(module.optJSONObject("module_stat"));
-                        break;
+                String html = responseBody.string();
+                
+                // 检查是否返回了HTML错误页面
+                if (html.trim().startsWith("<!DOCTYPE") || html.trim().startsWith("<html")) {
+                    Logu.e("收到HTML页面而不是JSON数据，重试 " + (retryCount + 1) + "/" + maxRetries);
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        Thread.sleep(1000); // 等待1秒后重试
+                        continue;
+                    } else {
+                        throw new IOException("API返回HTML页面而不是JSON数据");
+                    }
+                }
+                
+                // 检查是否包含错误页面
+                if (html.contains("页面不存在") || html.contains("404")) {
+                    throw new IOException("页面不存在");
+                }
+
+                String detailJson = JsonUtil.search(html, "detail", "");
+                if (detailJson == null || detailJson.isEmpty()) {
+                    throw new JSONException("未找到detail数据");
+                }
+                
+                // 验证detailJson是否是有效的JSON
+                if (detailJson.trim().startsWith("<!DOCTYPE") || detailJson.trim().startsWith("<html")) {
+                    Logu.e("detail数据是HTML而不是JSON，重试 " + (retryCount + 1) + "/" + maxRetries);
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        Thread.sleep(1000); // 等待1秒后重试
+                        continue;
+                    } else {
+                        throw new JSONException("detail数据是HTML而不是JSON");
+                    }
+                }
+                
+                JSONObject detail = new JSONObject(detailJson);
+
+                JSONObject basic = detail.getJSONObject("basic");
+                opus.commentId = Long.parseLong(basic.optString("comment_id_str", "0"));
+                opus.commentType = basic.optInt("comment_type");
+
+                if (detail.isNull("modules")) {
+                    throw new JSONException("modules数据为空");
+                }
+                
+                JSONArray modules = detail.getJSONArray("modules");
+
+                for (int i = 0; i < modules.length(); i++) {
+                    JSONObject module = modules.getJSONObject(i);
+                    switch (module.optString("module_type")) {
+                        case "MODULE_TYPE_TITLE":
+                            opus.title = module.getJSONObject("module_title").getString("text");
+                            break;
+                        case "MODULE_TYPE_TOP":
+                            ArrayList<String> topImages = new ArrayList<>();
+                            JSONObject module_top = module.getJSONObject("module_top");
+                            JSONObject display = module_top.getJSONObject("display");
+                            int displayType = display.optInt("type");
+                            if (displayType == 1) {
+                                JSONObject album = display.getJSONObject("album");
+                                JSONArray pics = album.getJSONArray("pics");
+                                for (int j = 0; j < pics.length(); j++) {
+                                    topImages.add(pics.getJSONObject(j).getString("url"));
+                                }
+                            }
+                            opus.topImages = topImages;
+                            break;
+                        case "MODULE_TYPE_AUTHOR":
+                            JSONObject module_author = module.getJSONObject("module_author");
+                            UserInfo author = new UserInfo();
+                            author.mid = module_author.getLong("mid");
+                            author.name = module_author.getString("name");
+                            author.followed = module_author.optBoolean("following", false);
+                            author.avatar = module_author.getString("face");
+                            if (!module_author.isNull("vip"))
+                                author.vip_nickname_color = module_author.getJSONObject("vip").optString("nickname_color", "");
+
+                            opus.pubTime = module_author.getString("pub_time");
+                            opus.upInfo = author;
+                            break;
+                        case "MODULE_TYPE_CONTENT":
+                            JSONArray paragraphs = module.getJSONObject("module_content").getJSONArray("paragraphs");
+                            opus.paragraphs = analyzeParagraphs(paragraphs);
+                            break;
+                        case "MODULE_TYPE_STAT":
+                            opus.stats = Stats.fromOpus(module.optJSONObject("module_stat"));
+                            break;
+                    }
+                }
+
+                if (opus.upInfo == null) opus.upInfo = new UserInfo();
+                if (opus.stats == null) opus.stats = new Stats();
+                
+                opus.cover = "";
+                return opus; // 成功，返回结果
+                
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("线程被中断", e);
+            } catch (IllegalArgumentException e) {
+                String errMsg = e.getMessage();
+                if (errMsg != null && errMsg.contains("URL")) {
+                    opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
+                    opus.cover = "";
+                    return opus;
+                } else {
+                    throw new IOException("URL格式错误: " + errMsg, e);
+                }
+            } catch (Exception e) {
+                // 其他异常，检查是否需要重试
+                if (retryCount < maxRetries - 1) {
+                    Logu.e("解析失败，重试 " + (retryCount + 1) + "/" + maxRetries + ": " + e.getMessage());
+                    retryCount++;
+                    try {
+                        Thread.sleep(1000); // 等待1秒后重试
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("线程被中断", ie);
+                    }
+                    continue;
+                } else {
+                    throw new IOException("解析HTML失败: " + e.getMessage(), e);
                 }
             }
-
-            if (opus.upInfo == null) opus.upInfo = new UserInfo();
-            if (opus.stats == null) opus.stats = new Stats();
-            
-        } catch (IllegalArgumentException e) {
-            String errMsg = e.getMessage();
-            if (errMsg != null && errMsg.contains("URL")) {
-                opus.type = Opus.TYPE_DYNAMIC_OLD_STYLE;
-            } else {
-                throw new IOException("URL格式错误: " + errMsg, e);
-            }
-        } catch (Exception e) {
-            throw new IOException("解析HTML失败: " + e.getMessage(), e);
         }
         
-        opus.cover = "";
-        return opus;
+        // 如果所有重试都失败
+        throw new IOException("获取动态数据失败，已达到最大重试次数");
     }
     
     private static void convertArticleInfoToOpus(Opus opus, ArticleInfo articleInfo) {

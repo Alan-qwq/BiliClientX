@@ -26,14 +26,24 @@ public class ArticleApi {
         url += "id=" + id + "&gaia_source=main_web&web_location=333.976";
         JSONObject result = NetWorkUtil.getJson(ConfInfoApi.signWBI(url));
         
-        if (result == null || !result.has("data")) {
-            throw new IOException("API响应为空或无效");
+        if (result == null) {
+            throw new IOException("API响应为空");
+        }
+        
+        // 检查是否是重试失败的错误响应
+        if (result.optBoolean("retry_failed", false)) {
+            String message = result.optString("message", "网络请求失败");
+            throw new IOException(message);
         }
         
         int code = result.optInt("code", -1);
         if (code != 0) {
             String message = result.optString("message", "未知错误");
             throw new IOException("API错误: " + code + " - " + message);
+        }
+        
+        if (!result.has("data")) {
+            throw new IOException("API响应数据格式错误");
         }
         
         JSONObject data = result.getJSONObject("data");
