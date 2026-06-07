@@ -1,0 +1,113 @@
+package com.Alan.BiliClientX.activity.video.local;
+
+import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.Alan.BiliClientX.BiliTerminal;
+import com.Alan.BiliClientX.R;
+import com.Alan.BiliClientX.activity.base.BaseActivity;
+import com.Alan.BiliClientX.activity.base.InstanceActivity;
+import com.Alan.BiliClientX.adapter.video.PageChooseAdapter;
+import com.Alan.BiliClientX.api.PlayerApi;
+import com.Alan.BiliClientX.model.PlayerData;
+import com.Alan.BiliClientX.ui.widget.recycler.CustomLinearManager;
+import com.Alan.BiliClientX.util.CenterThreadPool;
+import com.Alan.BiliClientX.util.FileUtil;
+import com.Alan.BiliClientX.util.MsgUtil;
+
+import java.io.File;
+import java.util.ArrayList;
+
+//分页视频选集
+//2023-07-17
+
+public class LocalPageChooseActivity extends BaseActivity {
+
+    private int longClickPosition = -1;
+    private long longClickTimestamp;
+    private boolean deleted = false;
+
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_simple_list);
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        findViewById(R.id.top).setOnClickListener(view -> finish());
+
+        TextView textView = findViewById(R.id.pageName);
+        textView.setText("请选择分页");
+
+        Intent intent = getIntent();
+        String title = intent.getStringExtra("title");
+        ArrayList<String> pageList = intent.getStringArrayListExtra("pageList");
+        ArrayList<String> videoFileList = intent.getStringArrayListExtra("videoFileList");
+        ArrayList<String> danmakuFileList = intent.getStringArrayListExtra("danmakuFileList");
+
+        PageChooseAdapter adapter = new PageChooseAdapter(this, pageList);
+        adapter.setOnItemClickListener(position -> {
+            PlayerData playerData = new PlayerData(PlayerData.TYPE_LOCAL);
+            String mediaPath = videoFileList.get(position);
+            playerData.videoUrl = mediaPath;
+            playerData.danmakuUrl = danmakuFileList.get(position);
+            playerData.title = pageList.get(position);
+            try {
+                Intent player = PlayerApi.jumpToPlayer(playerData);
+                // 如果是仅音频文件，标记为音频模式
+                if (mediaPath.endsWith("audio.m4a")) {
+                    player.putExtra("audio_only", true);
+                }
+                startActivity(player);
+            } catch (ActivityNotFoundException e) {
+                MsgUtil.showMsg("没有找到播放器，请检查是否安装");
+            } catch (Exception e) {
+                MsgUtil.err(e);
+            }
+        });
+        adapter.setOnItemLongClickListener(position -> {
+            long timestamp = System.currentTimeMillis();
+            if (longClickPosition == position && timestamp - longClickTimestamp < 4000) {
+                CenterThreadPool.run(() -> {
+                    File workPath = FileUtil.getVideoDownloadPath();
+                    File videoPath = new File(workPath, title);
+                    File pagePath = new File(videoPath, pageList.get(position));
+
+                    FileUtil.deleteFolder(pagePath);
+                    pageList.remove(position);
+                    videoFileList.remove(position);
+                    danmakuFileList.remove(position);
+                    if (pageList.isEmpty())
+                        FileUtil.deleteFolder(videoPath);
+                });
+
+                adapter.notifyItemRemoved(position);
+                adapter.notifyItemRangeChanged(0, pageList.size() - position);
+
+                MsgUtil.showMsg("删除成功");
+                longClickPosition = -1;
+
+                deleted = true;
+            } else {
+                longClickPosition = position;
+                longClickTimestamp = timestamp;
+                MsgUtil.showMsg("再次长按删除");
+            }
+        });
+
+        recyclerView.setLayoutManager(new CustomLinearManager(this));
+        recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        InstanceActivity instance = BiliTerminal.getInstanceActivityOnTop();
+        if (deleted && instance instanceof LocalListActivity && !instance.isDestroyed())
+            ((LocalListActivity) (instance)).refresh();
+        super.onDestroy();
+    }
+}
