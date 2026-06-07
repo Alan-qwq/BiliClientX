@@ -24,7 +24,7 @@ android {
         minSdk 14
         //noinspection ExpiredTargetSdkVersion
         targetSdk 26
-        versionCode 20260607
+        versionCode 20260608
         versionName "3.0.0"
 
         if (betaVer) {
@@ -43,14 +43,14 @@ android {
 
     signingConfigs {
         release {
-            def localProps = project.rootProject.file("local.properties")
-            if (localProps.exists() && new Properties() {{
-                load(localProps.newDataInputStream())
-            }}.hasProperty("KEY_PATH")) {
-                storeFile file(pro.getProperty("KEY_PATH") != null ? pro.getProperty("KEY_PATH") : "key.jks")
-                storePassword pro.getProperty("KEY_PASSWORD")
-                keyAlias pro.getProperty("ALIAS_NAME")
-                keyPassword pro.getProperty("ALIAS_PASSWORD")
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
             }
         }
     }
@@ -62,12 +62,7 @@ android {
             shrinkResources true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            def localProps = project.rootProject.file("local.properties")
-            if (localProps.exists() && new Properties() {{
-                load(localProps.newDataInputStream())
-            }}.hasProperty("KEY_PATH")) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig signingConfigs.release
         }
         debug {
             buildConfigField "boolean", "BETA", String.valueOf(betaVer > 0)
