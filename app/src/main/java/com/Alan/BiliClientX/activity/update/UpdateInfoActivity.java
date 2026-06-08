@@ -97,11 +97,6 @@ public class UpdateInfoActivity extends BaseActivity {
                         String url = AppInfoApi.getDownloadUrl(versionCode);
 
                         apkFile = new File(FileUtil.getDownloadPath(), FileUtil.getFileNameFromLink(url));
-                        if (apkFile.exists()) {
-                            MsgUtil.showMsg("已有本地安装包！");
-                            downloadComplete();
-                            return;
-                        }
 
                         Intent downloadIntent = new Intent(this, DownloadActivity.class)
                                 .putExtra("link", url)

@@ -44,6 +44,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.Inflater;
 
+import okhttp3.Request;
 import okhttp3.Response;
 import okio.BufferedSink;
 import okio.Okio;
@@ -433,30 +434,60 @@ public class DownloadService extends Service {
     }
 
     private int downFile(String url, File file) throws IOException {
+        // 断点续传：检查已下载的文件大小
+        long existingSize = 0;
+        if (file.exists() && file.length() > 0) {
+            existingSize = file.length();
+        }
+
         Response response;
         try {
-            response = NetWorkUtil.get(url);
+            if (existingSize > 0) {
+                ArrayList<String> headers = new ArrayList<>(NetWorkUtil.webHeaders);
+                headers.add("Range");
+                headers.add("bytes=" + existingSize + "-");
+                Request.Builder requestBuilder = new Request.Builder().url(url).get();
+                for (int i = 0; i < headers.size(); i += 2)
+                    requestBuilder.addHeader(headers.get(i), headers.get(i + 1));
+                response = NetWorkUtil.getOkHttpInstance().newCall(requestBuilder.build()).execute();
+            } else {
+                response = NetWorkUtil.get(url);
+            }
         } catch (IOException e) {
             return ERR_NETWORK;
         }
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         try {
+            long contentLength = Objects.requireNonNull(response.body()).contentLength();
+            boolean isPartial = response.code() == 206;
+
+            // 如果服务器不支持 Range（返回 200），从头开始下载
+            if (!isPartial) {
+                if (file.exists() && !file.delete())
+                    return ERR_FILE;
+                existingSize = 0;
+            }
+
             if (!file.exists() && !file.createNewFile())
                 return ERR_FILE;
-            else if (!file.delete() || !file.createNewFile())
-                return ERR_FILE;
 
-            inputStream = Objects.requireNonNull(response.body()).byteStream();
-            fileOutputStream = new FileOutputStream(file);
+            long totalFileSize = isPartial ? existingSize + contentLength : contentLength;
+
+            inputStream = response.body().byteStream();
+            fileOutputStream = new FileOutputStream(file, isPartial);
+
             int len;
             byte[] bytes = new byte[1024 * 10];
-            long TotalFileSize = Objects.requireNonNull(response.body()).contentLength();
+            long downloadedSize = existingSize;
             while ((len = inputStream.read(bytes)) != -1 && started) {
                 fileOutputStream.write(bytes, 0, len);
-                long CompleteFileSize = file.length();
-                percent = 1.0f * CompleteFileSize / TotalFileSize;
+                downloadedSize += len;
+                if (totalFileSize > 0) {
+                    percent = (float) downloadedSize / totalFileSize;
+                }
             }
+            fileOutputStream.flush();
             if (!started)
                 return ERR_UNKNOWN;
         } catch (IOException e) {

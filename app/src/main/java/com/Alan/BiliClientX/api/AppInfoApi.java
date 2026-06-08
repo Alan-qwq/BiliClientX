@@ -218,7 +218,7 @@ public class AppInfoApi {
             JSONObject section = data.getJSONObject(i);
             Announcement announcement = new Announcement();
             announcement.id = section.getInt("id");
-            announcement.ctime = sdf.format(section.getLong("ctime") * 1000);
+            announcement.ctime = sdf.format(section.getLong("ctime"));
             announcement.title = section.getString("title");
             announcement.content = section.getString("content");
             list.add(announcement);

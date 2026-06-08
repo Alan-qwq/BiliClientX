@@ -20,12 +20,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.Inflater;
 
+import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Sink;
@@ -121,19 +124,55 @@ public class DownloadActivity extends BaseActivity {
     private void download(String url, File file, String desc, boolean exitOnFinish) {
         dldText = desc;
         try {
-            Response response = NetWorkUtil.get(url,
-                    no_bili_headers ? AppInfoApi.customHeaders : NetWorkUtil.webHeaders);
-            if (!file.exists()) file.createNewFile();
-            InputStream inputStream = Objects.requireNonNull(response.body()).byteStream();
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            ArrayList<String> headers = new ArrayList<>(no_bili_headers ? AppInfoApi.customHeaders : NetWorkUtil.webHeaders);
+
+            // 断点续传：检查已下载的文件大小
+            long existingSize = 0;
+            if (file.exists()) {
+                existingSize = file.length();
+                if (existingSize > 0) {
+                    headers.add("Range");
+                    headers.add("bytes=" + existingSize + "-");
+                }
+            }
+
+            Request.Builder requestBuilder = new Request.Builder().url(url).get();
+            for (int i = 0; i < headers.size(); i += 2)
+                requestBuilder.addHeader(headers.get(i), headers.get(i + 1));
+            Response response = NetWorkUtil.getOkHttpInstance().newCall(requestBuilder.build()).execute();
+
+            ResponseBody body = response.body();
+            if (body == null) {
+                runOnUiThread(() -> MsgUtil.showMsg("下载失败：响应为空"));
+                response.close();
+                finish();
+                return;
+            }
+
+            long contentLength = body.contentLength();
+            boolean isPartial = response.code() == 206;
+
+            // 如果服务器不支持 Range（返回 200），从头开始下载
+            if (!isPartial) {
+                existingSize = 0;
+            }
+
+            long totalFileSize = isPartial ? existingSize + contentLength : contentLength;
+
+            InputStream inputStream = body.byteStream();
+            FileOutputStream fileOutputStream = new FileOutputStream(file, isPartial);
+
             int len;
             byte[] bytes = new byte[1024 * 10];
-            long TotalFileSize = Objects.requireNonNull(response.body()).contentLength();
+            long downloadedSize = existingSize;
             while ((len = inputStream.read(bytes)) != -1) {
                 fileOutputStream.write(bytes, 0, len);
-                long CompleteFileSize = file.length();
-                dldPercent = 1.0f * CompleteFileSize / TotalFileSize;
+                downloadedSize += len;
+                if (totalFileSize > 0) {
+                    dldPercent = (float) downloadedSize / totalFileSize;
+                }
             }
+            fileOutputStream.flush();
             inputStream.close();
             fileOutputStream.close();
             if (exitOnFinish) {
@@ -147,7 +186,7 @@ public class DownloadActivity extends BaseActivity {
                     }
                 }, 200);
             }
-            response.body().close();
+            body.close();
             response.close();
         } catch (IOException e) {
             runOnUiThread(() -> MsgUtil.showMsg("下载失败"));
